@@ -9,6 +9,8 @@ function App() {
   const [editConfig, setEditConfig] = useState(null);
   const [showBuildModal, setShowBuildModal] = useState(false);
   const [buildings, setBuildings] = useState([]);
+  const [rentInput, setRentInput] = useState('');
+  const [rentError, setRentError] = useState('');
 
   const fetchState = useCallback(async () => {
     try {
@@ -19,10 +21,13 @@ function App() {
       if (!editConfig) {
         setEditConfig(data.config);
       }
+      if (rentInput === '' || rentInput === String(data.currentRent)) {
+        setRentInput(String(data.currentRent));
+      }
     } catch (err) {
       console.error('Failed to fetch state:', err);
     }
-  }, [editConfig]);
+  }, [editConfig, rentInput]);
 
   const fetchBuildings = async () => {
     try {
@@ -41,28 +46,60 @@ function App() {
     return () => clearInterval(interval);
   }, [fetchState]);
 
-  const handleStart = async () => {
-    await fetch(`${API_BASE}/api/start`, { method: 'POST' });
-    fetchState();
-  };
-
-  const handlePause = async () => {
-    await fetch(`${API_BASE}/api/pause`, { method: 'POST' });
-    fetchState();
-  };
-
   const handleReset = async () => {
     await fetch(`${API_BASE}/api/reset`, { method: 'POST' });
+    setRentError('');
+    fetchState();
+  };
+
+  const handleDismissWeekly = async () => {
+    await fetch(`${API_BASE}/api/dismiss-weekly`, { method: 'POST' });
     fetchState();
   };
 
   const handleSetRent = async (rent) => {
+    const rentNum = parseInt(rent);
+    if (isNaN(rentNum) || rentNum < config.rentMin || rentNum > config.rentMax) {
+      setRentError(`Rent must be between £${config.rentMin} and £${config.rentMax}`);
+      return false;
+    }
+    setRentError('');
     await fetch(`${API_BASE}/api/action/set-rent`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ rent: parseInt(rent) })
+      body: JSON.stringify({ rent: rentNum })
     });
+    setRentInput(String(rentNum));
     fetchState();
+    return true;
+  };
+
+  const handleRentSliderChange = (e) => {
+    const val = e.target.value;
+    setRentInput(val);
+    setRentError('');
+    handleSetRent(val);
+  };
+
+  const handleRentInputChange = (e) => {
+    setRentInput(e.target.value);
+    setRentError('');
+  };
+
+  const handleRentInputBlur = () => {
+    const val = parseInt(rentInput);
+    if (isNaN(val) || val < config.rentMin || val > config.rentMax) {
+      setRentError(`Rent must be between £${config.rentMin} and £${config.rentMax}`);
+      setRentInput(String(gameState.currentRent));
+    } else {
+      handleSetRent(val);
+    }
+  };
+
+  const handleRentInputKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      handleRentInputBlur();
+    }
   };
 
   const handleRecruit = async (count = 1) => {
@@ -86,6 +123,7 @@ function App() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(editConfig)
     });
+    setRentError('');
     fetchState();
     setView('dashboard');
   };
@@ -100,8 +138,10 @@ function App() {
 
   const formatCurrency = (val) => {
     const prefix = val < 0 ? '-£' : '£';
-    return `${prefix}${Math.abs(val).toLocaleString()}`;
+    return `${prefix}${Math.abs(Math.round(val)).toLocaleString()}`;
   };
+
+  const showWeeklyModal = gameState.isPausedForWeeklyDecision && !gameState.isGameOver;
 
   return (
     <div className="app">
@@ -136,8 +176,8 @@ function App() {
           <div className="card">
             <h2>Status</h2>
             <div className="stat">
-              <span className="stat-label">Week</span>
-              <span className="stat-value">{gameState.week}</span>
+              <span className="stat-label">Week {gameState.week}</span>
+              <span className="stat-value">{gameState.dayName}</span>
             </div>
             <div className="stat">
               <span className="stat-label">Treasury</span>
@@ -153,6 +193,10 @@ function App() {
               <span className="stat-label">Bedrooms</span>
               <span className="stat-value">{gameState.bedrooms}</span>
             </div>
+            <div className="stat">
+              <span className="stat-label">Weekly Rent</span>
+              <span className="stat-value">{formatCurrency(gameState.currentRent)}</span>
+            </div>
             {gameState.recruitQueue > 0 && (
               <div className="stat">
                 <span className="stat-label">Arriving next week</span>
@@ -160,64 +204,34 @@ function App() {
               </div>
             )}
             <div className="controls">
-              {!gameState.isRunning ? (
-                <button className="btn-start" onClick={handleStart}>Start</button>
-              ) : (
-                <button className="btn-pause" onClick={handlePause}>Pause</button>
-              )}
               <button className="btn-reset" onClick={handleReset}>Reset</button>
             </div>
           </div>
 
           <div className="card">
-            <h2>Actions</h2>
-            <div className="slider-container">
-              <label>Rent per Resident (£/week)</label>
-              <input 
-                type="range" 
-                min={config.rentMin} 
-                max={config.rentMax} 
-                value={gameState.currentRent}
-                onChange={(e) => handleSetRent(e.target.value)}
-              />
-              <div className="slider-value">{formatCurrency(gameState.currentRent)}</div>
-            </div>
-            <button 
-              className="action-button"
-              onClick={() => handleRecruit(1)}
-              disabled={
-                gameState.residents + gameState.recruitQueue >= gameState.capacity ||
-                gameState.recruitsThisWeek >= config.maxRecruitPerWeek
-              }
-            >
-              Recruit Resident ({config.maxRecruitPerWeek - (gameState.recruitsThisWeek || 0)} left this week)
-            </button>
-            <button 
-              className="action-button"
-              onClick={() => setShowBuildModal(true)}
-            >
-              Build...
-            </button>
-          </div>
-
-          <div className="card">
-            <h2>Weekly Finances</h2>
+            <h2>Weekly Projection</h2>
             <div className="stat">
               <span className="stat-label">Income (Rent)</span>
               <span className="stat-value positive">
-                {formatCurrency(gameState.residents * gameState.currentRent)}
+                {formatCurrency(gameState.projectedIncome || gameState.residents * gameState.currentRent)}
               </span>
             </div>
             <div className="stat">
               <span className="stat-label">Ground Rent</span>
               <span className="stat-value negative">
-                -{formatCurrency(Math.round(config.groundRentBase * (1 + Math.max(0, gameState.bedrooms - 1) * config.groundRentBedroomModifier)))}
+                -{formatCurrency(gameState.projectedGroundRent || Math.round(config.groundRentBase * (1 + Math.max(0, gameState.bedrooms - 1) * config.groundRentBedroomModifier)))}
               </span>
             </div>
             <div className="stat">
               <span className="stat-label">Utilities</span>
               <span className="stat-value negative">
-                -{formatCurrency(Math.round(config.utilitiesBase * (1 + Math.max(0, gameState.bedrooms - 1) * config.utilitiesBedroomModifier)))}
+                -{formatCurrency(gameState.projectedUtilities || Math.round(config.utilitiesBase * (1 + Math.max(0, gameState.bedrooms - 1) * config.utilitiesBedroomModifier)))}
+              </span>
+            </div>
+            <div className="stat">
+              <span className="stat-label">Net Change</span>
+              <span className={`stat-value ${gameState.weeklyDelta >= 0 ? 'positive' : 'negative'}`}>
+                {formatCurrency(gameState.weeklyDelta)}
               </span>
             </div>
             {gameState.lastWeekSummary && (
@@ -240,6 +254,17 @@ function App() {
                   </div>
                 )}
               </div>
+            )}
+          </div>
+
+          <div className="card">
+            <h2>Game Status</h2>
+            {gameState.isPausedForWeeklyDecision ? (
+              <p className="status-paused">Waiting for weekly decisions...</p>
+            ) : gameState.isRunning ? (
+              <p className="status-running">Week in progress - Day {gameState.day}/7</p>
+            ) : (
+              <p className="status-paused">Paused</p>
             )}
           </div>
         </div>
@@ -350,6 +375,96 @@ function App() {
                 <input type="number" value={editConfig.tickSpeed} onChange={(e) => updateEditConfig('tickSpeed', e.target.value)} />
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {showWeeklyModal && (
+        <div className="modal-overlay">
+          <div className="modal weekly-modal">
+            <h2>Week {gameState.week} - Monday 9am</h2>
+            <p className="modal-subtitle">Make your decisions for the week ahead</p>
+            
+            <div className="modal-section">
+              <h3>Set Weekly Rent</h3>
+              <div className="rent-control">
+                <input 
+                  type="range" 
+                  min={config.rentMin} 
+                  max={config.rentMax} 
+                  value={gameState.currentRent}
+                  onChange={handleRentSliderChange}
+                />
+                <div className="rent-input-row">
+                  <span>£</span>
+                  <input
+                    type="number"
+                    className="rent-text-input"
+                    value={rentInput}
+                    onChange={handleRentInputChange}
+                    onBlur={handleRentInputBlur}
+                    onKeyDown={handleRentInputKeyDown}
+                    min={config.rentMin}
+                    max={config.rentMax}
+                  />
+                  <span className="rent-range">({config.rentMin} - {config.rentMax})</span>
+                </div>
+                {rentError && <div className="rent-error">{rentError}</div>}
+              </div>
+            </div>
+
+            <div className="modal-section">
+              <h3>Recruit Residents</h3>
+              <p className="modal-info">
+                Capacity: {gameState.residents}/{gameState.capacity} | 
+                Recruits this week: {gameState.recruitsThisWeek}/{config.maxRecruitPerWeek}
+              </p>
+              <button 
+                className="action-button"
+                onClick={() => handleRecruit(1)}
+                disabled={
+                  gameState.residents + gameState.recruitQueue >= gameState.capacity ||
+                  gameState.recruitsThisWeek >= config.maxRecruitPerWeek
+                }
+              >
+                Recruit (+1 arriving next week)
+              </button>
+              {gameState.recruitQueue > 0 && (
+                <p className="modal-info positive">+{gameState.recruitQueue} arriving next week</p>
+              )}
+            </div>
+
+            <div className="modal-section">
+              <h3>Build</h3>
+              <button 
+                className="action-button"
+                onClick={() => setShowBuildModal(true)}
+              >
+                Open Build Menu
+              </button>
+            </div>
+
+            <div className="modal-section projection-summary">
+              <h3>Week Projection</h3>
+              <div className="stat">
+                <span className="stat-label">Income</span>
+                <span className="stat-value positive">{formatCurrency(gameState.projectedIncome)}</span>
+              </div>
+              <div className="stat">
+                <span className="stat-label">Expenses</span>
+                <span className="stat-value negative">-{formatCurrency(gameState.projectedGroundRent + gameState.projectedUtilities)}</span>
+              </div>
+              <div className="stat">
+                <span className="stat-label">Net</span>
+                <span className={`stat-value ${gameState.weeklyDelta >= 0 ? 'positive' : 'negative'}`}>
+                  {formatCurrency(gameState.weeklyDelta)}
+                </span>
+              </div>
+            </div>
+
+            <button className="modal-confirm" onClick={handleDismissWeekly}>
+              Start Week
+            </button>
           </div>
         </div>
       )}

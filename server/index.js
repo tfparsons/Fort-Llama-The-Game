@@ -12,6 +12,8 @@ let gameState = null;
 let gameConfig = null;
 let simulationInterval = null;
 
+const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
 const defaultConfig = {
   startingTreasury: 0,
   startingBedrooms: 4,
@@ -39,13 +41,32 @@ function initializeGame(config = defaultConfig) {
     bedrooms: gameConfig.startingBedrooms,
     residents: gameConfig.startingResidents,
     currentRent: gameConfig.defaultRent,
-    week: 0,
+    week: 1,
+    day: 0,
+    dayName: 'Monday',
     isRunning: false,
+    isPausedForWeeklyDecision: true,
     isGameOver: false,
     lastWeekSummary: null,
     recruitQueue: 0,
-    recruitsThisWeek: 0
+    recruitsThisWeek: 0,
+    weeklyDelta: 0,
+    dailyDelta: 0,
+    treasuryAtWeekStart: gameConfig.startingTreasury
   };
+  calculateWeeklyProjection();
+}
+
+function calculateWeeklyProjection() {
+  const income = gameState.residents * gameState.currentRent;
+  const groundRent = calculateGroundRent();
+  const utilities = calculateUtilities();
+  const weeklyDelta = income - groundRent - utilities;
+  gameState.weeklyDelta = weeklyDelta;
+  gameState.dailyDelta = weeklyDelta / 7;
+  gameState.projectedIncome = income;
+  gameState.projectedGroundRent = groundRent;
+  gameState.projectedUtilities = utilities;
 }
 
 function calculateGroundRent() {
@@ -65,37 +86,17 @@ function calculateChurn() {
   return Math.min(residentsLeaving, gameState.residents);
 }
 
-function processWeek() {
-  if (gameState.isGameOver) return;
+function processDay() {
+  if (gameState.isGameOver || gameState.isPausedForWeeklyDecision) return;
 
-  const income = gameState.residents * gameState.currentRent;
-  const groundRent = calculateGroundRent();
-  const utilities = calculateUtilities();
-  const totalExpenses = groundRent + utilities;
-  const profit = income - totalExpenses;
+  gameState.day += 1;
+  gameState.dayName = DAY_NAMES[gameState.day - 1] || 'Monday';
+  
+  gameState.treasury += gameState.dailyDelta;
 
-  const churnedResidents = calculateChurn();
-  gameState.residents = Math.max(0, gameState.residents - churnedResidents);
-
-  const arrivingResidents = gameState.recruitQueue;
-  gameState.recruitQueue = 0;
-  gameState.residents += arrivingResidents;
-
-  gameState.recruitsThisWeek = 0;
-
-  gameState.treasury += profit;
-  gameState.week += 1;
-
-  gameState.lastWeekSummary = {
-    week: gameState.week,
-    income,
-    groundRent,
-    utilities,
-    totalExpenses,
-    profit,
-    arrivingResidents,
-    churnedResidents
-  };
+  if (gameState.day >= 7) {
+    processWeekEnd();
+  }
 
   if (gameState.treasury <= gameConfig.gameOverLimit) {
     gameState.isGameOver = true;
@@ -103,11 +104,44 @@ function processWeek() {
   }
 }
 
+function processWeekEnd() {
+  const churnedResidents = calculateChurn();
+  gameState.residents = Math.max(0, gameState.residents - churnedResidents);
+
+  const arrivingResidents = gameState.recruitQueue;
+  gameState.recruitQueue = 0;
+  gameState.residents += arrivingResidents;
+
+  const actualProfit = gameState.treasury - gameState.treasuryAtWeekStart;
+  
+  gameState.lastWeekSummary = {
+    week: gameState.week,
+    income: gameState.projectedIncome,
+    groundRent: gameState.projectedGroundRent,
+    utilities: gameState.projectedUtilities,
+    totalExpenses: gameState.projectedGroundRent + gameState.projectedUtilities,
+    profit: actualProfit,
+    arrivingResidents,
+    churnedResidents
+  };
+
+  gameState.week += 1;
+  gameState.day = 0;
+  gameState.dayName = 'Monday';
+  gameState.recruitsThisWeek = 0;
+  gameState.treasuryAtWeekStart = gameState.treasury;
+  gameState.isPausedForWeeklyDecision = true;
+  stopSimulation();
+  
+  calculateWeeklyProjection();
+}
+
 function startSimulation() {
   if (simulationInterval) return;
+  if (gameState.isPausedForWeeklyDecision) return;
   gameState.isRunning = true;
   simulationInterval = setInterval(() => {
-    processWeek();
+    processDay();
   }, gameConfig.tickSpeed);
 }
 
@@ -117,6 +151,13 @@ function stopSimulation() {
     simulationInterval = null;
   }
   gameState.isRunning = false;
+}
+
+function dismissWeeklyPause() {
+  if (!gameState.isPausedForWeeklyDecision) return;
+  gameState.isPausedForWeeklyDecision = false;
+  calculateWeeklyProjection();
+  startSimulation();
 }
 
 initializeGame();
@@ -148,6 +189,10 @@ app.post('/api/reset', (req, res) => {
 });
 
 app.post('/api/start', (req, res) => {
+  if (gameState.isPausedForWeeklyDecision) {
+    res.status(400).json({ error: 'Dismiss weekly decision modal first' });
+    return;
+  }
   startSimulation();
   res.json({ success: true, isRunning: true });
 });
@@ -157,17 +202,31 @@ app.post('/api/pause', (req, res) => {
   res.json({ success: true, isRunning: false });
 });
 
+app.post('/api/dismiss-weekly', (req, res) => {
+  dismissWeeklyPause();
+  res.json({ success: true, isRunning: gameState.isRunning, isPausedForWeeklyDecision: false });
+});
+
 app.post('/api/action/set-rent', (req, res) => {
+  if (!gameState.isPausedForWeeklyDecision) {
+    res.status(400).json({ error: 'Can only change rent during weekly planning' });
+    return;
+  }
   const { rent } = req.body;
   if (rent >= gameConfig.rentMin && rent <= gameConfig.rentMax) {
     gameState.currentRent = rent;
+    calculateWeeklyProjection();
     res.json({ success: true, currentRent: gameState.currentRent });
   } else {
-    res.status(400).json({ error: 'Rent out of range' });
+    res.status(400).json({ error: `Rent must be between £${gameConfig.rentMin} and £${gameConfig.rentMax}` });
   }
 });
 
 app.post('/api/action/recruit', (req, res) => {
+  if (!gameState.isPausedForWeeklyDecision) {
+    res.status(400).json({ error: 'Can only recruit during weekly planning' });
+    return;
+  }
   const { count = 1 } = req.body;
   const capacity = gameState.bedrooms * gameConfig.bedroomCapacity;
   const futureResidents = gameState.residents + gameState.recruitQueue + count;
@@ -189,6 +248,10 @@ app.post('/api/action/recruit', (req, res) => {
 });
 
 app.post('/api/action/build-bedroom', (req, res) => {
+  if (!gameState.isPausedForWeeklyDecision) {
+    res.status(400).json({ error: 'Can only build during weekly planning' });
+    return;
+  }
   if (gameState.treasury < gameConfig.bedroomBuildCost) {
     res.status(400).json({ error: 'Not enough funds' });
     return;
@@ -196,6 +259,7 @@ app.post('/api/action/build-bedroom', (req, res) => {
   
   gameState.treasury -= gameConfig.bedroomBuildCost;
   gameState.bedrooms += 1;
+  calculateWeeklyProjection();
   res.json({ 
     success: true, 
     bedrooms: gameState.bedrooms, 

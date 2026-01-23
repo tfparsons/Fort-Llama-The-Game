@@ -32,6 +32,12 @@ Players manage a commune with the core loop being:
 
 ## Game Mechanics
 
+### Time System
+- Daily ticks (7 days per week)
+- Auto-pause at end of each week for player decisions
+- Weekly action modal appears on Monday 9am
+- Treasury animates daily (1/7 of weekly change per tick)
+
 ### Income
 - Rent from residents: `residents × currentRent`
 
@@ -42,9 +48,10 @@ Players manage a commune with the core loop being:
 ### Churn
 - `churnRate = baseChurn + (rent × churnMultiplier)`
 - Higher rent = more churn
+- Churn calculated at end of week
 
-### Player Actions (per week)
-1. Set rent (slider £50-500)
+### Player Actions (weekly modal)
+1. Set rent (slider + text input, £50-500 with validation)
 2. Recruit residents (max 2/week, arrive next week)
 3. Build bedroom (instant, fixed cost)
 
@@ -77,6 +84,9 @@ All parameter changes trigger simulation reset.
 
 ## Recent Changes
 
+- 2026-01-23: Changed to daily ticks with weekly pause and action modal
+- 2026-01-23: Added rent text input with validation (must be within range)
+- 2026-01-23: Treasury now animates daily (split weekly change by 7)
 - 2026-01-23: Updated defaults (residents=2, rent=100, groundRent=1000, utilities=200, capacity=2)
 - 2026-01-23: Redesigned Dev Tools panel with 4-column grid layout (no scrolling)
 - 2026-01-22: Initial project setup with Express + React/Vite

@@ -368,3 +368,114 @@ body {
   margin-bottom: 10px;
   font-size: 0.9rem;
 }
+
+.weekly-modal {
+  max-width: 550px;
+}
+
+.modal-subtitle {
+  color: #aaa;
+  margin-bottom: 20px;
+  font-size: 0.95rem;
+}
+
+.modal-section {
+  background: #0f3460;
+  padding: 15px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+}
+
+.modal-section h3 {
+  color: #fbbf24;
+  margin-bottom: 10px;
+  font-size: 1rem;
+}
+
+.modal-info {
+  color: #aaa;
+  font-size: 0.85rem;
+  margin-bottom: 10px;
+}
+
+.modal-info.positive {
+  color: #4ade80;
+}
+
+.rent-control {
+  margin-top: 10px;
+}
+
+.rent-control input[type="range"] {
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.rent-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rent-input-row span {
+  color: #e94560;
+  font-weight: bold;
+}
+
+.rent-text-input {
+  width: 80px;
+  padding: 8px 10px;
+  background: #1a1a2e;
+  border: 2px solid #0f3460;
+  border-radius: 4px;
+  color: #eee;
+  font-size: 1.1rem;
+  text-align: center;
+}
+
+.rent-text-input:focus {
+  border-color: #e94560;
+  outline: none;
+}
+
+.rent-range {
+  color: #666;
+  font-size: 0.85rem;
+}
+
+.rent-error {
+  color: #f87171;
+  font-size: 0.85rem;
+  margin-top: 8px;
+}
+
+.projection-summary {
+  background: #16213e;
+  border: 1px solid #e94560;
+}
+
+.modal-confirm {
+  width: 100%;
+  padding: 15px;
+  background: #4ade80;
+  color: #1a1a2e;
+  border: none;
+  border-radius: 4px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.modal-confirm:hover {
+  opacity: 0.9;
+}
+
+.status-paused {
+  color: #fbbf24;
+  font-style: italic;
+}
+
+.status-running {
+  color: #4ade80;
+}
