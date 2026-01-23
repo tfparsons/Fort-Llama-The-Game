@@ -13,7 +13,10 @@ function App() {
   const [rentError, setRentError] = useState('');
   
   const [panelMinimized, setPanelMinimized] = useState(false);
-  const [panelPosition, setPanelPosition] = useState({ x: 20, y: 80 });
+  const [panelPosition, setPanelPosition] = useState({ 
+    x: Math.max(20, (window.innerWidth - 360) / 2), 
+    y: Math.max(80, (window.innerHeight - 450) / 2) 
+  });
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const panelRef = useRef(null);
@@ -55,7 +58,7 @@ function App() {
   useEffect(() => {
     const handleMouseMove = (e) => {
       if (isDragging) {
-        const newX = Math.max(0, Math.min(window.innerWidth - 320, e.clientX - dragOffset.x));
+        const newX = Math.max(0, Math.min(window.innerWidth - 380, e.clientX - dragOffset.x));
         const newY = Math.max(0, Math.min(window.innerHeight - 100, e.clientY - dragOffset.y));
         setPanelPosition({ x: newX, y: newY });
       }
