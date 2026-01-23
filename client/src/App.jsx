@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 
 const API_BASE = '';
 
@@ -11,6 +11,12 @@ function App() {
   const [buildings, setBuildings] = useState([]);
   const [rentInput, setRentInput] = useState('');
   const [rentError, setRentError] = useState('');
+  
+  const [panelMinimized, setPanelMinimized] = useState(false);
+  const [panelPosition, setPanelPosition] = useState({ x: 20, y: 80 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const panelRef = useRef(null);
 
   const fetchState = useCallback(async () => {
     try {
@@ -45,6 +51,43 @@ function App() {
     const interval = setInterval(fetchState, 500);
     return () => clearInterval(interval);
   }, [fetchState]);
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (isDragging) {
+        const newX = Math.max(0, Math.min(window.innerWidth - 320, e.clientX - dragOffset.x));
+        const newY = Math.max(0, Math.min(window.innerHeight - 100, e.clientY - dragOffset.y));
+        setPanelPosition({ x: newX, y: newY });
+      }
+    };
+    const handleMouseUp = () => setIsDragging(false);
+    
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    }
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, dragOffset]);
+
+  const showWeeklyPanel = gameState?.isPausedForWeeklyDecision && !gameState?.isGameOver;
+  
+  useEffect(() => {
+    if (!showWeeklyPanel) {
+      setIsDragging(false);
+    }
+  }, [showWeeklyPanel]);
+
+  const handlePanelMouseDown = (e) => {
+    if (e.target.closest('.panel-btn')) return;
+    setIsDragging(true);
+    setDragOffset({
+      x: e.clientX - panelPosition.x,
+      y: e.clientY - panelPosition.y
+    });
+  };
 
   const handleReset = async () => {
     await fetch(`${API_BASE}/api/reset`, { method: 'POST' });
@@ -137,31 +180,53 @@ function App() {
   }
 
   const formatCurrency = (val) => {
-    const prefix = val < 0 ? '-£' : '£';
-    return `${prefix}${Math.abs(Math.round(val)).toLocaleString()}`;
+    const num = val ?? 0;
+    const prefix = num < 0 ? '-£' : '£';
+    return `${prefix}${Math.abs(Math.round(num)).toLocaleString()}`;
   };
 
-  const showWeeklyModal = gameState.isPausedForWeeklyDecision && !gameState.isGameOver;
+  const projectedIncome = gameState.projectedIncome ?? (gameState.residents * gameState.currentRent);
+  const projectedGroundRent = gameState.projectedGroundRent ?? Math.round(config.groundRentBase * (1 + Math.max(0, gameState.bedrooms - 1) * config.groundRentBedroomModifier));
+  const projectedUtilities = gameState.projectedUtilities ?? Math.round(config.utilitiesBase * (1 + Math.max(0, gameState.bedrooms - 1) * config.utilitiesBedroomModifier));
+  const weeklyDelta = gameState.weeklyDelta ?? (projectedIncome - projectedGroundRent - projectedUtilities);
 
   return (
     <div className="app">
-      <header className="header">
-        <h1>Fort Llama: The Game</h1>
-        <div className="nav-buttons">
-          <button 
-            className={view === 'dashboard' ? 'active' : ''} 
-            onClick={() => setView('dashboard')}
-          >
-            Dashboard
-          </button>
-          <button 
-            className={view === 'devtools' ? 'active' : ''} 
-            onClick={() => { setView('devtools'); setEditConfig(config); }}
-          >
-            Dev Tools
-          </button>
+      <div className="top-bar">
+        <div className="top-bar-left">
+          <h1>Fort Llama</h1>
+          <div className="nav-buttons">
+            <button 
+              className={view === 'dashboard' ? 'active' : ''} 
+              onClick={() => setView('dashboard')}
+            >
+              Dashboard
+            </button>
+            <button 
+              className={view === 'devtools' ? 'active' : ''} 
+              onClick={() => { setView('devtools'); setEditConfig(config); }}
+            >
+              Dev Tools
+            </button>
+          </div>
         </div>
-      </header>
+        <div className="top-bar-stats">
+          <div className="top-stat">
+            <span className="top-stat-label">Treasury</span>
+            <span className={`top-stat-value ${gameState.treasury >= 0 ? 'positive' : 'negative'}`}>
+              {formatCurrency(gameState.treasury)}
+            </span>
+          </div>
+          <div className="top-stat">
+            <span className="top-stat-label">Residents</span>
+            <span className="top-stat-value">{gameState.residents}/{gameState.capacity}</span>
+          </div>
+          <div className="top-stat">
+            <span className="top-stat-label">Week {gameState.week}</span>
+            <span className="top-stat-value">{gameState.dayName}</span>
+          </div>
+        </div>
+      </div>
 
       {gameState.isGameOver && (
         <div className="game-over">
@@ -172,100 +237,82 @@ function App() {
       )}
 
       {view === 'dashboard' && (
-        <div className="dashboard">
-          <div className="card">
-            <h2>Status</h2>
-            <div className="stat">
-              <span className="stat-label">Week {gameState.week}</span>
-              <span className="stat-value">{gameState.dayName}</span>
-            </div>
-            <div className="stat">
-              <span className="stat-label">Treasury</span>
-              <span className={`stat-value ${gameState.treasury >= 0 ? 'positive' : 'negative'}`}>
-                {formatCurrency(gameState.treasury)}
-              </span>
-            </div>
-            <div className="stat">
-              <span className="stat-label">Residents</span>
-              <span className="stat-value">{gameState.residents} / {gameState.capacity}</span>
-            </div>
-            <div className="stat">
-              <span className="stat-label">Bedrooms</span>
-              <span className="stat-value">{gameState.bedrooms}</span>
-            </div>
-            <div className="stat">
-              <span className="stat-label">Weekly Rent</span>
-              <span className="stat-value">{formatCurrency(gameState.currentRent)}</span>
-            </div>
-            {gameState.recruitQueue > 0 && (
+        <div className="main-content">
+          <div className="content-grid">
+            <div className="card">
+              <h2>Commune Status</h2>
               <div className="stat">
-                <span className="stat-label">Arriving next week</span>
-                <span className="stat-value positive">+{gameState.recruitQueue}</span>
+                <span className="stat-label">Bedrooms</span>
+                <span className="stat-value">{gameState.bedrooms}</span>
               </div>
-            )}
-            <div className="controls">
-              <button className="btn-reset" onClick={handleReset}>Reset</button>
+              <div className="stat">
+                <span className="stat-label">Weekly Rent</span>
+                <span className="stat-value">{formatCurrency(gameState.currentRent)}</span>
+              </div>
+              {gameState.recruitQueue > 0 && (
+                <div className="stat">
+                  <span className="stat-label">Arriving next week</span>
+                  <span className="stat-value positive">+{gameState.recruitQueue}</span>
+                </div>
+              )}
+              <div className="controls">
+                <button className="btn-reset" onClick={handleReset}>Reset Game</button>
+              </div>
             </div>
-          </div>
 
-          <div className="card">
-            <h2>Weekly Projection</h2>
-            <div className="stat">
-              <span className="stat-label">Income (Rent)</span>
-              <span className="stat-value positive">
-                {formatCurrency(gameState.projectedIncome || gameState.residents * gameState.currentRent)}
-              </span>
+            <div className="card">
+              <h2>Weekly Projection</h2>
+              <div className="stat">
+                <span className="stat-label">Income (Rent)</span>
+                <span className="stat-value positive">{formatCurrency(projectedIncome)}</span>
+              </div>
+              <div className="stat">
+                <span className="stat-label">Ground Rent</span>
+                <span className="stat-value negative">-{formatCurrency(projectedGroundRent)}</span>
+              </div>
+              <div className="stat">
+                <span className="stat-label">Utilities</span>
+                <span className="stat-value negative">-{formatCurrency(projectedUtilities)}</span>
+              </div>
+              <div className="stat highlight">
+                <span className="stat-label">Net Change</span>
+                <span className={`stat-value ${weeklyDelta >= 0 ? 'positive' : 'negative'}`}>
+                  {formatCurrency(weeklyDelta)}
+                </span>
+              </div>
             </div>
-            <div className="stat">
-              <span className="stat-label">Ground Rent</span>
-              <span className="stat-value negative">
-                -{formatCurrency(gameState.projectedGroundRent || Math.round(config.groundRentBase * (1 + Math.max(0, gameState.bedrooms - 1) * config.groundRentBedroomModifier)))}
-              </span>
-            </div>
-            <div className="stat">
-              <span className="stat-label">Utilities</span>
-              <span className="stat-value negative">
-                -{formatCurrency(gameState.projectedUtilities || Math.round(config.utilitiesBase * (1 + Math.max(0, gameState.bedrooms - 1) * config.utilitiesBedroomModifier)))}
-              </span>
-            </div>
-            <div className="stat">
-              <span className="stat-label">Net Change</span>
-              <span className={`stat-value ${gameState.weeklyDelta >= 0 ? 'positive' : 'negative'}`}>
-                {formatCurrency(gameState.weeklyDelta)}
-              </span>
-            </div>
-            {gameState.lastWeekSummary && (
-              <div className="week-summary">
-                <h3>Last Week (Week {gameState.lastWeekSummary.week})</h3>
-                <div className="stat">
-                  <span className="stat-label">Net Profit/Loss</span>
-                  <span className={`stat-value ${gameState.lastWeekSummary.profit >= 0 ? 'positive' : 'negative'}`}>
-                    {formatCurrency(gameState.lastWeekSummary.profit)}
-                  </span>
-                </div>
-                <div className="stat">
-                  <span className="stat-label">Residents Churned</span>
-                  <span className="stat-value negative">-{gameState.lastWeekSummary.churnedResidents}</span>
-                </div>
-                {gameState.lastWeekSummary.arrivingResidents > 0 && (
+
+            <div className="card">
+              <h2>Game Status</h2>
+              {gameState.isPausedForWeeklyDecision ? (
+                <div className="status-message paused">Planning Phase - Make your weekly decisions</div>
+              ) : gameState.isRunning ? (
+                <div className="status-message running">Week in progress - Day {gameState.day}/7</div>
+              ) : (
+                <div className="status-message paused">Paused</div>
+              )}
+              {gameState.lastWeekSummary && (
+                <div className="week-summary">
+                  <h3>Last Week (Week {gameState.lastWeekSummary.week})</h3>
                   <div className="stat">
-                    <span className="stat-label">New Arrivals</span>
-                    <span className="stat-value positive">+{gameState.lastWeekSummary.arrivingResidents}</span>
+                    <span className="stat-label">Net Profit/Loss</span>
+                    <span className={`stat-value ${gameState.lastWeekSummary.profit >= 0 ? 'positive' : 'negative'}`}>
+                      {formatCurrency(gameState.lastWeekSummary.profit)}
+                    </span>
                   </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          <div className="card">
-            <h2>Game Status</h2>
-            {gameState.isPausedForWeeklyDecision ? (
-              <p className="status-paused">Waiting for weekly decisions...</p>
-            ) : gameState.isRunning ? (
-              <p className="status-running">Week in progress - Day {gameState.day}/7</p>
-            ) : (
-              <p className="status-paused">Paused</p>
-            )}
+                  <div className="stat">
+                    <span className="stat-label">Residents Churned</span>
+                    <span className="stat-value negative">-{gameState.lastWeekSummary.churnedResidents}</span>
+                  </div>
+                  {gameState.lastWeekSummary.arrivingResidents > 0 && (
+                    <div className="stat">
+                      <span className="stat-label">New Arrivals</span>
+                      <span className="stat-value positive">+{gameState.lastWeekSummary.arrivingResidents}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -379,93 +426,95 @@ function App() {
         </div>
       )}
 
-      {showWeeklyModal && (
-        <div className="modal-overlay">
-          <div className="modal weekly-modal">
-            <h2>Week {gameState.week} - Monday 9am</h2>
-            <p className="modal-subtitle">Make your decisions for the week ahead</p>
-            
-            <div className="modal-section">
-              <h3>Set Weekly Rent</h3>
-              <div className="rent-control">
-                <input 
-                  type="range" 
-                  min={config.rentMin} 
-                  max={config.rentMax} 
-                  value={gameState.currentRent}
-                  onChange={handleRentSliderChange}
-                />
-                <div className="rent-input-row">
-                  <span>£</span>
-                  <input
-                    type="number"
-                    className="rent-text-input"
-                    value={rentInput}
-                    onChange={handleRentInputChange}
-                    onBlur={handleRentInputBlur}
-                    onKeyDown={handleRentInputKeyDown}
-                    min={config.rentMin}
-                    max={config.rentMax}
-                  />
-                  <span className="rent-range">({config.rentMin} - {config.rentMax})</span>
-                </div>
-                {rentError && <div className="rent-error">{rentError}</div>}
-              </div>
-            </div>
-
-            <div className="modal-section">
-              <h3>Recruit Residents</h3>
-              <p className="modal-info">
-                Capacity: {gameState.residents}/{gameState.capacity} | 
-                Recruits this week: {gameState.recruitsThisWeek}/{config.maxRecruitPerWeek}
-              </p>
-              <button 
-                className="action-button"
-                onClick={() => handleRecruit(1)}
-                disabled={
-                  gameState.residents + gameState.recruitQueue >= gameState.capacity ||
-                  gameState.recruitsThisWeek >= config.maxRecruitPerWeek
-                }
-              >
-                Recruit (+1 arriving next week)
-              </button>
-              {gameState.recruitQueue > 0 && (
-                <p className="modal-info positive">+{gameState.recruitQueue} arriving next week</p>
-              )}
-            </div>
-
-            <div className="modal-section">
-              <h3>Build</h3>
-              <button 
-                className="action-button"
-                onClick={() => setShowBuildModal(true)}
-              >
-                Open Build Menu
+      {showWeeklyPanel && (
+        <div 
+          className={`floating-panel ${panelMinimized ? 'minimized' : ''}`}
+          ref={panelRef}
+          style={{ left: panelPosition.x, top: panelPosition.y }}
+        >
+          <div className="panel-header" onMouseDown={handlePanelMouseDown}>
+            <div className="panel-title">Week {gameState.week} Planning</div>
+            <div className="panel-controls">
+              <button className="panel-btn minimize" onClick={() => setPanelMinimized(!panelMinimized)}>
+                {panelMinimized ? '+' : '−'}
               </button>
             </div>
-
-            <div className="modal-section projection-summary">
-              <h3>Week Projection</h3>
-              <div className="stat">
-                <span className="stat-label">Income</span>
-                <span className="stat-value positive">{formatCurrency(gameState.projectedIncome)}</span>
-              </div>
-              <div className="stat">
-                <span className="stat-label">Expenses</span>
-                <span className="stat-value negative">-{formatCurrency(gameState.projectedGroundRent + gameState.projectedUtilities)}</span>
-              </div>
-              <div className="stat">
-                <span className="stat-label">Net</span>
-                <span className={`stat-value ${gameState.weeklyDelta >= 0 ? 'positive' : 'negative'}`}>
-                  {formatCurrency(gameState.weeklyDelta)}
-                </span>
-              </div>
-            </div>
-
-            <button className="modal-confirm" onClick={handleDismissWeekly}>
-              Start Week
-            </button>
           </div>
+          
+          {!panelMinimized && (
+            <div className="panel-content">
+              <div className="panel-section">
+                <label>Set Rent</label>
+                <div className="rent-row">
+                  <input 
+                    type="range" 
+                    min={config.rentMin} 
+                    max={config.rentMax} 
+                    value={gameState.currentRent}
+                    onChange={handleRentSliderChange}
+                  />
+                  <div className="rent-value">
+                    <span>£</span>
+                    <input
+                      type="number"
+                      value={rentInput}
+                      onChange={handleRentInputChange}
+                      onBlur={handleRentInputBlur}
+                      onKeyDown={handleRentInputKeyDown}
+                      min={config.rentMin}
+                      max={config.rentMax}
+                    />
+                  </div>
+                </div>
+                {rentError && <div className="panel-error">{rentError}</div>}
+              </div>
+
+              <div className="panel-section">
+                <label>Recruit ({gameState.recruitsThisWeek}/{config.maxRecruitPerWeek} this week)</label>
+                <button 
+                  className="panel-action"
+                  onClick={() => handleRecruit(1)}
+                  disabled={
+                    gameState.residents + gameState.recruitQueue >= gameState.capacity ||
+                    gameState.recruitsThisWeek >= config.maxRecruitPerWeek
+                  }
+                >
+                  +1 Resident (arrives next week)
+                </button>
+                {gameState.recruitQueue > 0 && (
+                  <div className="panel-note positive">+{gameState.recruitQueue} arriving next week</div>
+                )}
+              </div>
+
+              <div className="panel-section">
+                <label>Build</label>
+                <button className="panel-action" onClick={() => setShowBuildModal(true)}>
+                  Build Menu (£{config.bedroomBuildCost.toLocaleString()})
+                </button>
+              </div>
+
+              <div className="panel-projection">
+                <div className="proj-row">
+                  <span>Income</span>
+                  <span className="positive">{formatCurrency(projectedIncome)}</span>
+                </div>
+                <div className="proj-row">
+                  <span>Expenses</span>
+                  <span className="negative">-{formatCurrency(projectedGroundRent + projectedUtilities)}</span>
+                </div>
+                <div className="proj-row total">
+                  <span>Net</span>
+                  <span className={weeklyDelta >= 0 ? 'positive' : 'negative'}>
+                    {formatCurrency(weeklyDelta)}
+                  </span>
+                </div>
+              </div>
+
+              <button className="panel-confirm" onClick={handleDismissWeekly}>
+                Start Week
+              </button>
+            </div>
+          )}
         </div>
       )}
 

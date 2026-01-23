@@ -84,6 +84,12 @@ All parameter changes trigger simulation reset.
 
 ## Recent Changes
 
+- 2026-01-23: **Major UI redesign (Option B layout)**
+  - Fixed top bar with key stats (Treasury, Residents/Capacity, Week/Day)
+  - Main content area with cards for Commune Status, Weekly Projection, Game Status
+  - Weekly actions now in draggable/minimizable floating panel (Finder-style)
+  - Panel can be moved anywhere and minimized to title bar
+  - No overlay - dashboard visible while making weekly decisions
 - 2026-01-23: Changed to daily ticks with weekly pause and action modal
 - 2026-01-23: Added rent text input with validation (must be within range)
 - 2026-01-23: Treasury now animates daily (split weekly change by 7)
