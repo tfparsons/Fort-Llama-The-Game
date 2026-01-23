@@ -215,61 +215,86 @@ body {
 
 .dev-tools {
   background: #0f3460;
-  padding: 20px;
+  padding: 15px;
   border-radius: 8px;
 }
 
-.dev-tools h2 {
+.dev-tools-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.dev-tools-header h2 {
   color: #fbbf24;
-  margin-bottom: 20px;
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.dev-tools-header .apply-button {
+  width: auto;
+  margin: 0;
+  padding: 10px 20px;
+}
+
+.dev-tools-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
 }
 
 .config-section {
-  margin-bottom: 20px;
-  padding: 15px;
+  padding: 12px;
   background: #16213e;
   border-radius: 4px;
+  margin: 0;
 }
 
 .config-section h3 {
   color: #e94560;
-  margin-bottom: 15px;
-  font-size: 1rem;
+  margin-bottom: 10px;
+  font-size: 0.85rem;
+  border-bottom: 1px solid #0f3460;
+  padding-bottom: 6px;
 }
 
 .config-field {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
+}
+
+.config-field:last-child {
+  margin-bottom: 0;
 }
 
 .config-field label {
   color: #aaa;
-  flex: 1;
+  font-size: 0.8rem;
 }
 
 .config-field input {
-  width: 120px;
-  padding: 8px;
+  width: 70px;
+  padding: 5px;
   border: 1px solid #0f3460;
-  border-radius: 4px;
+  border-radius: 3px;
   background: #1a1a2e;
   color: #eee;
   text-align: right;
+  font-size: 0.85rem;
 }
 
 .apply-button {
-  width: 100%;
-  padding: 15px;
+  padding: 12px 20px;
   background: #fbbf24;
   color: #1a1a2e;
   border: none;
   border-radius: 4px;
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: bold;
   cursor: pointer;
-  margin-top: 20px;
 }
 
 .apply-button:hover {

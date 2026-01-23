@@ -67,13 +67,18 @@ All parameter changes trigger simulation reset.
 
 - Starting Treasury: £0
 - Starting Bedrooms: 4
-- Starting Residents: 4
+- Starting Residents: 2
+- Default Rent: £100
+- Ground Rent Base: £1,000/week
+- Utilities Base: £200/week
 - Base Churn: 20%
-- Bedroom Capacity: 4 residents each
+- Bedroom Capacity: 2 residents each
 - Bedroom Build Cost: £2,000
 
 ## Recent Changes
 
+- 2026-01-23: Updated defaults (residents=2, rent=100, groundRent=1000, utilities=200, capacity=2)
+- 2026-01-23: Redesigned Dev Tools panel with 4-column grid layout (no scrolling)
 - 2026-01-22: Initial project setup with Express + React/Vite
 - Core simulation engine with weekly ticks
 - Player dashboard with status, actions, finances

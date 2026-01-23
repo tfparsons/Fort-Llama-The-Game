@@ -247,178 +247,110 @@ function App() {
 
       {view === 'devtools' && editConfig && (
         <div className="dev-tools">
-          <h2>Developer Tools</h2>
-          <p style={{color: '#aaa', marginBottom: '20px'}}>
-            Warning: Applying changes will reset the simulation!
-          </p>
-
-          <div className="config-section">
-            <h3>Starting Values</h3>
-            <div className="config-field">
-              <label>Starting Treasury (£)</label>
-              <input 
-                type="number" 
-                value={editConfig.startingTreasury} 
-                onChange={(e) => updateEditConfig('startingTreasury', e.target.value)}
-              />
-            </div>
-            <div className="config-field">
-              <label>Starting Bedrooms</label>
-              <input 
-                type="number" 
-                value={editConfig.startingBedrooms} 
-                onChange={(e) => updateEditConfig('startingBedrooms', e.target.value)}
-              />
-            </div>
-            <div className="config-field">
-              <label>Starting Residents</label>
-              <input 
-                type="number" 
-                value={editConfig.startingResidents} 
-                onChange={(e) => updateEditConfig('startingResidents', e.target.value)}
-              />
-            </div>
+          <div className="dev-tools-header">
+            <h2>Developer Tools</h2>
+            <button className="apply-button" onClick={handleApplyConfig}>
+              Apply & Reset
+            </button>
           </div>
 
-          <div className="config-section">
-            <h3>Rent Settings</h3>
-            <div className="config-field">
-              <label>Minimum Rent (£)</label>
-              <input 
-                type="number" 
-                value={editConfig.rentMin} 
-                onChange={(e) => updateEditConfig('rentMin', e.target.value)}
-              />
+          <div className="dev-tools-grid">
+            <div className="config-section">
+              <h3>Starting Values</h3>
+              <div className="config-field">
+                <label>Treasury (£)</label>
+                <input type="number" value={editConfig.startingTreasury} onChange={(e) => updateEditConfig('startingTreasury', e.target.value)} />
+              </div>
+              <div className="config-field">
+                <label>Bedrooms</label>
+                <input type="number" value={editConfig.startingBedrooms} onChange={(e) => updateEditConfig('startingBedrooms', e.target.value)} />
+              </div>
+              <div className="config-field">
+                <label>Residents</label>
+                <input type="number" value={editConfig.startingResidents} onChange={(e) => updateEditConfig('startingResidents', e.target.value)} />
+              </div>
             </div>
-            <div className="config-field">
-              <label>Maximum Rent (£)</label>
-              <input 
-                type="number" 
-                value={editConfig.rentMax} 
-                onChange={(e) => updateEditConfig('rentMax', e.target.value)}
-              />
+
+            <div className="config-section">
+              <h3>Rent</h3>
+              <div className="config-field">
+                <label>Min (£)</label>
+                <input type="number" value={editConfig.rentMin} onChange={(e) => updateEditConfig('rentMin', e.target.value)} />
+              </div>
+              <div className="config-field">
+                <label>Max (£)</label>
+                <input type="number" value={editConfig.rentMax} onChange={(e) => updateEditConfig('rentMax', e.target.value)} />
+              </div>
+              <div className="config-field">
+                <label>Default (£)</label>
+                <input type="number" value={editConfig.defaultRent} onChange={(e) => updateEditConfig('defaultRent', e.target.value)} />
+              </div>
             </div>
-            <div className="config-field">
-              <label>Default Rent (£)</label>
-              <input 
-                type="number" 
-                value={editConfig.defaultRent} 
-                onChange={(e) => updateEditConfig('defaultRent', e.target.value)}
-              />
+
+            <div className="config-section">
+              <h3>Ground Rent</h3>
+              <div className="config-field">
+                <label>Base (£/wk)</label>
+                <input type="number" value={editConfig.groundRentBase} onChange={(e) => updateEditConfig('groundRentBase', e.target.value)} />
+              </div>
+              <div className="config-field">
+                <label>Bedroom Mod</label>
+                <input type="number" step="0.01" value={editConfig.groundRentBedroomModifier} onChange={(e) => updateEditConfig('groundRentBedroomModifier', e.target.value)} />
+              </div>
+            </div>
+
+            <div className="config-section">
+              <h3>Utilities</h3>
+              <div className="config-field">
+                <label>Base (£/wk)</label>
+                <input type="number" value={editConfig.utilitiesBase} onChange={(e) => updateEditConfig('utilitiesBase', e.target.value)} />
+              </div>
+              <div className="config-field">
+                <label>Bedroom Mod</label>
+                <input type="number" step="0.01" value={editConfig.utilitiesBedroomModifier} onChange={(e) => updateEditConfig('utilitiesBedroomModifier', e.target.value)} />
+              </div>
+            </div>
+
+            <div className="config-section">
+              <h3>Buildings</h3>
+              <div className="config-field">
+                <label>Build Cost (£)</label>
+                <input type="number" value={editConfig.bedroomBuildCost} onChange={(e) => updateEditConfig('bedroomBuildCost', e.target.value)} />
+              </div>
+              <div className="config-field">
+                <label>Capacity</label>
+                <input type="number" value={editConfig.bedroomCapacity} onChange={(e) => updateEditConfig('bedroomCapacity', e.target.value)} />
+              </div>
+            </div>
+
+            <div className="config-section">
+              <h3>Churn</h3>
+              <div className="config-field">
+                <label>Base Rate</label>
+                <input type="number" step="0.01" value={editConfig.baseChurnRate} onChange={(e) => updateEditConfig('baseChurnRate', e.target.value)} />
+              </div>
+              <div className="config-field">
+                <label>Rent Mult</label>
+                <input type="number" step="0.0001" value={editConfig.churnRentMultiplier} onChange={(e) => updateEditConfig('churnRentMultiplier', e.target.value)} />
+              </div>
+              <div className="config-field">
+                <label>Max Recruit/Wk</label>
+                <input type="number" value={editConfig.maxRecruitPerWeek} onChange={(e) => updateEditConfig('maxRecruitPerWeek', e.target.value)} />
+              </div>
+            </div>
+
+            <div className="config-section">
+              <h3>Game</h3>
+              <div className="config-field">
+                <label>Game Over (£)</label>
+                <input type="number" value={editConfig.gameOverLimit} onChange={(e) => updateEditConfig('gameOverLimit', e.target.value)} />
+              </div>
+              <div className="config-field">
+                <label>Tick (ms)</label>
+                <input type="number" value={editConfig.tickSpeed} onChange={(e) => updateEditConfig('tickSpeed', e.target.value)} />
+              </div>
             </div>
           </div>
-
-          <div className="config-section">
-            <h3>Overheads</h3>
-            <div className="config-field">
-              <label>Ground Rent Base (£/week)</label>
-              <input 
-                type="number" 
-                value={editConfig.groundRentBase} 
-                onChange={(e) => updateEditConfig('groundRentBase', e.target.value)}
-              />
-            </div>
-            <div className="config-field">
-              <label>Ground Rent Bedroom Modifier (%)</label>
-              <input 
-                type="number" 
-                step="0.01"
-                value={editConfig.groundRentBedroomModifier} 
-                onChange={(e) => updateEditConfig('groundRentBedroomModifier', e.target.value)}
-              />
-            </div>
-            <div className="config-field">
-              <label>Utilities Base (£/week)</label>
-              <input 
-                type="number" 
-                value={editConfig.utilitiesBase} 
-                onChange={(e) => updateEditConfig('utilitiesBase', e.target.value)}
-              />
-            </div>
-            <div className="config-field">
-              <label>Utilities Bedroom Modifier (%)</label>
-              <input 
-                type="number" 
-                step="0.01"
-                value={editConfig.utilitiesBedroomModifier} 
-                onChange={(e) => updateEditConfig('utilitiesBedroomModifier', e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="config-section">
-            <h3>Buildings</h3>
-            <div className="config-field">
-              <label>Bedroom Build Cost (£)</label>
-              <input 
-                type="number" 
-                value={editConfig.bedroomBuildCost} 
-                onChange={(e) => updateEditConfig('bedroomBuildCost', e.target.value)}
-              />
-            </div>
-            <div className="config-field">
-              <label>Bedroom Capacity</label>
-              <input 
-                type="number" 
-                value={editConfig.bedroomCapacity} 
-                onChange={(e) => updateEditConfig('bedroomCapacity', e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="config-section">
-            <h3>Residents</h3>
-            <div className="config-field">
-              <label>Base Churn Rate (%)</label>
-              <input 
-                type="number" 
-                step="0.01"
-                value={editConfig.baseChurnRate} 
-                onChange={(e) => updateEditConfig('baseChurnRate', e.target.value)}
-              />
-            </div>
-            <div className="config-field">
-              <label>Churn Rent Multiplier</label>
-              <input 
-                type="number" 
-                step="0.0001"
-                value={editConfig.churnRentMultiplier} 
-                onChange={(e) => updateEditConfig('churnRentMultiplier', e.target.value)}
-              />
-            </div>
-            <div className="config-field">
-              <label>Max Recruit Per Week</label>
-              <input 
-                type="number" 
-                value={editConfig.maxRecruitPerWeek} 
-                onChange={(e) => updateEditConfig('maxRecruitPerWeek', e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="config-section">
-            <h3>Game Settings</h3>
-            <div className="config-field">
-              <label>Game Over Limit (£)</label>
-              <input 
-                type="number" 
-                value={editConfig.gameOverLimit} 
-                onChange={(e) => updateEditConfig('gameOverLimit', e.target.value)}
-              />
-            </div>
-            <div className="config-field">
-              <label>Tick Speed (ms)</label>
-              <input 
-                type="number" 
-                value={editConfig.tickSpeed} 
-                onChange={(e) => updateEditConfig('tickSpeed', e.target.value)}
-              />
-            </div>
-          </div>
-
-          <button className="apply-button" onClick={handleApplyConfig}>
-            Apply & Reset Simulation
-          </button>
         </div>
       )}
 
