@@ -118,10 +118,12 @@ function App() {
   };
 
   const handleRentSliderChange = (e) => {
-    const val = e.target.value;
-    setRentInput(val);
+    setRentInput(e.target.value);
     setRentError('');
-    handleSetRent(val);
+  };
+
+  const handleRentSliderRelease = () => {
+    handleSetRent(rentInput);
   };
 
   const handleRentInputChange = (e) => {
@@ -450,8 +452,10 @@ function App() {
                     type="range" 
                     min={config.rentMin} 
                     max={config.rentMax} 
-                    value={gameState.currentRent}
+                    value={rentInput}
                     onChange={handleRentSliderChange}
+                    onMouseUp={handleRentSliderRelease}
+                    onTouchEnd={handleRentSliderRelease}
                   />
                   <div className="rent-value">
                     <span>£</span>
