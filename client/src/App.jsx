@@ -176,6 +176,11 @@ function App() {
     setView('dashboard');
   };
 
+  const handleSaveDefaults = async () => {
+    await fetch(`${API_BASE}/api/save-defaults`, { method: 'POST' });
+    alert('Current settings saved as defaults!');
+  };
+
   const updateEditConfig = (key, value) => {
     setEditConfig(prev => ({ ...prev, [key]: parseFloat(value) || 0 }));
   };
@@ -326,9 +331,14 @@ function App() {
         <div className="dev-tools">
           <div className="dev-tools-header">
             <h2>Developer Tools</h2>
-            <button className="apply-button" onClick={handleApplyConfig}>
-              Apply & Reset
-            </button>
+            <div className="dev-tools-buttons">
+              <button className="save-defaults-button" onClick={handleSaveDefaults}>
+                Save as Defaults
+              </button>
+              <button className="apply-button" onClick={handleApplyConfig}>
+                Apply & Reset
+              </button>
+            </div>
           </div>
 
           <div className="dev-tools-grid">

@@ -14,7 +14,7 @@ let simulationInterval = null;
 
 const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
-const defaultConfig = {
+const INITIAL_DEFAULTS = {
   startingTreasury: 0,
   startingBedrooms: 4,
   startingResidents: 2,
@@ -34,7 +34,9 @@ const defaultConfig = {
   tickSpeed: 1000
 };
 
-function initializeGame(config = defaultConfig) {
+let savedDefaults = { ...INITIAL_DEFAULTS };
+
+function initializeGame(config = savedDefaults) {
   gameConfig = { ...config };
   gameState = {
     treasury: gameConfig.startingTreasury,
@@ -177,14 +179,19 @@ app.get('/api/config', (req, res) => {
 
 app.post('/api/config', (req, res) => {
   stopSimulation();
-  const newConfig = { ...defaultConfig, ...req.body };
+  const newConfig = { ...savedDefaults, ...req.body };
   initializeGame(newConfig);
   res.json({ success: true, config: gameConfig, state: gameState });
 });
 
+app.post('/api/save-defaults', (req, res) => {
+  savedDefaults = { ...gameConfig };
+  res.json({ success: true, defaults: savedDefaults });
+});
+
 app.post('/api/reset', (req, res) => {
   stopSimulation();
-  initializeGame(gameConfig);
+  initializeGame(savedDefaults);
   res.json({ success: true, state: gameState });
 });
 

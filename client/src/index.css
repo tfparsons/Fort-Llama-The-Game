@@ -457,10 +457,30 @@ body {
   font-size: 1.3rem;
 }
 
-.dev-tools-header .apply-button {
+.dev-tools-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.dev-tools-header .apply-button,
+.dev-tools-header .save-defaults-button {
   width: auto;
   margin: 0;
   padding: 10px 20px;
+}
+
+.save-defaults-button {
+  background: #0f3460;
+  color: #fff;
+  border: 1px solid #e94560;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.2s;
+}
+
+.save-defaults-button:hover {
+  background: #1a4a80;
 }
 
 .dev-tools-grid {
