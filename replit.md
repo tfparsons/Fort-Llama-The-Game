@@ -50,10 +50,24 @@ Players manage a commune with the core loop being:
 - Higher rent = more churn
 - Churn calculated at end of week
 
-### Player Actions (weekly modal)
+### Resident System
+- 20 unique llamas, each with name, gender, age, bio, and 8 stats
+- Stats: Sharing Tolerance, Cooking Skill, Tidiness, Handiness, Consideration, Sociability, Party Stamina, Work Ethic (1-20 scale)
+- Residents tracked individually in `communeResidents` array
+- Dashboard shows residents with hover tooltips for full bio/stats
+
+### Player Actions (weekly panel)
 1. Set rent (slider + text input, £50-500 with validation)
-2. Recruit residents (max 2/week, arrive next week)
+2. "Find a Llama" recruitment: view 3 random candidates, invite 1 per week
 3. Build bedroom (instant, fixed cost)
+
+### Recruitment Flow
+- Click "Find a Llama" to see 3 random candidates from available pool
+- Each candidate shows name, age, bio, and full 8-stat radar
+- Invite one or pass to see next candidate
+- Limit: 1 recruitment per week
+- Invited llamas arrive Tuesday-Sunday of next week (random day)
+- Pro-rata rent: `ceil((daysThisWeek / 7) * weeklyRent)`
 
 ### Game Over
 Treasury reaches -£20,000
@@ -84,6 +98,13 @@ All parameter changes trigger simulation reset.
 
 ## Recent Changes
 
+- 2026-01-26: **Individual resident system**
+  - 20 unique llamas loaded from CSV data with names, bios, 8 stats
+  - "Find a Llama" recruitment modal with 3 random candidates
+  - Invite/pass mechanic, 1 recruitment per week limit
+  - Daily arrival system with pro-rata rent calculation
+  - Residents section on dashboard with hover tooltips for bio/stats
+  - Dev Tools shows llama pool status
 - 2026-01-23: **Major UI redesign (Option B layout)**
   - Fixed top bar with key stats (Treasury, Residents/Capacity, Week/Day)
   - Main content area with cards for Commune Status, Weekly Projection, Game Status
