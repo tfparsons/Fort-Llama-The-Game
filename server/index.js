@@ -14,6 +14,35 @@ let simulationInterval = null;
 
 const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
+const STARTING_LLAMAS = [
+  { id: 1, name: 'Tim', gender: 'm', age: 34, bio: 'Product and growth operator; likes systems that actually work; friendly, but protective of focus time; quietly keeps the place running.', stats: { sharingTolerance: 16, cookingSkill: 11, tidiness: 12, handiness: 16, consideration: 13, sociability: 12, partyStamina: 11, workEthic: 15 } },
+  { id: 2, name: 'Celine', gender: 'f', age: 32, bio: 'Calm, competent, slightly intimidating in the best way; remembers birthdays; keeps conversations grounded; the person you want in any group decision.', stats: { sharingTolerance: 13, cookingSkill: 12, tidiness: 12, handiness: 11, consideration: 16, sociability: 13, partyStamina: 11, workEthic: 13 } },
+  { id: 3, name: 'Alex', gender: 'm', age: 32, bio: 'Charming chaos with a big heart; alternates between hyper-focus and disappearing into hobbies; good at rallying people, less good at admin.', stats: { sharingTolerance: 12, cookingSkill: 11, tidiness: 10, handiness: 10, consideration: 12, sociability: 14, partyStamina: 18, workEthic: 10 } },
+  { id: 4, name: 'Theo', gender: 'm', age: 30, bio: "Quiet builder type; doesn't say much, but always shows up; prefers practical solutions to big debates; steady energy, steady output.", stats: { sharingTolerance: 12, cookingSkill: 11, tidiness: 12, handiness: 13, consideration: 16, sociability: 10, partyStamina: 11, workEthic: 14 } },
+  { id: 5, name: 'Rob', gender: 'm', age: 34, bio: 'Mild-mannered, dependable, quietly funny; does the boring tasks without making it a thing; low drama, high reliability.', stats: { sharingTolerance: 12, cookingSkill: 11, tidiness: 12, handiness: 12, consideration: 13, sociability: 11, partyStamina: 11, workEthic: 16 } },
+  { id: 6, name: 'Cass', gender: 'f', age: 32, bio: 'Social glue with sharp opinions; will host dinner, mediate a spat, and then reorganise the pantry "because it was stressing me out".', stats: { sharingTolerance: 12, cookingSkill: 12, tidiness: 16, handiness: 11, consideration: 14, sociability: 15, partyStamina: 12, workEthic: 12 } },
+  { id: 7, name: 'Niel', gender: 'm', age: 34, bio: 'Thoughtful introvert; reads, cooks simple meals, and notices problems early; prefers small groups; strong "quiet contribution" vibe.', stats: { sharingTolerance: 13, cookingSkill: 12, tidiness: 12, handiness: 11, consideration: 14, sociability: 10, partyStamina: 10, workEthic: 15 } },
+  { id: 8, name: 'Lily', gender: 'f', age: 32, bio: 'Warm, upbeat, slightly chaotic in a harmless way; loves shared rituals like Sunday brunch; surprisingly firm about house rules.', stats: { sharingTolerance: 16, cookingSkill: 12, tidiness: 11, handiness: 10, consideration: 13, sociability: 16, partyStamina: 12, workEthic: 12 } },
+  { id: 9, name: 'Scarlette', gender: 'f', age: 28, bio: "Fashion and nightlife adjacent; brings energy and connections; hates being told what to do; great when the vibe is good, prickly when it's not.", stats: { sharingTolerance: 11, cookingSkill: 11, tidiness: 10, handiness: 10, consideration: 11, sociability: 16, partyStamina: 14, workEthic: 10 } },
+  { id: 10, name: 'Dan', gender: 'm', age: 29, bio: 'Friendly generalist; will help with anything if you ask; not a self-starter, but very solid once pointed at a job; hates conflict.', stats: { sharingTolerance: 12, cookingSkill: 11, tidiness: 11, handiness: 12, consideration: 13, sociability: 12, partyStamina: 12, workEthic: 13 } },
+  { id: 11, name: 'Will', gender: 'm', age: 30, bio: 'Earnest, practical, a bit of a dad friend; likes schedules and early starts; will fix the thing, then write a checklist so it stays fixed.', stats: { sharingTolerance: 12, cookingSkill: 11, tidiness: 12, handiness: 12, consideration: 14, sociability: 11, partyStamina: 11, workEthic: 16 } },
+  { id: 12, name: 'Georgia', gender: 'f', age: 27, bio: 'Brilliant but messy; lives on takeaways and inspiration; fun to be around, unreliable with shared chores; good intentions, bad follow-through.', stats: { sharingTolerance: 12, cookingSkill: 4, tidiness: 11, handiness: 2, consideration: 11, sociability: 14, partyStamina: 12, workEthic: 9 } },
+  { id: 13, name: 'Jelena', gender: 'f', age: 30, bio: 'Former competitive athlete turned office worker; disciplined, direct, and weirdly soothing; treats communal life like a team sport.', stats: { sharingTolerance: 13, cookingSkill: 11, tidiness: 13, handiness: 12, consideration: 13, sociability: 11, partyStamina: 12, workEthic: 15 } },
+  { id: 14, name: 'Hailey', gender: 'f', age: 29, bio: 'Sunny extrovert with a social calendar for her social calendar; hosts themed nights; decent at chores, but only when the mood is right.', stats: { sharingTolerance: 16, cookingSkill: 11, tidiness: 11, handiness: 10, consideration: 12, sociability: 14, partyStamina: 14, workEthic: 11 } },
+  { id: 15, name: 'Katey', gender: 'f', age: 27, bio: 'Restless creative; allergic to routines; great company, but genuinely forgets chores exist; tries to make up for it with enthusiasm.', stats: { sharingTolerance: 12, cookingSkill: 4, tidiness: 4, handiness: 2, consideration: 11, sociability: 13, partyStamina: 12, workEthic: 9 } },
+  { id: 16, name: 'Cli', gender: 'f', age: 28, bio: 'Soft-spoken, observant, and unexpectedly funny; likes order, but not control; quietly nudges the house toward harmony.', stats: { sharingTolerance: 12, cookingSkill: 12, tidiness: 13, handiness: 11, consideration: 14, sociability: 12, partyStamina: 11, workEthic: 13 } },
+  { id: 17, name: 'Maria', gender: 'f', age: 29, bio: 'Competent, energetic, slightly competitive; wants the commune to "level up"; loves projects, hates dithering; will volunteer you by accident.', stats: { sharingTolerance: 13, cookingSkill: 12, tidiness: 12, handiness: 12, consideration: 12, sociability: 13, partyStamina: 12, workEthic: 14 } },
+  { id: 18, name: 'Paula', gender: 'f', age: 28, bio: "Chill, friendly, and low-maintenance; joins in when invited; not especially ambitious; optimised for peace and snacks.", stats: { sharingTolerance: 12, cookingSkill: 11, tidiness: 11, handiness: 11, consideration: 12, sociability: 12, partyStamina: 12, workEthic: 12 } },
+  { id: 19, name: 'Kat', gender: 'f', age: 27, bio: "Independent, blunt, and principled; doesn't love sharing; will absolutely call out slack behaviour; secretly very loyal once she trusts you.", stats: { sharingTolerance: 11, cookingSkill: 13, tidiness: 11, handiness: 4, consideration: 12, sociability: 12, partyStamina: 11, workEthic: 13 } },
+  { id: 20, name: 'OBT', gender: 'm', age: 31, bio: 'Hard-working networker; always "just hopping out"; likes the commune for momentum and people; reliable when there\'s a clear goal.', stats: { sharingTolerance: 12, cookingSkill: 11, tidiness: 11, handiness: 11, consideration: 12, sociability: 15, partyStamina: 13, workEthic: 13 } }
+];
+
+function statToPercentage(stat) {
+  return (stat - 10) * 10;
+}
+
+let llamaPool = [];
+
 const INITIAL_DEFAULTS = {
   startingTreasury: 0,
   startingBedrooms: 4,
@@ -29,7 +58,6 @@ const INITIAL_DEFAULTS = {
   bedroomCapacity: 2,
   baseChurnRate: 0.20,
   churnRentMultiplier: 0.0003,
-  maxRecruitPerWeek: 2,
   gameOverLimit: -20000,
   tickSpeed: 1000
 };
@@ -38,10 +66,21 @@ let savedDefaults = { ...INITIAL_DEFAULTS };
 
 function initializeGame(config = savedDefaults) {
   gameConfig = { ...config };
+  
+  llamaPool = JSON.parse(JSON.stringify(STARTING_LLAMAS));
+  
+  const shuffled = [...llamaPool].sort(() => Math.random() - 0.5);
+  const startingResidentObjects = shuffled.slice(0, gameConfig.startingResidents).map(llama => ({
+    ...llama,
+    daysThisWeek: 7,
+    arrivalDay: null
+  }));
+  
   gameState = {
     treasury: gameConfig.startingTreasury,
     bedrooms: gameConfig.startingBedrooms,
-    residents: gameConfig.startingResidents,
+    communeResidents: startingResidentObjects,
+    pendingArrivals: [],
     currentRent: gameConfig.defaultRent,
     week: 1,
     day: 0,
@@ -50,8 +89,7 @@ function initializeGame(config = savedDefaults) {
     isPausedForWeeklyDecision: true,
     isGameOver: false,
     lastWeekSummary: null,
-    recruitQueue: 0,
-    recruitsThisWeek: 0,
+    hasRecruitedThisWeek: false,
     weeklyDelta: 0,
     dailyDelta: 0,
     treasuryAtWeekStart: gameConfig.startingTreasury
@@ -60,7 +98,8 @@ function initializeGame(config = savedDefaults) {
 }
 
 function calculateWeeklyProjection() {
-  const income = gameState.residents * gameState.currentRent;
+  const residentCount = gameState.communeResidents.length;
+  const income = residentCount * gameState.currentRent;
   const groundRent = calculateGroundRent();
   const utilities = calculateUtilities();
   const weeklyDelta = income - groundRent - utilities;
@@ -81,11 +120,23 @@ function calculateUtilities() {
   return Math.round(gameConfig.utilitiesBase * (1 + extraBedrooms * gameConfig.utilitiesBedroomModifier));
 }
 
-function calculateChurn() {
+function calculateWeeklyChurnCount() {
   const rentFactor = gameState.currentRent * gameConfig.churnRentMultiplier;
   const totalChurnRate = Math.min(1, gameConfig.baseChurnRate + rentFactor);
-  const residentsLeaving = Math.floor(gameState.residents * totalChurnRate);
-  return Math.min(residentsLeaving, gameState.residents);
+  const residentCount = gameState.communeResidents.length;
+  const residentsLeaving = Math.floor(residentCount * totalChurnRate);
+  return Math.min(residentsLeaving, residentCount);
+}
+
+function getAvailableLlamas() {
+  const inCommuneIds = gameState.communeResidents.map(r => r.id);
+  const pendingIds = gameState.pendingArrivals.map(r => r.id);
+  return llamaPool.filter(l => !inCommuneIds.includes(l.id) && !pendingIds.includes(l.id));
+}
+
+function getRandomArrivalDay() {
+  const days = [2, 3, 4, 5, 6, 7];
+  return days[Math.floor(Math.random() * days.length)];
 }
 
 function processDay() {
@@ -94,7 +145,25 @@ function processDay() {
   gameState.day += 1;
   gameState.dayName = DAY_NAMES[gameState.day - 1] || 'Monday';
   
-  gameState.treasury += gameState.dailyDelta;
+  const arrivingToday = gameState.pendingArrivals.filter(r => r.arrivalDay === gameState.day);
+  arrivingToday.forEach(resident => {
+    const daysRemaining = 8 - gameState.day;
+    gameState.communeResidents.push({
+      ...resident,
+      daysThisWeek: daysRemaining,
+      arrivalDay: null
+    });
+  });
+  gameState.pendingArrivals = gameState.pendingArrivals.filter(r => r.arrivalDay !== gameState.day);
+  
+  let dailyIncome = 0;
+  gameState.communeResidents.forEach(resident => {
+    const proRataRent = Math.ceil((resident.daysThisWeek / 7) * gameState.currentRent);
+    dailyIncome += proRataRent / resident.daysThisWeek;
+  });
+  
+  const dailyExpenses = (calculateGroundRent() + calculateUtilities()) / 7;
+  gameState.treasury += dailyIncome - dailyExpenses;
 
   if (gameState.day >= 7) {
     processWeekEnd();
@@ -107,12 +176,14 @@ function processDay() {
 }
 
 function processWeekEnd() {
-  const churnedResidents = calculateChurn();
-  gameState.residents = Math.max(0, gameState.residents - churnedResidents);
-
-  const arrivingResidents = gameState.recruitQueue;
-  gameState.recruitQueue = 0;
-  gameState.residents += arrivingResidents;
+  const churnCount = calculateWeeklyChurnCount();
+  const churnedResidents = [];
+  
+  for (let i = 0; i < churnCount && gameState.communeResidents.length > 0; i++) {
+    const randomIndex = Math.floor(Math.random() * gameState.communeResidents.length);
+    const churned = gameState.communeResidents.splice(randomIndex, 1)[0];
+    churnedResidents.push(churned);
+  }
 
   const actualProfit = gameState.treasury - gameState.treasuryAtWeekStart;
   
@@ -123,14 +194,16 @@ function processWeekEnd() {
     utilities: gameState.projectedUtilities,
     totalExpenses: gameState.projectedGroundRent + gameState.projectedUtilities,
     profit: actualProfit,
-    arrivingResidents,
-    churnedResidents
+    arrivedResidents: [],
+    churnedResidents: churnedResidents.map(r => r.name)
   };
 
+  gameState.communeResidents.forEach(r => r.daysThisWeek = 7);
+  
   gameState.week += 1;
   gameState.day = 0;
   gameState.dayName = 'Monday';
-  gameState.recruitsThisWeek = 0;
+  gameState.hasRecruitedThisWeek = false;
   gameState.treasuryAtWeekStart = gameState.treasury;
   gameState.isPausedForWeeklyDecision = true;
   stopSimulation();
@@ -166,8 +239,12 @@ initializeGame();
 
 app.get('/api/state', (req, res) => {
   const capacity = gameState.bedrooms * gameConfig.bedroomCapacity;
+  const residentCount = gameState.communeResidents.length;
+  const pendingCount = gameState.pendingArrivals.length;
   res.json({
     ...gameState,
+    residents: residentCount,
+    pendingResidents: pendingCount,
     capacity,
     config: gameConfig
   });
@@ -229,29 +306,68 @@ app.post('/api/action/set-rent', (req, res) => {
   }
 });
 
-app.post('/api/action/recruit', (req, res) => {
+app.get('/api/recruitment-candidates', (req, res) => {
   if (!gameState.isPausedForWeeklyDecision) {
     res.status(400).json({ error: 'Can only recruit during weekly planning' });
     return;
   }
-  const { count = 1 } = req.body;
+  
+  const available = getAvailableLlamas();
+  const shuffled = available.sort(() => Math.random() - 0.5);
+  const candidates = shuffled.slice(0, Math.min(3, shuffled.length));
+  
+  res.json({ candidates });
+});
+
+app.post('/api/action/invite', (req, res) => {
+  if (!gameState.isPausedForWeeklyDecision) {
+    res.status(400).json({ error: 'Can only recruit during weekly planning' });
+    return;
+  }
+  
+  if (gameState.hasRecruitedThisWeek) {
+    res.status(400).json({ error: 'Already recruited this week' });
+    return;
+  }
+  
   const capacity = gameState.bedrooms * gameConfig.bedroomCapacity;
-  const futureResidents = gameState.residents + gameState.recruitQueue + count;
+  const futureResidents = gameState.communeResidents.length + gameState.pendingArrivals.length + 1;
   
   if (futureResidents > capacity) {
     res.status(400).json({ error: 'Not enough capacity' });
     return;
   }
   
-  if (gameState.recruitsThisWeek + count > gameConfig.maxRecruitPerWeek) {
-    const remaining = gameConfig.maxRecruitPerWeek - gameState.recruitsThisWeek;
-    res.status(400).json({ error: `Max ${gameConfig.maxRecruitPerWeek} recruits per week. ${remaining} remaining.` });
+  const { llamaId } = req.body;
+  const llama = llamaPool.find(l => l.id === llamaId);
+  
+  if (!llama) {
+    res.status(400).json({ error: 'Llama not found' });
     return;
   }
   
-  gameState.recruitQueue += count;
-  gameState.recruitsThisWeek += count;
-  res.json({ success: true, recruitQueue: gameState.recruitQueue, recruitsThisWeek: gameState.recruitsThisWeek });
+  const inCommune = gameState.communeResidents.some(r => r.id === llamaId);
+  const isPending = gameState.pendingArrivals.some(r => r.id === llamaId);
+  
+  if (inCommune || isPending) {
+    res.status(400).json({ error: 'Llama already in commune or pending' });
+    return;
+  }
+  
+  const arrivalDay = getRandomArrivalDay();
+  gameState.pendingArrivals.push({
+    ...llama,
+    arrivalDay,
+    daysThisWeek: 0
+  });
+  gameState.hasRecruitedThisWeek = true;
+  
+  res.json({ 
+    success: true, 
+    invited: llama.name, 
+    arrivalDay,
+    arrivalDayName: DAY_NAMES[arrivalDay - 1]
+  });
 });
 
 app.post('/api/action/build-bedroom', (req, res) => {
@@ -285,6 +401,55 @@ app.get('/api/buildings', (req, res) => {
       utilitiesIncrease: `+${gameConfig.utilitiesBedroomModifier * 100}%`
     }
   ]);
+});
+
+app.get('/api/llamas', (req, res) => {
+  res.json({ llamas: llamaPool });
+});
+
+app.post('/api/llamas', (req, res) => {
+  const { llamas } = req.body;
+  if (!Array.isArray(llamas)) {
+    res.status(400).json({ error: 'llamas must be an array' });
+    return;
+  }
+  llamaPool = llamas;
+  res.json({ success: true, count: llamaPool.length });
+});
+
+app.post('/api/llamas/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  const updates = req.body;
+  const index = llamaPool.findIndex(l => l.id === id);
+  
+  if (index === -1) {
+    res.status(404).json({ error: 'Llama not found' });
+    return;
+  }
+  
+  llamaPool[index] = { ...llamaPool[index], ...updates };
+  res.json({ success: true, llama: llamaPool[index] });
+});
+
+app.post('/api/llamas/add', (req, res) => {
+  const newLlama = req.body;
+  const maxId = Math.max(...llamaPool.map(l => l.id), 0);
+  newLlama.id = maxId + 1;
+  llamaPool.push(newLlama);
+  res.json({ success: true, llama: newLlama });
+});
+
+app.delete('/api/llamas/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  const index = llamaPool.findIndex(l => l.id === id);
+  
+  if (index === -1) {
+    res.status(404).json({ error: 'Llama not found' });
+    return;
+  }
+  
+  llamaPool.splice(index, 1);
+  res.json({ success: true });
 });
 
 if (process.env.NODE_ENV === 'production') {

@@ -8,9 +8,12 @@ function App() {
   const [config, setConfig] = useState(null);
   const [editConfig, setEditConfig] = useState(null);
   const [showBuildModal, setShowBuildModal] = useState(false);
+  const [showRecruitModal, setShowRecruitModal] = useState(false);
+  const [recruitCandidates, setRecruitCandidates] = useState([]);
   const [buildings, setBuildings] = useState([]);
   const [rentInput, setRentInput] = useState('');
   const [rentError, setRentError] = useState('');
+  const [hoveredResident, setHoveredResident] = useState(null);
   
   const [panelMinimized, setPanelMinimized] = useState(false);
   const [panelPosition, setPanelPosition] = useState({ 
@@ -150,13 +153,37 @@ function App() {
     }
   };
 
-  const handleRecruit = async (count = 1) => {
-    await fetch(`${API_BASE}/api/action/recruit`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ count })
-    });
-    fetchState();
+  const handleOpenRecruitment = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/recruitment-candidates`);
+      const data = await res.json();
+      setRecruitCandidates(data.candidates || []);
+      setShowRecruitModal(true);
+    } catch (err) {
+      console.error('Failed to fetch candidates:', err);
+    }
+  };
+
+  const handleInvite = async (llamaId) => {
+    try {
+      const res = await fetch(`${API_BASE}/api/action/invite`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ llamaId })
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert(`${data.invited} will arrive on ${data.arrivalDayName}!`);
+        setShowRecruitModal(false);
+        fetchState();
+      }
+    } catch (err) {
+      console.error('Failed to invite:', err);
+    }
+  };
+
+  const handlePassRecruitment = () => {
+    setShowRecruitModal(false);
   };
 
   const handleBuildBedroom = async () => {
@@ -259,10 +286,10 @@ function App() {
                 <span className="stat-label">Weekly Rent</span>
                 <span className="stat-value">{formatCurrency(gameState.currentRent)}</span>
               </div>
-              {gameState.recruitQueue > 0 && (
+              {gameState.pendingArrivals && gameState.pendingArrivals.length > 0 && (
                 <div className="stat">
-                  <span className="stat-label">Arriving next week</span>
-                  <span className="stat-value positive">+{gameState.recruitQueue}</span>
+                  <span className="stat-label">Pending Arrivals</span>
+                  <span className="stat-value positive">+{gameState.pendingArrivals.length}</span>
                 </div>
               )}
               <div className="controls">
@@ -312,16 +339,60 @@ function App() {
                   </div>
                   <div className="stat">
                     <span className="stat-label">Residents Churned</span>
-                    <span className="stat-value negative">-{gameState.lastWeekSummary.churnedResidents}</span>
+                    <span className="stat-value negative">
+                      {Array.isArray(gameState.lastWeekSummary.churnedResidents) 
+                        ? `-${gameState.lastWeekSummary.churnedResidents.length}` 
+                        : `-${gameState.lastWeekSummary.churnedResidents}`}
+                    </span>
                   </div>
-                  {gameState.lastWeekSummary.arrivingResidents > 0 && (
+                  {gameState.lastWeekSummary.arrivedResidents && gameState.lastWeekSummary.arrivedResidents.length > 0 && (
                     <div className="stat">
                       <span className="stat-label">New Arrivals</span>
-                      <span className="stat-value positive">+{gameState.lastWeekSummary.arrivingResidents}</span>
+                      <span className="stat-value positive">+{gameState.lastWeekSummary.arrivedResidents.length}</span>
                     </div>
                   )}
                 </div>
               )}
+            </div>
+          </div>
+
+          <div className="residents-section">
+            <div className="card full-width">
+              <h2>Residents ({gameState.communeResidents?.length || 0})</h2>
+              <div className="residents-list">
+                {gameState.communeResidents && gameState.communeResidents.length > 0 ? (
+                  gameState.communeResidents.map(resident => (
+                    <div 
+                      key={resident.id} 
+                      className="resident-chip"
+                      onMouseEnter={() => setHoveredResident(resident)}
+                      onMouseLeave={() => setHoveredResident(null)}
+                    >
+                      {resident.name}
+                      {hoveredResident && hoveredResident.id === resident.id && (
+                        <div className="resident-tooltip">
+                          <div className="tooltip-header">
+                            <strong>{resident.name}</strong>, {resident.age}
+                          </div>
+                          <p className="tooltip-bio">{resident.bio}</p>
+                          <div className="tooltip-stats">
+                            <div><span>Sharing:</span> {resident.stats.sharingTolerance}</div>
+                            <div><span>Cooking:</span> {resident.stats.cookingSkill}</div>
+                            <div><span>Tidiness:</span> {resident.stats.tidiness}</div>
+                            <div><span>Handiness:</span> {resident.stats.handiness}</div>
+                            <div><span>Consideration:</span> {resident.stats.consideration}</div>
+                            <div><span>Sociability:</span> {resident.stats.sociability}</div>
+                            <div><span>Party Stamina:</span> {resident.stats.partyStamina}</div>
+                            <div><span>Work Ethic:</span> {resident.stats.workEthic}</div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <div className="no-residents">No residents yet</div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -420,10 +491,6 @@ function App() {
                 <label>Rent Mult</label>
                 <input type="number" step="0.0001" value={editConfig.churnRentMultiplier} onChange={(e) => updateEditConfig('churnRentMultiplier', e.target.value)} />
               </div>
-              <div className="config-field">
-                <label>Max Recruit/Wk</label>
-                <input type="number" value={editConfig.maxRecruitPerWeek} onChange={(e) => updateEditConfig('maxRecruitPerWeek', e.target.value)} />
-              </div>
             </div>
 
             <div className="config-section">
@@ -436,6 +503,27 @@ function App() {
                 <label>Tick (ms)</label>
                 <input type="number" value={editConfig.tickSpeed} onChange={(e) => updateEditConfig('tickSpeed', e.target.value)} />
               </div>
+            </div>
+          </div>
+
+          <div className="llama-pool-section">
+            <h3>Llama Pool ({gameState?.communeResidents?.length || 0} in commune)</h3>
+            <p className="pool-info">
+              Total llamas: 20 | Available for recruitment: {20 - (gameState?.communeResidents?.length || 0) - (gameState?.pendingArrivals?.length || 0)}
+            </p>
+            <div className="llama-pool-grid">
+              {gameState?.communeResidents?.map(r => (
+                <div key={r.id} className="pool-llama in-commune">
+                  <span className="pool-name">{r.name}</span>
+                  <span className="pool-status">In Commune</span>
+                </div>
+              ))}
+              {gameState?.pendingArrivals?.map(r => (
+                <div key={r.id} className="pool-llama pending">
+                  <span className="pool-name">{r.name}</span>
+                  <span className="pool-status">Arriving</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -487,19 +575,21 @@ function App() {
               </div>
 
               <div className="panel-section">
-                <label>Recruit ({gameState.recruitsThisWeek}/{config.maxRecruitPerWeek} this week)</label>
+                <label>Recruit</label>
                 <button 
                   className="panel-action"
-                  onClick={() => handleRecruit(1)}
+                  onClick={handleOpenRecruitment}
                   disabled={
-                    gameState.residents + gameState.recruitQueue >= gameState.capacity ||
-                    gameState.recruitsThisWeek >= config.maxRecruitPerWeek
+                    gameState.hasRecruitedThisWeek ||
+                    gameState.residents + (gameState.pendingArrivals?.length || 0) >= gameState.capacity
                   }
                 >
-                  +1 Resident (arrives next week)
+                  {gameState.hasRecruitedThisWeek ? 'Already recruited this week' : 'Find a Llama'}
                 </button>
-                {gameState.recruitQueue > 0 && (
-                  <div className="panel-note positive">+{gameState.recruitQueue} arriving next week</div>
+                {gameState.pendingArrivals && gameState.pendingArrivals.length > 0 && (
+                  <div className="panel-note positive">
+                    {gameState.pendingArrivals.map(r => `${r.name} arriving ${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][r.arrivalDay-1]}`).join(', ')}
+                  </div>
                 )}
               </div>
 
@@ -559,6 +649,64 @@ function App() {
             ))}
             <button className="modal-close" onClick={() => setShowBuildModal(false)}>
               Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showRecruitModal && (
+        <div className="modal-overlay" onClick={handlePassRecruitment}>
+          <div className="modal recruit-modal" onClick={(e) => e.stopPropagation()}>
+            <h2>Llama Recruitment</h2>
+            <p className="recruit-intro">Choose a llama to join your commune, or pass on this round.</p>
+            
+            {recruitCandidates.length === 0 ? (
+              <p className="no-candidates">No available llamas to recruit!</p>
+            ) : (
+              <div className="candidate-list">
+                {recruitCandidates.map(llama => (
+                  <div key={llama.id} className="candidate-card">
+                    <div className="candidate-header">
+                      <h3>{llama.name}</h3>
+                      <span className="candidate-age">{llama.age} years old</span>
+                    </div>
+                    <p className="candidate-bio">{llama.bio}</p>
+                    <div className="candidate-stats">
+                      <div className="stat-row">
+                        <span>Sharing</span><span>{llama.stats.sharingTolerance}</span>
+                      </div>
+                      <div className="stat-row">
+                        <span>Cooking</span><span>{llama.stats.cookingSkill}</span>
+                      </div>
+                      <div className="stat-row">
+                        <span>Tidiness</span><span>{llama.stats.tidiness}</span>
+                      </div>
+                      <div className="stat-row">
+                        <span>Handiness</span><span>{llama.stats.handiness}</span>
+                      </div>
+                      <div className="stat-row">
+                        <span>Consideration</span><span>{llama.stats.consideration}</span>
+                      </div>
+                      <div className="stat-row">
+                        <span>Sociability</span><span>{llama.stats.sociability}</span>
+                      </div>
+                      <div className="stat-row">
+                        <span>Party Stamina</span><span>{llama.stats.partyStamina}</span>
+                      </div>
+                      <div className="stat-row">
+                        <span>Work Ethic</span><span>{llama.stats.workEthic}</span>
+                      </div>
+                    </div>
+                    <button className="invite-button" onClick={() => handleInvite(llama.id)}>
+                      Invite
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            <button className="modal-close" onClick={handlePassRecruitment}>
+              Pass
             </button>
           </div>
         </div>
