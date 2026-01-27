@@ -98,9 +98,15 @@ All parameter changes trigger simulation reset.
 
 ## Recent Changes
 
+- 2026-01-27: **Llama Pool Editor & UI polish**
+  - "Manage Llamas" button on dashboard opens full pool editor table
+  - Edit all 20 llamas: name, gender, age, bio, and all 8 stats
+  - Pool edits persist via "Save as Defaults" in Dev Tools
+  - Recruitment candidates now locked at week start (no re-rolling)
+  - Button labels simplified: Restart, Llama Recruitment, Build
 - 2026-01-26: **Individual resident system**
   - 20 unique llamas loaded from CSV data with names, bios, 8 stats
-  - "Find a Llama" recruitment modal with 3 random candidates
+  - Recruitment modal with 3 random candidates (locked per week)
   - Invite/pass mechanic, 1 recruitment per week limit
   - Daily arrival system with pro-rata rent calculation
   - Residents section on dashboard with hover tooltips for bio/stats
