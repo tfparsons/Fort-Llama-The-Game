@@ -454,18 +454,31 @@ function App() {
           <div className="buildings-section">
             <div className="card full-width">
               <h2>Buildings</h2>
-              <div className="buildings-grid">
-                {gameState.buildings?.map(b => (
-                  <div key={b.id} className="building-item">
-                    <span className="building-name">{b.name}</span>
-                    <span className="building-count">×{b.count}</span>
-                    <span className="building-capacity">({b.capacity * b.count} capacity)</span>
-                  </div>
-                ))}
-              </div>
-              <div className="buildings-summary">
-                <span>Total Capacity: {gameState.capacity} residents</span>
-              </div>
+              <table className="buildings-table">
+                <thead>
+                  <tr>
+                    <th>Building</th>
+                    <th>Count</th>
+                    <th>Capacity</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {gameState.buildings?.map(b => (
+                    <tr key={b.id}>
+                      <td>{b.name}</td>
+                      <td>{b.count}</td>
+                      <td>{b.capacity * b.count}</td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td><strong>Total</strong></td>
+                    <td></td>
+                    <td><strong>{gameState.capacity}</strong></td>
+                  </tr>
+                </tfoot>
+              </table>
             </div>
           </div>
 
@@ -759,10 +772,10 @@ function App() {
             <h2>Build</h2>
             {gameState.buildings?.filter(b => b.buildable && b.cost !== null).map(building => (
               <div key={building.id} className="building-card">
-                <h3>{building.name}</h3>
+                <h3>{building.name.replace(/s$/, '')}</h3>
                 <div className="building-stats">
                   <div>Cost: £{building.cost?.toLocaleString()}</div>
-                  <div>Capacity: +{building.capacity} residents</div>
+                  <div>Capacity: {building.capacity} residents</div>
                   {building.groundRentMultiplier !== null && (
                     <div>Ground Rent: +{(building.groundRentMultiplier * 100).toFixed(0)}%</div>
                   )}

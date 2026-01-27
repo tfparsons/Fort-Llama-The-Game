@@ -978,41 +978,32 @@ body {
   margin-bottom: 20px;
 }
 
-.buildings-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 12px;
+.buildings-table {
+  width: 100%;
+  border-collapse: collapse;
 }
 
-.building-item {
-  background: #0f3460;
+.buildings-table th,
+.buildings-table td {
   padding: 8px 12px;
-  border-radius: 6px;
-  display: flex;
-  gap: 8px;
-  align-items: center;
+  text-align: left;
+  border-bottom: 1px solid #0f3460;
 }
 
-.building-name {
-  color: #e94560;
+.buildings-table th {
+  color: #888;
   font-weight: 600;
-}
-
-.building-count {
-  color: #4ade80;
-  font-weight: bold;
-}
-
-.building-capacity {
-  color: #888;
   font-size: 0.85rem;
+  text-transform: uppercase;
 }
 
-.buildings-summary {
-  color: #888;
-  font-size: 0.9rem;
+.buildings-table td {
+  color: #fff;
+}
+
+.buildings-table tfoot td {
   border-top: 1px solid #0f3460;
+  border-bottom: none;
   padding-top: 12px;
 }
 
