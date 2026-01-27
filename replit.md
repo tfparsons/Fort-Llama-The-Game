@@ -104,6 +104,7 @@ All parameter changes trigger simulation reset.
   - Pool edits persist via "Save as Defaults" in Dev Tools
   - Recruitment candidates now locked at week start (no re-rolling)
   - Button labels simplified: Restart, Llama Recruitment, Build
+  - "Llamas in Residence" section with aggregated stats as % (green/red coloring)
 - 2026-01-26: **Individual resident system**
   - 20 unique llamas loaded from CSV data with names, bios, 8 stats
   - Recruitment modal with 3 random candidates (locked per week)
