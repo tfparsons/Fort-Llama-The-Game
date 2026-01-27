@@ -978,33 +978,25 @@ body {
   margin-bottom: 20px;
 }
 
-.buildings-table {
-  width: 100%;
-  border-collapse: collapse;
+.buildings-compact {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 4px 16px;
 }
 
-.buildings-table th,
-.buildings-table td {
-  padding: 8px 12px;
-  text-align: left;
-  border-bottom: 1px solid #0f3460;
+.building-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
 }
 
-.buildings-table th {
+.building-name {
+  color: #ccc;
+}
+
+.building-info {
   color: #888;
-  font-weight: 600;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-}
-
-.buildings-table td {
-  color: #fff;
-}
-
-.buildings-table tfoot td {
-  border-top: 1px solid #0f3460;
-  border-bottom: none;
-  padding-top: 12px;
+  font-size: 0.9rem;
 }
 
 .buildings-modal {

@@ -374,7 +374,7 @@ function App() {
             <div className="card">
               <h2>Commune Status</h2>
               <div className="stat">
-                <span className="stat-label">Capacity</span>
+                <span className="stat-label">Beds</span>
                 <span className="stat-value">{gameState.residents}/{gameState.capacity}</span>
               </div>
               <div className="stat">
@@ -383,31 +383,25 @@ function App() {
               </div>
               {gameState.pendingArrivals && gameState.pendingArrivals.length > 0 && (
                 <div className="stat">
-                  <span className="stat-label">Pending Arrivals</span>
+                  <span className="stat-label">Pending</span>
                   <span className="stat-value positive">+{gameState.pendingArrivals.length}</span>
                 </div>
               )}
-              <div className="controls">
-                <button className="btn-reset" onClick={handleReset}>Restart</button>
-              </div>
+              <button className="btn-reset" onClick={handleReset}>Restart</button>
             </div>
 
             <div className="card">
               <h2>Weekly Projection</h2>
               <div className="stat">
-                <span className="stat-label">Income (Rent)</span>
+                <span className="stat-label">Income</span>
                 <span className="stat-value positive">{formatCurrency(projectedIncome)}</span>
               </div>
               <div className="stat">
-                <span className="stat-label">Ground Rent</span>
-                <span className="stat-value negative">-{formatCurrency(projectedGroundRent)}</span>
-              </div>
-              <div className="stat">
-                <span className="stat-label">Utilities</span>
-                <span className="stat-value negative">-{formatCurrency(projectedUtilities)}</span>
+                <span className="stat-label">Expenses</span>
+                <span className="stat-value negative">-{formatCurrency(projectedGroundRent + projectedUtilities)}</span>
               </div>
               <div className="stat highlight">
-                <span className="stat-label">Net Change</span>
+                <span className="stat-label">Net</span>
                 <span className={`stat-value ${weeklyDelta >= 0 ? 'positive' : 'negative'}`}>
                   {formatCurrency(weeklyDelta)}
                 </span>
@@ -415,70 +409,38 @@ function App() {
             </div>
 
             <div className="card">
-              <h2>Game Status</h2>
+              <h2>Status</h2>
               {gameState.isPausedForWeeklyDecision ? (
-                <div className="status-message paused">Planning Phase - Make your weekly decisions</div>
+                <div className="status-message paused">Planning Phase</div>
               ) : gameState.isRunning ? (
-                <div className="status-message running">Week in progress - Day {gameState.day}/7</div>
+                <div className="status-message running">Day {gameState.day}/7</div>
               ) : (
                 <div className="status-message paused">Paused</div>
               )}
               {gameState.lastWeekSummary && (
                 <div className="week-summary">
-                  <h3>Last Week (Week {gameState.lastWeekSummary.week})</h3>
                   <div className="stat">
-                    <span className="stat-label">Net Profit/Loss</span>
+                    <span className="stat-label">Last Week</span>
                     <span className={`stat-value ${gameState.lastWeekSummary.profit >= 0 ? 'positive' : 'negative'}`}>
                       {formatCurrency(gameState.lastWeekSummary.profit)}
                     </span>
                   </div>
-                  <div className="stat">
-                    <span className="stat-label">Residents Churned</span>
-                    <span className="stat-value negative">
-                      {Array.isArray(gameState.lastWeekSummary.churnedResidents) 
-                        ? `-${gameState.lastWeekSummary.churnedResidents.length}` 
-                        : `-${gameState.lastWeekSummary.churnedResidents}`}
-                    </span>
-                  </div>
-                  {gameState.lastWeekSummary.arrivedResidents && gameState.lastWeekSummary.arrivedResidents.length > 0 && (
-                    <div className="stat">
-                      <span className="stat-label">New Arrivals</span>
-                      <span className="stat-value positive">+{gameState.lastWeekSummary.arrivedResidents.length}</span>
-                    </div>
-                  )}
                 </div>
               )}
             </div>
           </div>
 
           <div className="buildings-section">
-            <div className="card full-width">
+            <div className="card">
               <h2>Buildings</h2>
-              <table className="buildings-table">
-                <thead>
-                  <tr>
-                    <th>Building</th>
-                    <th>Count</th>
-                    <th>Capacity</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {gameState.buildings?.map(b => (
-                    <tr key={b.id}>
-                      <td>{b.name}</td>
-                      <td>{b.count}</td>
-                      <td>{b.capacity * b.count}</td>
-                    </tr>
-                  ))}
-                </tbody>
-                <tfoot>
-                  <tr>
-                    <td><strong>Total</strong></td>
-                    <td></td>
-                    <td><strong>{gameState.capacity}</strong></td>
-                  </tr>
-                </tfoot>
-              </table>
+              <div className="buildings-compact">
+                {gameState.buildings?.map(b => (
+                  <div key={b.id} className="building-row">
+                    <span className="building-name">{b.name}</span>
+                    <span className="building-info">×{b.count} ({b.capacity * b.count})</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 

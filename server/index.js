@@ -135,7 +135,8 @@ function calculateWeeklyProjection() {
 }
 
 function calculateTotalCapacity() {
-  return gameState.buildings.reduce((sum, b) => sum + (b.count * b.capacity), 0);
+  const bedroomBuilding = gameState.buildings.find(b => b.id === 'bedroom');
+  return bedroomBuilding ? bedroomBuilding.count * bedroomBuilding.capacity : 0;
 }
 
 function calculateGroundRent() {
