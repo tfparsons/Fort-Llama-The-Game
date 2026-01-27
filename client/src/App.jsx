@@ -431,14 +431,12 @@ function App() {
 
             <div className="card">
               <h2>Buildings</h2>
-              <div className="buildings-compact">
-                {gameState.buildings?.map(b => (
-                  <div key={b.id} className="building-row">
-                    <span className="building-name">{b.name}</span>
-                    <span className="building-info">×{b.count} ({b.capacity * b.count})</span>
-                  </div>
-                ))}
-              </div>
+              {gameState.buildings?.map(b => (
+                <div key={b.id} className="stat">
+                  <span className="stat-label">{b.name}</span>
+                  <span className="stat-value">{b.count}</span>
+                </div>
+              ))}
             </div>
 
             <div className="card">
