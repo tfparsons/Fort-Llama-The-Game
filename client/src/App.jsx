@@ -428,9 +428,7 @@ function App() {
                 </div>
               )}
             </div>
-          </div>
 
-          <div className="buildings-section">
             <div className="card">
               <h2>Buildings</h2>
               <div className="buildings-compact">
@@ -442,11 +440,9 @@ function App() {
                 ))}
               </div>
             </div>
-          </div>
 
-          <div className="residents-section">
-            <div className="card full-width">
-              <h2>Llamas in Residence ({gameState.communeResidents?.length || 0})</h2>
+            <div className="card">
+              <h2>Residents ({gameState.communeResidents?.length || 0})</h2>
               <div className="residents-list">
                 {gameState.communeResidents && gameState.communeResidents.length > 0 ? (
                   gameState.communeResidents.map(resident => (
