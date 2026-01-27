@@ -63,11 +63,14 @@ const INITIAL_DEFAULTS = {
 };
 
 let savedDefaults = { ...INITIAL_DEFAULTS };
+let savedLlamaPool = null;
 
 function initializeGame(config = savedDefaults) {
   gameConfig = { ...config };
   
-  llamaPool = JSON.parse(JSON.stringify(STARTING_LLAMAS));
+  llamaPool = savedLlamaPool 
+    ? JSON.parse(JSON.stringify(savedLlamaPool)) 
+    : JSON.parse(JSON.stringify(STARTING_LLAMAS));
   
   const shuffled = [...llamaPool].sort(() => Math.random() - 0.5);
   const startingResidentObjects = shuffled.slice(0, gameConfig.startingResidents).map(llama => ({
@@ -90,11 +93,19 @@ function initializeGame(config = savedDefaults) {
     isGameOver: false,
     lastWeekSummary: null,
     hasRecruitedThisWeek: false,
+    weekCandidates: [],
     weeklyDelta: 0,
     dailyDelta: 0,
     treasuryAtWeekStart: gameConfig.startingTreasury
   };
   calculateWeeklyProjection();
+  generateWeekCandidates();
+}
+
+function generateWeekCandidates() {
+  const available = getAvailableLlamas();
+  const shuffled = available.sort(() => Math.random() - 0.5);
+  gameState.weekCandidates = shuffled.slice(0, Math.min(3, shuffled.length));
 }
 
 function calculateWeeklyProjection() {
@@ -209,6 +220,7 @@ function processWeekEnd() {
   stopSimulation();
   
   calculateWeeklyProjection();
+  generateWeekCandidates();
 }
 
 function startSimulation() {
@@ -263,7 +275,23 @@ app.post('/api/config', (req, res) => {
 
 app.post('/api/save-defaults', (req, res) => {
   savedDefaults = { ...gameConfig };
+  savedLlamaPool = JSON.parse(JSON.stringify(llamaPool));
   res.json({ success: true, defaults: savedDefaults });
+});
+
+app.get('/api/llama-pool', (req, res) => {
+  res.json({ llamas: llamaPool });
+});
+
+app.post('/api/llama-pool', (req, res) => {
+  const { llamas } = req.body;
+  if (!llamas || !Array.isArray(llamas)) {
+    res.status(400).json({ error: 'Invalid llama pool data' });
+    return;
+  }
+  llamaPool = llamas;
+  generateWeekCandidates();
+  res.json({ success: true, llamas: llamaPool });
 });
 
 app.post('/api/reset', (req, res) => {
@@ -312,11 +340,12 @@ app.get('/api/recruitment-candidates', (req, res) => {
     return;
   }
   
-  const available = getAvailableLlamas();
-  const shuffled = available.sort(() => Math.random() - 0.5);
-  const candidates = shuffled.slice(0, Math.min(3, shuffled.length));
+  const residentIds = gameState.communeResidents.map(r => r.id);
+  const pendingIds = gameState.pendingArrivals.map(r => r.id);
+  const excludeIds = new Set([...residentIds, ...pendingIds]);
+  const availableCandidates = gameState.weekCandidates.filter(c => !excludeIds.has(c.id));
   
-  res.json({ candidates });
+  res.json({ candidates: availableCandidates });
 });
 
 app.post('/api/action/invite', (req, res) => {

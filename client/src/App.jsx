@@ -9,6 +9,8 @@ function App() {
   const [editConfig, setEditConfig] = useState(null);
   const [showBuildModal, setShowBuildModal] = useState(false);
   const [showRecruitModal, setShowRecruitModal] = useState(false);
+  const [showLlamaPoolEditor, setShowLlamaPoolEditor] = useState(false);
+  const [editableLlamas, setEditableLlamas] = useState([]);
   const [recruitCandidates, setRecruitCandidates] = useState([]);
   const [buildings, setBuildings] = useState([]);
   const [rentInput, setRentInput] = useState('');
@@ -186,6 +188,44 @@ function App() {
     setShowRecruitModal(false);
   };
 
+  const handleOpenLlamaPoolEditor = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/llama-pool`);
+      const data = await res.json();
+      setEditableLlamas(data.llamas || []);
+      setShowLlamaPoolEditor(true);
+    } catch (err) {
+      console.error('Failed to fetch llama pool:', err);
+    }
+  };
+
+  const updateLlamaField = (llamaId, field, value) => {
+    setEditableLlamas(prev => prev.map(llama => {
+      if (llama.id !== llamaId) return llama;
+      if (field === 'stats') {
+        return { ...llama, stats: value };
+      }
+      if (field === 'age') {
+        return { ...llama, [field]: parseInt(value) || 0 };
+      }
+      return { ...llama, [field]: value };
+    }));
+  };
+
+  const handleSaveLlamaPool = async () => {
+    try {
+      await fetch(`${API_BASE}/api/llama-pool`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ llamas: editableLlamas })
+      });
+      setShowLlamaPoolEditor(false);
+      fetchState();
+    } catch (err) {
+      console.error('Failed to save llama pool:', err);
+    }
+  };
+
   const handleBuildBedroom = async () => {
     await fetch(`${API_BASE}/api/action/build-bedroom`, { method: 'POST' });
     fetchState();
@@ -293,7 +333,7 @@ function App() {
                 </div>
               )}
               <div className="controls">
-                <button className="btn-reset" onClick={handleReset}>Reset Game</button>
+                <button className="btn-reset" onClick={handleReset}>Restart</button>
               </div>
             </div>
 
@@ -358,7 +398,10 @@ function App() {
 
           <div className="residents-section">
             <div className="card full-width">
-              <h2>Residents ({gameState.communeResidents?.length || 0})</h2>
+              <div className="residents-header">
+                <h2>Residents ({gameState.communeResidents?.length || 0})</h2>
+                <button className="manage-llamas-btn" onClick={handleOpenLlamaPoolEditor}>Manage Llamas</button>
+              </div>
               <div className="residents-list">
                 {gameState.communeResidents && gameState.communeResidents.length > 0 ? (
                   gameState.communeResidents.map(resident => (
@@ -584,7 +627,7 @@ function App() {
                     gameState.residents + (gameState.pendingArrivals?.length || 0) >= gameState.capacity
                   }
                 >
-                  {gameState.hasRecruitedThisWeek ? 'Already recruited this week' : 'Find a Llama'}
+                  {gameState.hasRecruitedThisWeek ? 'Already recruited this week' : 'Llama Recruitment'}
                 </button>
                 {gameState.pendingArrivals && gameState.pendingArrivals.length > 0 && (
                   <div className="panel-note positive">
@@ -596,7 +639,7 @@ function App() {
               <div className="panel-section">
                 <label>Build</label>
                 <button className="panel-action" onClick={() => setShowBuildModal(true)}>
-                  Build Menu (£{config.bedroomBuildCost.toLocaleString()})
+                  Build
                 </button>
               </div>
 
@@ -628,7 +671,7 @@ function App() {
       {showBuildModal && (
         <div className="modal-overlay" onClick={() => setShowBuildModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>Build Menu</h2>
+            <h2>Build</h2>
             {buildings.map(building => (
               <div key={building.id} className="building-card">
                 <h3>{building.name}</h3>
@@ -708,6 +751,141 @@ function App() {
             <button className="modal-close" onClick={handlePassRecruitment}>
               Pass
             </button>
+          </div>
+        </div>
+      )}
+
+      {showLlamaPoolEditor && (
+        <div className="modal-overlay" onClick={() => setShowLlamaPoolEditor(false)}>
+          <div className="modal llama-pool-modal" onClick={(e) => e.stopPropagation()}>
+            <h2>Manage Llama Pool</h2>
+            <div className="llama-pool-table-container">
+              <table className="llama-pool-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Gender</th>
+                    <th>Age</th>
+                    <th>Bio</th>
+                    <th>Share</th>
+                    <th>Cook</th>
+                    <th>Tidy</th>
+                    <th>Handy</th>
+                    <th>Consid</th>
+                    <th>Social</th>
+                    <th>Party</th>
+                    <th>Work</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {editableLlamas.map(llama => (
+                    <tr key={llama.id} className={gameState.communeResidents?.some(r => r.id === llama.id) ? 'in-commune' : ''}>
+                      <td>
+                        <input 
+                          type="text" 
+                          value={llama.name} 
+                          onChange={(e) => updateLlamaField(llama.id, 'name', e.target.value)}
+                        />
+                      </td>
+                      <td>
+                        <select 
+                          value={llama.gender} 
+                          onChange={(e) => updateLlamaField(llama.id, 'gender', e.target.value)}
+                        >
+                          <option value="F">F</option>
+                          <option value="M">M</option>
+                          <option value="NB">NB</option>
+                        </select>
+                      </td>
+                      <td>
+                        <input 
+                          type="number" 
+                          value={llama.age} 
+                          onChange={(e) => updateLlamaField(llama.id, 'age', e.target.value)}
+                          min="18" max="80"
+                        />
+                      </td>
+                      <td>
+                        <input 
+                          type="text" 
+                          value={llama.bio} 
+                          onChange={(e) => updateLlamaField(llama.id, 'bio', e.target.value)}
+                          className="bio-input"
+                        />
+                      </td>
+                      <td>
+                        <input 
+                          type="number" 
+                          value={llama.stats.sharingTolerance} 
+                          onChange={(e) => updateLlamaField(llama.id, 'stats', {...llama.stats, sharingTolerance: parseInt(e.target.value) || 0})}
+                          min="1" max="20"
+                        />
+                      </td>
+                      <td>
+                        <input 
+                          type="number" 
+                          value={llama.stats.cookingSkill} 
+                          onChange={(e) => updateLlamaField(llama.id, 'stats', {...llama.stats, cookingSkill: parseInt(e.target.value) || 0})}
+                          min="1" max="20"
+                        />
+                      </td>
+                      <td>
+                        <input 
+                          type="number" 
+                          value={llama.stats.tidiness} 
+                          onChange={(e) => updateLlamaField(llama.id, 'stats', {...llama.stats, tidiness: parseInt(e.target.value) || 0})}
+                          min="1" max="20"
+                        />
+                      </td>
+                      <td>
+                        <input 
+                          type="number" 
+                          value={llama.stats.handiness} 
+                          onChange={(e) => updateLlamaField(llama.id, 'stats', {...llama.stats, handiness: parseInt(e.target.value) || 0})}
+                          min="1" max="20"
+                        />
+                      </td>
+                      <td>
+                        <input 
+                          type="number" 
+                          value={llama.stats.consideration} 
+                          onChange={(e) => updateLlamaField(llama.id, 'stats', {...llama.stats, consideration: parseInt(e.target.value) || 0})}
+                          min="1" max="20"
+                        />
+                      </td>
+                      <td>
+                        <input 
+                          type="number" 
+                          value={llama.stats.sociability} 
+                          onChange={(e) => updateLlamaField(llama.id, 'stats', {...llama.stats, sociability: parseInt(e.target.value) || 0})}
+                          min="1" max="20"
+                        />
+                      </td>
+                      <td>
+                        <input 
+                          type="number" 
+                          value={llama.stats.partyStamina} 
+                          onChange={(e) => updateLlamaField(llama.id, 'stats', {...llama.stats, partyStamina: parseInt(e.target.value) || 0})}
+                          min="1" max="20"
+                        />
+                      </td>
+                      <td>
+                        <input 
+                          type="number" 
+                          value={llama.stats.workEthic} 
+                          onChange={(e) => updateLlamaField(llama.id, 'stats', {...llama.stats, workEthic: parseInt(e.target.value) || 0})}
+                          min="1" max="20"
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="llama-pool-actions">
+              <button className="action-button" onClick={handleSaveLlamaPool}>Apply Changes</button>
+              <button className="modal-close" onClick={() => setShowLlamaPoolEditor(false)}>Cancel</button>
+            </div>
           </div>
         </div>
       )}

@@ -849,3 +849,102 @@ body {
   color: #888;
   font-size: 0.7rem;
 }
+
+.residents-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.residents-header h2 {
+  margin: 0;
+}
+
+.manage-llamas-btn {
+  background: #0f3460;
+  border: 1px solid #e94560;
+  color: #e94560;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+
+.manage-llamas-btn:hover {
+  background: #e94560;
+  color: #fff;
+}
+
+.llama-pool-modal {
+  max-width: 95vw;
+  width: 1200px;
+  max-height: 85vh;
+}
+
+.llama-pool-table-container {
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: 60vh;
+  margin: 16px 0;
+}
+
+.llama-pool-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.llama-pool-table th,
+.llama-pool-table td {
+  padding: 6px 4px;
+  text-align: left;
+  border-bottom: 1px solid #0f3460;
+}
+
+.llama-pool-table th {
+  background: #0f3460;
+  color: #e94560;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  font-size: 0.75rem;
+}
+
+.llama-pool-table tr.in-commune {
+  background: rgba(74, 222, 128, 0.1);
+}
+
+.llama-pool-table input,
+.llama-pool-table select {
+  background: #16213e;
+  border: 1px solid #0f3460;
+  color: #fff;
+  padding: 4px 6px;
+  border-radius: 3px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.llama-pool-table input[type="number"] {
+  width: 45px;
+}
+
+.llama-pool-table input[type="text"] {
+  min-width: 60px;
+}
+
+.llama-pool-table .bio-input {
+  min-width: 150px;
+}
+
+.llama-pool-table select {
+  width: 50px;
+}
+
+.llama-pool-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
