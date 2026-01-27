@@ -398,7 +398,7 @@ function App() {
 
           <div className="residents-section">
             <div className="card full-width">
-              <h2>Residents ({gameState.communeResidents?.length || 0})</h2>
+              <h2>Llamas in Residence ({gameState.communeResidents?.length || 0})</h2>
               <div className="residents-list">
                 {gameState.communeResidents && gameState.communeResidents.length > 0 ? (
                   gameState.communeResidents.map(resident => (
@@ -430,9 +430,42 @@ function App() {
                     </div>
                   ))
                 ) : (
-                  <div className="no-residents">No residents yet</div>
+                  <div className="no-residents">No llamas yet</div>
                 )}
               </div>
+              {gameState.communeResidents && gameState.communeResidents.length > 0 && (() => {
+                const residents = gameState.communeResidents;
+                const count = residents.length;
+                const calcPct = (statKey) => {
+                  const avg = residents.reduce((sum, r) => sum + (r.stats[statKey] || 10), 0) / count;
+                  return Math.round((avg - 10) * 10);
+                };
+                const stats = [
+                  { key: 'sharingTolerance', label: 'Sharing' },
+                  { key: 'cookingSkill', label: 'Cooking' },
+                  { key: 'tidiness', label: 'Tidiness' },
+                  { key: 'handiness', label: 'Handiness' },
+                  { key: 'consideration', label: 'Consideration' },
+                  { key: 'sociability', label: 'Sociability' },
+                  { key: 'partyStamina', label: 'Party' },
+                  { key: 'workEthic', label: 'Work' }
+                ];
+                return (
+                  <div className="aggregate-stats">
+                    {stats.map(s => {
+                      const pct = calcPct(s.key);
+                      return (
+                        <div key={s.key} className="agg-stat">
+                          <span className="agg-label">{s.label}</span>
+                          <span className={`agg-value ${pct >= 0 ? 'positive' : 'negative'}`}>
+                            {pct >= 0 ? '+' : ''}{pct}%
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>

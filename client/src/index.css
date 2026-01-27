@@ -866,6 +866,42 @@ body {
   color: #fff;
 }
 
+.aggregate-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #0f3460;
+}
+
+.agg-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 70px;
+}
+
+.agg-label {
+  font-size: 0.7rem;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.agg-value {
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.agg-value.positive {
+  color: #4ade80;
+}
+
+.agg-value.negative {
+  color: #f87171;
+}
+
 .llama-pool-modal {
   max-width: 95vw;
   width: 1200px;
