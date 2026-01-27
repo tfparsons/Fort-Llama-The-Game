@@ -850,17 +850,6 @@ body {
   font-size: 0.7rem;
 }
 
-.residents-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.residents-header h2 {
-  margin: 0;
-}
-
 .manage-llamas-btn {
   background: #0f3460;
   border: 1px solid #e94560;

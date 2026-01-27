@@ -398,10 +398,7 @@ function App() {
 
           <div className="residents-section">
             <div className="card full-width">
-              <div className="residents-header">
-                <h2>Residents ({gameState.communeResidents?.length || 0})</h2>
-                <button className="manage-llamas-btn" onClick={handleOpenLlamaPoolEditor}>Manage Llamas</button>
-              </div>
+              <h2>Residents ({gameState.communeResidents?.length || 0})</h2>
               <div className="residents-list">
                 {gameState.communeResidents && gameState.communeResidents.length > 0 ? (
                   gameState.communeResidents.map(resident => (
@@ -446,6 +443,9 @@ function App() {
           <div className="dev-tools-header">
             <h2>Developer Tools</h2>
             <div className="dev-tools-buttons">
+              <button className="manage-llamas-btn" onClick={handleOpenLlamaPoolEditor}>
+                Manage Llamas
+              </button>
               <button className="save-defaults-button" onClick={handleSaveDefaults}>
                 Save as Defaults
               </button>
