@@ -98,6 +98,17 @@ All parameter changes trigger simulation reset.
 
 ## Recent Changes
 
+- 2026-01-27: **Buildings System**
+  - Full buildings system with 5 types: Bedrooms (2 cap), Kitchen (20), Bathroom (4), Living Room (20), Utility Closet (40)
+  - Player starts with: 8 Bedrooms, 1 Kitchen, 3 Bathrooms, 1 Living Room, 1 Utility Closet (108 total capacity)
+  - Only Bedrooms (£200) and Bathrooms (£300) are buildable by player
+  - Each building type has its own utilities/ground rent multipliers
+  - "Manage Buildings" button in Dev Tools opens editor for all building properties
+  - Buildings panel in player dashboard shows all buildings with counts and capacity
+  - Build menu now shows only buildable options (Bedrooms, Bathrooms)
+  - Total capacity calculated from sum of all building capacities
+  - Ground rent/utilities increase based on extra buildings beyond starting count
+
 - 2026-01-27: **Llama Pool Editor & UI polish**
   - "Manage Llamas" button in Dev Tools opens full pool editor table
   - Edit all 20 llamas: name, gender, age, bio, and all 8 stats
