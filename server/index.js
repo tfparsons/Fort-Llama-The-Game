@@ -43,19 +43,22 @@ function statToPercentage(stat) {
 
 let llamaPool = [];
 
+const DEFAULT_BUILDINGS = [
+  { id: 'bedroom', name: 'Bedrooms', capacity: 2, atStart: 8, cost: 200, utilitiesMultiplier: 0.1, groundRentMultiplier: 0.1, buildable: true },
+  { id: 'kitchen', name: 'Kitchen', capacity: 20, atStart: 1, cost: null, utilitiesMultiplier: null, groundRentMultiplier: null, buildable: false },
+  { id: 'bathroom', name: 'Bathroom', capacity: 4, atStart: 3, cost: 300, utilitiesMultiplier: 0.2, groundRentMultiplier: 0.1, buildable: true },
+  { id: 'living_room', name: 'Living Room', capacity: 20, atStart: 1, cost: null, utilitiesMultiplier: null, groundRentMultiplier: null, buildable: false },
+  { id: 'utility_closet', name: 'Utility Closet', capacity: 40, atStart: 1, cost: null, utilitiesMultiplier: null, groundRentMultiplier: null, buildable: false }
+];
+
 const INITIAL_DEFAULTS = {
   startingTreasury: 0,
-  startingBedrooms: 4,
   startingResidents: 2,
   rentMin: 50,
   rentMax: 500,
   defaultRent: 100,
   groundRentBase: 1000,
-  groundRentBedroomModifier: 0.10,
   utilitiesBase: 200,
-  utilitiesBedroomModifier: 0.15,
-  bedroomBuildCost: 2000,
-  bedroomCapacity: 2,
   baseChurnRate: 0.20,
   churnRentMultiplier: 0.0003,
   gameOverLimit: -20000,
@@ -64,6 +67,7 @@ const INITIAL_DEFAULTS = {
 
 let savedDefaults = { ...INITIAL_DEFAULTS };
 let savedLlamaPool = null;
+let savedBuildingsConfig = null;
 
 function initializeGame(config = savedDefaults) {
   gameConfig = { ...config };
@@ -72,6 +76,10 @@ function initializeGame(config = savedDefaults) {
     ? JSON.parse(JSON.stringify(savedLlamaPool)) 
     : JSON.parse(JSON.stringify(STARTING_LLAMAS));
   
+  const buildingsConfig = savedBuildingsConfig 
+    ? JSON.parse(JSON.stringify(savedBuildingsConfig))
+    : JSON.parse(JSON.stringify(DEFAULT_BUILDINGS));
+  
   const shuffled = [...llamaPool].sort(() => Math.random() - 0.5);
   const startingResidentObjects = shuffled.slice(0, gameConfig.startingResidents).map(llama => ({
     ...llama,
@@ -79,9 +87,14 @@ function initializeGame(config = savedDefaults) {
     arrivalDay: null
   }));
   
+  const buildings = buildingsConfig.map(b => ({
+    ...b,
+    count: b.atStart
+  }));
+  
   gameState = {
     treasury: gameConfig.startingTreasury,
-    bedrooms: gameConfig.startingBedrooms,
+    buildings: buildings,
     communeResidents: startingResidentObjects,
     pendingArrivals: [],
     currentRent: gameConfig.defaultRent,
@@ -121,14 +134,30 @@ function calculateWeeklyProjection() {
   gameState.projectedUtilities = utilities;
 }
 
+function calculateTotalCapacity() {
+  return gameState.buildings.reduce((sum, b) => sum + (b.count * b.capacity), 0);
+}
+
 function calculateGroundRent() {
-  const extraBedrooms = Math.max(0, gameState.bedrooms - 1);
-  return Math.round(gameConfig.groundRentBase * (1 + extraBedrooms * gameConfig.groundRentBedroomModifier));
+  let multiplier = 0;
+  gameState.buildings.forEach(b => {
+    if (b.groundRentMultiplier !== null) {
+      const extraCount = Math.max(0, b.count - b.atStart);
+      multiplier += extraCount * b.groundRentMultiplier;
+    }
+  });
+  return Math.round(gameConfig.groundRentBase * (1 + multiplier));
 }
 
 function calculateUtilities() {
-  const extraBedrooms = Math.max(0, gameState.bedrooms - 1);
-  return Math.round(gameConfig.utilitiesBase * (1 + extraBedrooms * gameConfig.utilitiesBedroomModifier));
+  let multiplier = 0;
+  gameState.buildings.forEach(b => {
+    if (b.utilitiesMultiplier !== null) {
+      const extraCount = Math.max(0, b.count - b.atStart);
+      multiplier += extraCount * b.utilitiesMultiplier;
+    }
+  });
+  return Math.round(gameConfig.utilitiesBase * (1 + multiplier));
 }
 
 function calculateWeeklyChurnCount() {
@@ -250,7 +279,7 @@ function dismissWeeklyPause() {
 initializeGame();
 
 app.get('/api/state', (req, res) => {
-  const capacity = gameState.bedrooms * gameConfig.bedroomCapacity;
+  const capacity = calculateTotalCapacity();
   const residentCount = gameState.communeResidents.length;
   const pendingCount = gameState.pendingArrivals.length;
   res.json({
@@ -276,6 +305,16 @@ app.post('/api/config', (req, res) => {
 app.post('/api/save-defaults', (req, res) => {
   savedDefaults = { ...gameConfig };
   savedLlamaPool = JSON.parse(JSON.stringify(llamaPool));
+  savedBuildingsConfig = gameState.buildings.map(b => ({
+    id: b.id,
+    name: b.name,
+    capacity: b.capacity,
+    atStart: b.atStart,
+    cost: b.cost,
+    utilitiesMultiplier: b.utilitiesMultiplier,
+    groundRentMultiplier: b.groundRentMultiplier,
+    buildable: b.buildable
+  }));
   res.json({ success: true, defaults: savedDefaults });
 });
 
@@ -359,7 +398,7 @@ app.post('/api/action/invite', (req, res) => {
     return;
   }
   
-  const capacity = gameState.bedrooms * gameConfig.bedroomCapacity;
+  const capacity = calculateTotalCapacity();
   const futureResidents = gameState.communeResidents.length + gameState.pendingArrivals.length + 1;
   
   if (futureResidents > capacity) {
@@ -399,37 +438,77 @@ app.post('/api/action/invite', (req, res) => {
   });
 });
 
-app.post('/api/action/build-bedroom', (req, res) => {
+app.post('/api/action/build', (req, res) => {
   if (!gameState.isPausedForWeeklyDecision) {
     res.status(400).json({ error: 'Can only build during weekly planning' });
     return;
   }
-  if (gameState.treasury < gameConfig.bedroomBuildCost) {
+  
+  const { buildingId } = req.body;
+  const building = gameState.buildings.find(b => b.id === buildingId);
+  
+  if (!building) {
+    res.status(400).json({ error: 'Building type not found' });
+    return;
+  }
+  
+  if (!building.buildable || building.cost === null) {
+    res.status(400).json({ error: 'This building type cannot be built' });
+    return;
+  }
+  
+  if (gameState.treasury < building.cost) {
     res.status(400).json({ error: 'Not enough funds' });
     return;
   }
   
-  gameState.treasury -= gameConfig.bedroomBuildCost;
-  gameState.bedrooms += 1;
+  gameState.treasury -= building.cost;
+  building.count += 1;
   calculateWeeklyProjection();
   res.json({ 
     success: true, 
-    bedrooms: gameState.bedrooms, 
-    treasury: gameState.treasury 
+    building: building.name,
+    count: building.count,
+    treasury: gameState.treasury,
+    capacity: calculateTotalCapacity()
   });
 });
 
+app.post('/api/action/build-bedroom', (req, res) => {
+  req.body = { buildingId: 'bedroom' };
+  return app._router.handle({ ...req, url: '/api/action/build', method: 'POST' }, res, () => {});
+});
+
 app.get('/api/buildings', (req, res) => {
-  res.json([
-    {
-      id: 'bedroom',
-      name: 'Bedroom',
-      cost: gameConfig.bedroomBuildCost,
-      capacity: gameConfig.bedroomCapacity,
-      groundRentIncrease: `+${gameConfig.groundRentBedroomModifier * 100}%`,
-      utilitiesIncrease: `+${gameConfig.utilitiesBedroomModifier * 100}%`
-    }
-  ]);
+  res.json(gameState.buildings);
+});
+
+app.post('/api/buildings', (req, res) => {
+  const { buildings } = req.body;
+  if (!buildings || !Array.isArray(buildings)) {
+    res.status(400).json({ error: 'Invalid buildings data' });
+    return;
+  }
+  gameState.buildings = buildings.map(b => ({
+    ...b,
+    count: b.count !== undefined ? b.count : b.atStart
+  }));
+  calculateWeeklyProjection();
+  res.json({ success: true, buildings: gameState.buildings });
+});
+
+app.get('/api/buildings-config', (req, res) => {
+  res.json(savedBuildingsConfig || DEFAULT_BUILDINGS);
+});
+
+app.post('/api/buildings-config', (req, res) => {
+  const { buildings } = req.body;
+  if (!buildings || !Array.isArray(buildings)) {
+    res.status(400).json({ error: 'Invalid buildings config' });
+    return;
+  }
+  savedBuildingsConfig = buildings;
+  res.json({ success: true, buildings: savedBuildingsConfig });
 });
 
 app.get('/api/llamas', (req, res) => {

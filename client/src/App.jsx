@@ -10,7 +10,9 @@ function App() {
   const [showBuildModal, setShowBuildModal] = useState(false);
   const [showRecruitModal, setShowRecruitModal] = useState(false);
   const [showLlamaPoolEditor, setShowLlamaPoolEditor] = useState(false);
+  const [showBuildingsEditor, setShowBuildingsEditor] = useState(false);
   const [editableLlamas, setEditableLlamas] = useState([]);
+  const [editableBuildings, setEditableBuildings] = useState([]);
   const [recruitCandidates, setRecruitCandidates] = useState([]);
   const [buildings, setBuildings] = useState([]);
   const [rentInput, setRentInput] = useState('');
@@ -226,9 +228,62 @@ function App() {
     }
   };
 
-  const handleBuildBedroom = async () => {
-    await fetch(`${API_BASE}/api/action/build-bedroom`, { method: 'POST' });
+  const handleOpenBuildingsEditor = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/buildings`);
+      const data = await res.json();
+      setEditableBuildings(data || []);
+      setShowBuildingsEditor(true);
+    } catch (err) {
+      console.error('Failed to fetch buildings:', err);
+    }
+  };
+
+  const updateBuildingField = (buildingId, field, value) => {
+    setEditableBuildings(prev => prev.map(b => {
+      if (b.id !== buildingId) return b;
+      if (field === 'capacity' || field === 'atStart' || field === 'cost') {
+        const parsed = value === '' ? null : parseInt(value);
+        return { ...b, [field]: parsed };
+      }
+      if (field === 'utilitiesMultiplier' || field === 'groundRentMultiplier') {
+        const parsed = value === '' ? null : parseFloat(value);
+        return { ...b, [field]: parsed };
+      }
+      if (field === 'buildable') {
+        return { ...b, [field]: value };
+      }
+      return { ...b, [field]: value };
+    }));
+  };
+
+  const handleSaveBuildings = async () => {
+    try {
+      await fetch(`${API_BASE}/api/buildings`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ buildings: editableBuildings })
+      });
+      setShowBuildingsEditor(false);
+      fetchState();
+      fetchBuildings();
+    } catch (err) {
+      console.error('Failed to save buildings:', err);
+    }
+  };
+
+  const handleBuild = async (buildingId) => {
+    await fetch(`${API_BASE}/api/action/build`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ buildingId })
+    });
     fetchState();
+    fetchBuildings();
+  };
+
+  const handleBuildBedroom = async () => {
+    await handleBuild('bedroom');
     setShowBuildModal(false);
   };
 
@@ -263,8 +318,8 @@ function App() {
   };
 
   const projectedIncome = gameState.projectedIncome ?? (gameState.residents * gameState.currentRent);
-  const projectedGroundRent = gameState.projectedGroundRent ?? Math.round(config.groundRentBase * (1 + Math.max(0, gameState.bedrooms - 1) * config.groundRentBedroomModifier));
-  const projectedUtilities = gameState.projectedUtilities ?? Math.round(config.utilitiesBase * (1 + Math.max(0, gameState.bedrooms - 1) * config.utilitiesBedroomModifier));
+  const projectedGroundRent = gameState.projectedGroundRent ?? config.groundRentBase;
+  const projectedUtilities = gameState.projectedUtilities ?? config.utilitiesBase;
   const weeklyDelta = gameState.weeklyDelta ?? (projectedIncome - projectedGroundRent - projectedUtilities);
 
   return (
@@ -319,8 +374,8 @@ function App() {
             <div className="card">
               <h2>Commune Status</h2>
               <div className="stat">
-                <span className="stat-label">Bedrooms</span>
-                <span className="stat-value">{gameState.bedrooms}</span>
+                <span className="stat-label">Capacity</span>
+                <span className="stat-value">{gameState.residents}/{gameState.capacity}</span>
               </div>
               <div className="stat">
                 <span className="stat-label">Weekly Rent</span>
@@ -393,6 +448,24 @@ function App() {
                   )}
                 </div>
               )}
+            </div>
+          </div>
+
+          <div className="buildings-section">
+            <div className="card full-width">
+              <h2>Buildings</h2>
+              <div className="buildings-grid">
+                {gameState.buildings?.map(b => (
+                  <div key={b.id} className="building-item">
+                    <span className="building-name">{b.name}</span>
+                    <span className="building-count">×{b.count}</span>
+                    <span className="building-capacity">({b.capacity * b.count} capacity)</span>
+                  </div>
+                ))}
+              </div>
+              <div className="buildings-summary">
+                <span>Total Capacity: {gameState.capacity} residents</span>
+              </div>
             </div>
           </div>
 
@@ -479,6 +552,9 @@ function App() {
               <button className="manage-llamas-btn" onClick={handleOpenLlamaPoolEditor}>
                 Manage Llamas
               </button>
+              <button className="manage-llamas-btn" onClick={handleOpenBuildingsEditor}>
+                Manage Buildings
+              </button>
               <button className="save-defaults-button" onClick={handleSaveDefaults}>
                 Save as Defaults
               </button>
@@ -494,10 +570,6 @@ function App() {
               <div className="config-field">
                 <label>Treasury (£)</label>
                 <input type="number" value={editConfig.startingTreasury} onChange={(e) => updateEditConfig('startingTreasury', e.target.value)} />
-              </div>
-              <div className="config-field">
-                <label>Bedrooms</label>
-                <input type="number" value={editConfig.startingBedrooms} onChange={(e) => updateEditConfig('startingBedrooms', e.target.value)} />
               </div>
               <div className="config-field">
                 <label>Residents</label>
@@ -527,10 +599,6 @@ function App() {
                 <label>Base (£/wk)</label>
                 <input type="number" value={editConfig.groundRentBase} onChange={(e) => updateEditConfig('groundRentBase', e.target.value)} />
               </div>
-              <div className="config-field">
-                <label>Bedroom Mod</label>
-                <input type="number" step="0.01" value={editConfig.groundRentBedroomModifier} onChange={(e) => updateEditConfig('groundRentBedroomModifier', e.target.value)} />
-              </div>
             </div>
 
             <div className="config-section">
@@ -538,22 +606,6 @@ function App() {
               <div className="config-field">
                 <label>Base (£/wk)</label>
                 <input type="number" value={editConfig.utilitiesBase} onChange={(e) => updateEditConfig('utilitiesBase', e.target.value)} />
-              </div>
-              <div className="config-field">
-                <label>Bedroom Mod</label>
-                <input type="number" step="0.01" value={editConfig.utilitiesBedroomModifier} onChange={(e) => updateEditConfig('utilitiesBedroomModifier', e.target.value)} />
-              </div>
-            </div>
-
-            <div className="config-section">
-              <h3>Buildings</h3>
-              <div className="config-field">
-                <label>Build Cost (£)</label>
-                <input type="number" value={editConfig.bedroomBuildCost} onChange={(e) => updateEditConfig('bedroomBuildCost', e.target.value)} />
-              </div>
-              <div className="config-field">
-                <label>Capacity</label>
-                <input type="number" value={editConfig.bedroomCapacity} onChange={(e) => updateEditConfig('bedroomCapacity', e.target.value)} />
               </div>
             </div>
 
@@ -705,18 +757,23 @@ function App() {
         <div className="modal-overlay" onClick={() => setShowBuildModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h2>Build</h2>
-            {buildings.map(building => (
+            {gameState.buildings?.filter(b => b.buildable && b.cost !== null).map(building => (
               <div key={building.id} className="building-card">
                 <h3>{building.name}</h3>
                 <div className="building-stats">
-                  <div>Cost: £{building.cost.toLocaleString()}</div>
+                  <div>Cost: £{building.cost?.toLocaleString()}</div>
                   <div>Capacity: +{building.capacity} residents</div>
-                  <div>Ground Rent: {building.groundRentIncrease}</div>
-                  <div>Utilities: {building.utilitiesIncrease}</div>
+                  {building.groundRentMultiplier !== null && (
+                    <div>Ground Rent: +{(building.groundRentMultiplier * 100).toFixed(0)}%</div>
+                  )}
+                  {building.utilitiesMultiplier !== null && (
+                    <div>Utilities: +{(building.utilitiesMultiplier * 100).toFixed(0)}%</div>
+                  )}
+                  <div>Current: {building.count}</div>
                 </div>
                 <button 
                   className="action-button"
-                  onClick={handleBuildBedroom}
+                  onClick={() => handleBuild(building.id)}
                   disabled={gameState.treasury < building.cost}
                 >
                   {gameState.treasury < building.cost ? 'Not enough funds' : 'Build'}
@@ -918,6 +975,89 @@ function App() {
             <div className="llama-pool-actions">
               <button className="action-button" onClick={handleSaveLlamaPool}>Apply Changes</button>
               <button className="modal-close" onClick={() => setShowLlamaPoolEditor(false)}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showBuildingsEditor && (
+        <div className="modal-overlay" onClick={() => setShowBuildingsEditor(false)}>
+          <div className="modal buildings-modal" onClick={(e) => e.stopPropagation()}>
+            <h2>Manage Buildings</h2>
+            <div className="buildings-table-container">
+              <table className="buildings-table">
+                <thead>
+                  <tr>
+                    <th>Building</th>
+                    <th>Capacity</th>
+                    <th>At Start</th>
+                    <th>Cost</th>
+                    <th>Utilities Mult</th>
+                    <th>Ground Rent Mult</th>
+                    <th>Buildable</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {editableBuildings.map(b => (
+                    <tr key={b.id}>
+                      <td>{b.name}</td>
+                      <td>
+                        <input 
+                          type="number" 
+                          value={b.capacity ?? ''} 
+                          onChange={(e) => updateBuildingField(b.id, 'capacity', e.target.value)}
+                          min="1"
+                        />
+                      </td>
+                      <td>
+                        <input 
+                          type="number" 
+                          value={b.atStart ?? ''} 
+                          onChange={(e) => updateBuildingField(b.id, 'atStart', e.target.value)}
+                          min="0"
+                        />
+                      </td>
+                      <td>
+                        <input 
+                          type="number" 
+                          value={b.cost ?? ''} 
+                          onChange={(e) => updateBuildingField(b.id, 'cost', e.target.value)}
+                          placeholder="n/a"
+                        />
+                      </td>
+                      <td>
+                        <input 
+                          type="number" 
+                          step="0.01"
+                          value={b.utilitiesMultiplier ?? ''} 
+                          onChange={(e) => updateBuildingField(b.id, 'utilitiesMultiplier', e.target.value)}
+                          placeholder="n/a"
+                        />
+                      </td>
+                      <td>
+                        <input 
+                          type="number" 
+                          step="0.01"
+                          value={b.groundRentMultiplier ?? ''} 
+                          onChange={(e) => updateBuildingField(b.id, 'groundRentMultiplier', e.target.value)}
+                          placeholder="n/a"
+                        />
+                      </td>
+                      <td>
+                        <input 
+                          type="checkbox" 
+                          checked={b.buildable} 
+                          onChange={(e) => updateBuildingField(b.id, 'buildable', e.target.checked)}
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="buildings-actions">
+              <button className="action-button" onClick={handleSaveBuildings}>Apply Changes</button>
+              <button className="modal-close" onClick={() => setShowBuildingsEditor(false)}>Cancel</button>
             </div>
           </div>
         </div>

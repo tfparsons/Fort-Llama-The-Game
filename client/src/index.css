@@ -973,3 +973,92 @@ body {
   gap: 12px;
   justify-content: flex-end;
 }
+
+.buildings-section {
+  margin-bottom: 20px;
+}
+
+.buildings-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.building-item {
+  background: #0f3460;
+  padding: 8px 12px;
+  border-radius: 6px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.building-name {
+  color: #e94560;
+  font-weight: 600;
+}
+
+.building-count {
+  color: #4ade80;
+  font-weight: bold;
+}
+
+.building-capacity {
+  color: #888;
+  font-size: 0.85rem;
+}
+
+.buildings-summary {
+  color: #888;
+  font-size: 0.9rem;
+  border-top: 1px solid #0f3460;
+  padding-top: 12px;
+}
+
+.buildings-modal {
+  max-width: 900px;
+  width: 95vw;
+}
+
+.buildings-table-container {
+  overflow-x: auto;
+  margin: 16px 0;
+}
+
+.buildings-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.buildings-table th,
+.buildings-table td {
+  padding: 10px 8px;
+  text-align: left;
+  border-bottom: 1px solid #0f3460;
+}
+
+.buildings-table th {
+  background: #0f3460;
+  color: #e94560;
+  font-size: 0.85rem;
+}
+
+.buildings-table input {
+  background: #16213e;
+  border: 1px solid #0f3460;
+  color: #fff;
+  padding: 6px 8px;
+  border-radius: 3px;
+  width: 80px;
+}
+
+.buildings-table input[type="checkbox"] {
+  width: auto;
+}
+
+.buildings-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
