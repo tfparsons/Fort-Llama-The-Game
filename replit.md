@@ -99,7 +99,7 @@ All parameter changes trigger simulation reset.
 ## Recent Changes
 
 - 2026-01-27: **Llama Pool Editor & UI polish**
-  - "Manage Llamas" button on dashboard opens full pool editor table
+  - "Manage Llamas" button in Dev Tools opens full pool editor table
   - Edit all 20 llamas: name, gender, age, bio, and all 8 stats
   - Pool edits persist via "Save as Defaults" in Dev Tools
   - Recruitment candidates now locked at week start (no re-rolling)
