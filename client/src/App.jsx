@@ -434,7 +434,7 @@ function App() {
               {gameState.buildings?.map(b => (
                 <div key={b.id} className="stat">
                   <span className="stat-label">{b.name}</span>
-                  <span className="stat-value">{b.count}</span>
+                  <span className="stat-value">{b.count} ({b.count * b.capacity})</span>
                 </div>
               ))}
             </div>
