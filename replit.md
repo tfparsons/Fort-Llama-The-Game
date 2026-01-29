@@ -143,15 +143,6 @@ All parameter changes trigger simulation reset.
 
 ## Recent Changes
 
-- 2026-01-29: **Dashboard Layout Overhaul**
-  - Removed Status module (redundant with top bar info)
-  - New 3-column layout: main cards left, primitives column middle, residents column right
-  - Primitives now stack vertically in narrow scrollable column
-  - Residents + aggregate stats now in vertical scrollable column
-  - Vibes/Health section remains full-width at top
-  - Added (!) planning indicator with pulse animation to weekly modal header
-  - Responsive: 2-column at 1100px, single column at 800px
-
 - 2026-01-29: **Primitives, Health Metrics & Vibes System**
   - Full primitives system: 8 metrics (5 instant, 3 stock) calculated from buildings + resident stats
   - Overcrowding penalty curve with tunable k/p parameters

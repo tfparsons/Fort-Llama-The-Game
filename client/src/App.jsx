@@ -417,94 +417,112 @@ function App() {
             </div>
           </div>
 
-          <div className="dashboard-columns">
-            <div className="main-column">
-              <div className="content-grid">
-                <div className="card">
-                  <h2>Commune Status</h2>
-                  <div className="stat">
-                    <span className="stat-label">Beds</span>
-                    <span className="stat-value">{gameState.residents}/{gameState.capacity}</span>
+          <div className="primitives-row">
+            {[
+              { key: 'crowding', label: 'Crowding', inverse: true },
+              { key: 'noise', label: 'Noise', inverse: true },
+              { key: 'nutrition', label: 'Nutrition', inverse: false },
+              { key: 'cleanliness', label: 'Cleanliness', inverse: true },
+              { key: 'maintenance', label: 'Maintenance', inverse: true },
+              { key: 'fatigue', label: 'Fatigue', inverse: true },
+              { key: 'fun', label: 'Fun', inverse: false },
+              { key: 'drive', label: 'Drive', inverse: false }
+            ].map(p => {
+              const val = Math.round(gameState.primitives?.[p.key] || 0);
+              const good = p.inverse ? val < 40 : val > 60;
+              const bad = p.inverse ? val > 60 : val < 40;
+              const color = good ? '#48bb78' : bad ? '#f56565' : '#ed8936';
+              return (
+                <div key={p.key} className="primitive-item">
+                  <span className="prim-label">{p.label}</span>
+                  <div className="prim-bar-container">
+                    <div className="prim-bar" style={{ width: `${val}%`, backgroundColor: color }}/>
                   </div>
-                  <div className="stat">
-                    <span className="stat-label">Weekly Rent</span>
-                    <span className="stat-value">{formatCurrency(gameState.currentRent)}</span>
-                  </div>
-                  <div className="stat">
-                    <span className="stat-label">Rent Ceiling</span>
-                    <span className="stat-value">{formatCurrency(gameState.rentCeiling || config.rentMax)}</span>
-                  </div>
-                  {gameState.pendingArrivals && gameState.pendingArrivals.length > 0 && (
-                    <div className="stat">
-                      <span className="stat-label">Pending</span>
-                      <span className="stat-value positive">+{gameState.pendingArrivals.length}</span>
-                    </div>
-                  )}
-                  <button className="btn-reset" onClick={handleReset}>Restart</button>
+                  <span className="prim-value">{val}</span>
                 </div>
+              );
+            })}
+          </div>
 
-                <div className="card">
-                  <h2>Weekly Projection</h2>
+          <div className="content-grid">
+            <div className="card">
+              <h2>Commune Status</h2>
+              <div className="stat">
+                <span className="stat-label">Beds</span>
+                <span className="stat-value">{gameState.residents}/{gameState.capacity}</span>
+              </div>
+              <div className="stat">
+                <span className="stat-label">Weekly Rent</span>
+                <span className="stat-value">{formatCurrency(gameState.currentRent)}</span>
+              </div>
+              <div className="stat">
+                <span className="stat-label">Rent Ceiling</span>
+                <span className="stat-value">{formatCurrency(gameState.rentCeiling || config.rentMax)}</span>
+              </div>
+              {gameState.pendingArrivals && gameState.pendingArrivals.length > 0 && (
+                <div className="stat">
+                  <span className="stat-label">Pending</span>
+                  <span className="stat-value positive">+{gameState.pendingArrivals.length}</span>
+                </div>
+              )}
+              <button className="btn-reset" onClick={handleReset}>Restart</button>
+            </div>
+
+            <div className="card">
+              <h2>Weekly Projection</h2>
+              <div className="stat">
+                <span className="stat-label">Income</span>
+                <span className="stat-value positive">{formatCurrency(projectedIncome)}</span>
+              </div>
+              <div className="stat">
+                <span className="stat-label">Expenses</span>
+                <span className="stat-value negative">-{formatCurrency(projectedGroundRent + projectedUtilities)}</span>
+              </div>
+              <div className="stat highlight">
+                <span className="stat-label">Net</span>
+                <span className={`stat-value ${weeklyDelta >= 0 ? 'positive' : 'negative'}`}>
+                  {formatCurrency(weeklyDelta)}
+                </span>
+              </div>
+            </div>
+
+            <div className="card">
+              <h2>Status</h2>
+              {gameState.isPausedForWeeklyDecision ? (
+                <div className="status-message paused">Planning Phase</div>
+              ) : gameState.isRunning ? (
+                <div className="status-message running">Day {gameState.day}/7</div>
+              ) : (
+                <div className="status-message paused">Paused</div>
+              )}
+              <div className="stat">
+                <span className="stat-label">Recruit Slots</span>
+                <span className="stat-value">{gameState.recruitmentSlots || 1}</span>
+              </div>
+              {gameState.lastWeekSummary && (
+                <div className="week-summary">
                   <div className="stat">
-                    <span className="stat-label">Income</span>
-                    <span className="stat-value positive">{formatCurrency(projectedIncome)}</span>
-                  </div>
-                  <div className="stat">
-                    <span className="stat-label">Expenses</span>
-                    <span className="stat-value negative">-{formatCurrency(projectedGroundRent + projectedUtilities)}</span>
-                  </div>
-                  <div className="stat highlight">
-                    <span className="stat-label">Net</span>
-                    <span className={`stat-value ${weeklyDelta >= 0 ? 'positive' : 'negative'}`}>
-                      {formatCurrency(weeklyDelta)}
+                    <span className="stat-label">Last Week</span>
+                    <span className={`stat-value ${gameState.lastWeekSummary.profit >= 0 ? 'positive' : 'negative'}`}>
+                      {formatCurrency(gameState.lastWeekSummary.profit)}
                     </span>
                   </div>
                 </div>
+              )}
+            </div>
 
-                <div className="card">
-                  <h2>Buildings</h2>
-                  {gameState.buildings?.map(b => (
-                    <div key={b.id} className="stat">
-                      <span className="stat-label">{b.name}</span>
-                      <span className="stat-value">{b.count} ({b.count * b.capacity})</span>
-                    </div>
-                  ))}
+            <div className="card">
+              <h2>Buildings</h2>
+              {gameState.buildings?.map(b => (
+                <div key={b.id} className="stat">
+                  <span className="stat-label">{b.name}</span>
+                  <span className="stat-value">{b.count} ({b.count * b.capacity})</span>
                 </div>
-              </div>
+              ))}
             </div>
 
-            <div className="side-column primitives-column">
-              <h3>Primitives</h3>
-              <div className="primitives-list">
-                {[
-                  { key: 'crowding', label: 'Crowding', inverse: true },
-                  { key: 'noise', label: 'Noise', inverse: true },
-                  { key: 'nutrition', label: 'Nutrition', inverse: false },
-                  { key: 'cleanliness', label: 'Cleanliness', inverse: true },
-                  { key: 'maintenance', label: 'Maintenance', inverse: true },
-                  { key: 'fatigue', label: 'Fatigue', inverse: true },
-                  { key: 'fun', label: 'Fun', inverse: false },
-                  { key: 'drive', label: 'Drive', inverse: false }
-                ].map(p => {
-                  const val = Math.round(gameState.primitives?.[p.key] || 0);
-                  const good = p.inverse ? val < 40 : val > 60;
-                  const bad = p.inverse ? val > 60 : val < 40;
-                  const color = good ? '#48bb78' : bad ? '#f56565' : '#ed8936';
-                  return (
-                    <div key={p.key} className="primitive-item">
-                      <span className="prim-label">{p.label}</span>
-                      <div className="prim-bar-container">
-                        <div className="prim-bar" style={{ width: `${val}%`, backgroundColor: color }}/>
-                      </div>
-                      <span className="prim-value">{val}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="side-column residents-column">
-              <h3>Residents ({gameState.communeResidents?.length || 0})</h3>
+            <div className="card residents-card">
+              <h2>Residents ({gameState.communeResidents?.length || 0})</h2>
               <div className="residents-list">
                 {gameState.communeResidents && gameState.communeResidents.length > 0 ? (
                   gameState.communeResidents.map(resident => (
@@ -813,10 +831,7 @@ function App() {
           style={{ left: panelPosition.x, top: panelPosition.y }}
         >
           <div className="panel-header" onMouseDown={handlePanelMouseDown}>
-            <div className="panel-title">
-              <span className="planning-indicator">!</span>
-              Week {gameState.week} Planning
-            </div>
+            <div className="panel-title">Week {gameState.week} Planning</div>
             <div className="panel-controls">
               <button className="panel-btn minimize" onClick={() => setPanelMinimized(!panelMinimized)}>
                 {panelMinimized ? '+' : '−'}
