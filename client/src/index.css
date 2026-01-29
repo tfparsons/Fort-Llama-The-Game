@@ -1138,9 +1138,9 @@ body {
 }
 
 .primitives-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   background: #16213e;
   border: 1px solid #0f3460;
   border-radius: 8px;
@@ -1150,17 +1150,21 @@ body {
 
 .primitive-item {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
 }
 
 .prim-label {
   font-size: 0.75rem;
   color: #888;
   text-transform: uppercase;
+  width: 90px;
+  flex-shrink: 0;
 }
 
 .prim-bar-container {
+  flex: 1;
   height: 8px;
   background: #1a1a2e;
   border-radius: 4px;
@@ -1177,6 +1181,8 @@ body {
   font-size: 0.8rem;
   color: #fff;
   font-weight: bold;
+  width: 30px;
+  text-align: right;
 }
 
 .residents-card {
@@ -1186,10 +1192,6 @@ body {
 @media (max-width: 768px) {
   .balance-section {
     flex-direction: column;
-  }
-  
-  .primitives-row {
-    grid-template-columns: repeat(4, 1fr);
   }
   
   .residents-card {
