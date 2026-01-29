@@ -372,29 +372,13 @@ function App() {
         <div className="main-content">
           <div className="vibes-banner">
             <div className="vibes-headline">
+              <span className="vibes-label">Vibe: </span>
               <span className="vibes-tier">{gameState.vibes?.tierName || 'Decent'}</span>
               {gameState.vibes?.branchLabel && (
-                <span className="vibes-branch">: {gameState.vibes.branchLabel}</span>
+                <span className="vibes-branch"> ({gameState.vibes.branchLabel})</span>
               )}
             </div>
             <div className="balance-section">
-              <div className="triangle-container">
-                <svg viewBox="0 0 100 87" className="balance-triangle">
-                  <polygon points="50,0 100,87 0,87" fill="none" stroke="#4a5568" strokeWidth="2"/>
-                  <text x="50" y="-5" textAnchor="middle" fill="#a0aec0" fontSize="8">LS</text>
-                  <text x="105" y="92" textAnchor="start" fill="#a0aec0" fontSize="8">PT</text>
-                  <text x="-5" y="92" textAnchor="end" fill="#a0aec0" fontSize="8">PR</text>
-                  {(() => {
-                    const ls = gameState.healthMetrics?.livingStandards || 0.5;
-                    const pr = gameState.healthMetrics?.productivity || 0.5;
-                    const pt = gameState.healthMetrics?.partytime || 0.5;
-                    const total = ls + pr + pt || 1;
-                    const x = 50 + (pt - pr) * 50 / total;
-                    const y = 87 - ls * 87 / total;
-                    return <circle cx={x} cy={y} r="5" fill={gameState.vibes?.isBalanced ? '#48bb78' : '#ed8936'}/>;
-                  })()}
-                </svg>
-              </div>
               <div className="health-metrics">
                 {[
                   { key: 'livingStandards', label: 'Living Standards', short: 'LS' },
@@ -413,6 +397,23 @@ function App() {
                     </div>
                   );
                 })}
+              </div>
+              <div className="triangle-container">
+                <svg viewBox="0 0 100 87" className="balance-triangle">
+                  <polygon points="50,0 100,87 0,87" fill="none" stroke="#4a5568" strokeWidth="2"/>
+                  <text x="50" y="-5" textAnchor="middle" fill="#a0aec0" fontSize="8">LS</text>
+                  <text x="105" y="92" textAnchor="start" fill="#a0aec0" fontSize="8">PT</text>
+                  <text x="-5" y="92" textAnchor="end" fill="#a0aec0" fontSize="8">PR</text>
+                  {(() => {
+                    const ls = gameState.healthMetrics?.livingStandards || 0.5;
+                    const pr = gameState.healthMetrics?.productivity || 0.5;
+                    const pt = gameState.healthMetrics?.partytime || 0.5;
+                    const total = ls + pr + pt || 1;
+                    const x = 50 + (pt - pr) * 50 / total;
+                    const y = 87 - ls * 87 / total;
+                    return <circle cx={x} cy={y} r="5" fill={gameState.vibes?.isBalanced ? '#48bb78' : '#ed8936'}/>;
+                  })()}
+                </svg>
               </div>
             </div>
           </div>

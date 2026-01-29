@@ -1066,8 +1066,13 @@ body {
 }
 
 .vibes-headline {
-  text-align: center;
+  text-align: left;
   margin-bottom: 12px;
+}
+
+.vibes-label {
+  font-size: 1.4rem;
+  color: #a0aec0;
 }
 
 .vibes-tier {
@@ -1085,7 +1090,7 @@ body {
   display: flex;
   align-items: center;
   gap: 30px;
-  justify-content: center;
+  justify-content: space-between;
 }
 
 .triangle-container {
