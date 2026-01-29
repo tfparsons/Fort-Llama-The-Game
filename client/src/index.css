@@ -1066,33 +1066,26 @@ body {
 }
 
 .vibes-headline {
-  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
   margin-bottom: 12px;
 }
 
-.vibes-label {
-  font-size: 1.4rem;
-  color: #a0aec0;
+.headline-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
 }
 
-.vibes-tier {
-  font-size: 1.8rem;
-  font-weight: bold;
-  color: #e94560;
+.headline-label {
+  font-size: 1rem;
+  color: #718096;
 }
 
-.vibes-separator {
-  font-size: 1.4rem;
-  color: #4a5568;
-}
-
-.reputation-label {
-  font-size: 1.4rem;
-  color: #a0aec0;
-}
-
-.reputation-value {
-  font-size: 1.4rem;
+.headline-value {
+  font-size: 1.2rem;
+  font-weight: 600;
   color: #fff;
 }
 
