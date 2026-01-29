@@ -487,31 +487,6 @@ function App() {
             </div>
 
             <div className="card">
-              <h2>Status</h2>
-              {gameState.isPausedForWeeklyDecision ? (
-                <div className="status-message paused">Planning Phase</div>
-              ) : gameState.isRunning ? (
-                <div className="status-message running">Day {gameState.day}/7</div>
-              ) : (
-                <div className="status-message paused">Paused</div>
-              )}
-              <div className="stat">
-                <span className="stat-label">Recruit Slots</span>
-                <span className="stat-value">{gameState.recruitmentSlots || 1}</span>
-              </div>
-              {gameState.lastWeekSummary && (
-                <div className="week-summary">
-                  <div className="stat">
-                    <span className="stat-label">Last Week</span>
-                    <span className={`stat-value ${gameState.lastWeekSummary.profit >= 0 ? 'positive' : 'negative'}`}>
-                      {formatCurrency(gameState.lastWeekSummary.profit)}
-                    </span>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="card">
               <h2>Buildings</h2>
               {gameState.buildings?.map(b => (
                 <div key={b.id} className="stat">
