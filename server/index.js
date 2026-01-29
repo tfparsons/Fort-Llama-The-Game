@@ -44,12 +44,104 @@ function statToPercentage(stat) {
 let llamaPool = [];
 
 const DEFAULT_BUILDINGS = [
-  { id: 'bedroom', name: 'Bedrooms', capacity: 2, atStart: 8, cost: 200, utilitiesMultiplier: 0.1, groundRentMultiplier: 0.1, buildable: true },
-  { id: 'kitchen', name: 'Kitchen', capacity: 20, atStart: 1, cost: null, utilitiesMultiplier: null, groundRentMultiplier: null, buildable: false },
-  { id: 'bathroom', name: 'Bathroom', capacity: 4, atStart: 3, cost: 300, utilitiesMultiplier: 0.2, groundRentMultiplier: 0.1, buildable: true },
-  { id: 'living_room', name: 'Living Room', capacity: 20, atStart: 1, cost: null, utilitiesMultiplier: null, groundRentMultiplier: null, buildable: false },
-  { id: 'utility_closet', name: 'Utility Closet', capacity: 40, atStart: 1, cost: null, utilitiesMultiplier: null, groundRentMultiplier: null, buildable: false }
+  { 
+    id: 'bedroom', name: 'Bedrooms', capacity: 2, atStart: 8, cost: 200, 
+    utilitiesMultiplier: 0.1, groundRentMultiplier: 0.1, buildable: true,
+    quality: 1, recoveryMult: 1.0
+  },
+  { 
+    id: 'kitchen', name: 'Kitchen', capacity: 20, atStart: 1, cost: null, 
+    utilitiesMultiplier: null, groundRentMultiplier: null, buildable: false,
+    quality: 1, foodMult: 1.0, messMult: 1.2
+  },
+  { 
+    id: 'bathroom', name: 'Bathroom', capacity: 4, atStart: 3, cost: 300, 
+    utilitiesMultiplier: 0.2, groundRentMultiplier: 0.1, buildable: true,
+    quality: 1, cleanMult: 1.0, messMult: 1.4
+  },
+  { 
+    id: 'living_room', name: 'Living Room', capacity: 20, atStart: 1, cost: null, 
+    utilitiesMultiplier: null, groundRentMultiplier: null, buildable: false,
+    quality: 1, funMult: 1.0, noiseMult: 1.0
+  },
+  { 
+    id: 'utility_closet', name: 'Utility Closet', capacity: 40, atStart: 1, cost: null, 
+    utilitiesMultiplier: null, groundRentMultiplier: null, buildable: false,
+    quality: 1, repairMult: 1.0
+  }
 ];
+
+const DEFAULT_PRIMITIVE_CONFIG = {
+  penaltyK: 2,
+  penaltyP: 2,
+  crowding: { weight: 1.0 },
+  noise: { baseSocial: 5, baseAmbient: 10, socioMult: 0.1, considMult: 0.3 },
+  nutrition: { baseThroughput: 50, cookMult: 0.5, dilutionRate: 0.05 },
+  cleanliness: { messPerResident: 2, cleanBase: 5, recoveryRate: 0.1 },
+  maintenance: { wearPerResident: 1, repairBase: 3, recoveryRate: 0.1 },
+  fatigue: { exertBase: 3, recoverBase: 5, workMult: 0.3, socioMult: 0.2 },
+  fun: { funBase: 50, socioMult: 0.4, staminaMult: 0.2 },
+  drive: { driveBase: 50, workMult: 0.5, distractMult: 0.3 }
+};
+
+const DEFAULT_HEALTH_CONFIG = {
+  livingStandards: {
+    nutritionWeight: 0.5,
+    cleanlinessWeight: 0.5,
+    crowdingDampen: 0.35,
+    maintenanceDampen: 0.35
+  },
+  productivity: {
+    driveWeight: 1.0,
+    fatigueWeight: 0.55,
+    noiseWeight: 0.35,
+    crowdingWeight: 0.25,
+    nutritionWeight: 0.2
+  },
+  partytime: {
+    funWeight: 1.0,
+    fatigueWeight: 0.45,
+    nutritionWeight: 0.25,
+    noiseBoostScale: 0.08,
+    noiseBoostCap: 0.08
+  },
+  rentCeilingMult: 0.5,
+  churnReductionMult: 0.5,
+  baseRecruitSlots: 1,
+  ptSlotsThreshold: 50
+};
+
+const DEFAULT_VIBES_CONFIG = {
+  balancedThreshold: 0.18,
+  strongImbalanceThreshold: 0.30,
+  tierThresholds: [
+    { name: 'Omni-shambles', min: 0, max: 0.12 },
+    { name: 'Mega-shambles', min: 0.12, max: 0.22 },
+    { name: 'Shambles', min: 0.22, max: 0.32 },
+    { name: 'Bad', min: 0.32, max: 0.40 },
+    { name: 'Decent', min: 0.40, max: 0.55 },
+    { name: 'Good', min: 0.55, max: 0.68 },
+    { name: 'Great', min: 0.68, max: 0.78 },
+    { name: 'Superb', min: 0.78, max: 0.87 },
+    { name: 'Worldclass', min: 0.87, max: 0.93 },
+    { name: 'Utopia', min: 0.93, max: 1.01 }
+  ],
+  scaleBreakpoints: [
+    { min: 1, max: 5, tierMin: 3, tierMax: 5 },
+    { min: 6, max: 10, tierMin: 3, tierMax: 6 },
+    { min: 11, max: 20, tierMin: 2, tierMax: 7 },
+    { min: 21, max: 35, tierMin: 1, tierMax: 8 },
+    { min: 36, max: 999, tierMin: 0, tierMax: 9 }
+  ],
+  branchLabels: {
+    highPartytime: { mild: 'Party House', strong: 'Party Mansion' },
+    highProductivity: { mild: 'Grind House', strong: 'Sweat Shop' },
+    highLivingStandards: { mild: 'Showhome', strong: 'Luxury Bubble' },
+    lowLivingStandards: { mild: 'Shanty Town', strong: 'Slum Spiral' },
+    lowProductivity: { mild: 'Chaos House', strong: 'Dysfunctional Commune' },
+    lowPartytime: { mild: 'Dead Vibes', strong: 'Funeral Parlour' }
+  }
+};
 
 const INITIAL_DEFAULTS = {
   startingTreasury: 0,
@@ -62,15 +154,24 @@ const INITIAL_DEFAULTS = {
   baseChurnRate: 0.20,
   churnRentMultiplier: 0.0003,
   gameOverLimit: -20000,
-  tickSpeed: 1000
+  tickSpeed: 1000,
+  primitives: { ...DEFAULT_PRIMITIVE_CONFIG },
+  health: { ...DEFAULT_HEALTH_CONFIG },
+  vibes: { ...DEFAULT_VIBES_CONFIG }
 };
 
 let savedDefaults = { ...INITIAL_DEFAULTS };
+let primitiveConfig = { ...DEFAULT_PRIMITIVE_CONFIG };
+let healthConfig = { ...DEFAULT_HEALTH_CONFIG };
+let vibesConfig = { ...DEFAULT_VIBES_CONFIG };
 let savedLlamaPool = null;
 let savedBuildingsConfig = null;
 
 function initializeGame(config = savedDefaults) {
   gameConfig = { ...config };
+  primitiveConfig = config.primitives ? { ...config.primitives } : { ...DEFAULT_PRIMITIVE_CONFIG };
+  healthConfig = config.health ? { ...config.health } : { ...DEFAULT_HEALTH_CONFIG };
+  vibesConfig = config.vibes ? { ...config.vibes } : { ...DEFAULT_VIBES_CONFIG };
   
   llamaPool = savedLlamaPool 
     ? JSON.parse(JSON.stringify(savedLlamaPool)) 
@@ -109,8 +210,34 @@ function initializeGame(config = savedDefaults) {
     weekCandidates: [],
     weeklyDelta: 0,
     dailyDelta: 0,
-    treasuryAtWeekStart: gameConfig.startingTreasury
+    treasuryAtWeekStart: gameConfig.startingTreasury,
+    primitives: {
+      crowding: 0,
+      noise: 0,
+      nutrition: 50,
+      cleanliness: 0,
+      maintenance: 0,
+      fatigue: 0,
+      fun: 50,
+      drive: 50
+    },
+    healthMetrics: {
+      livingStandards: 0.5,
+      productivity: 0.5,
+      partytime: 0.5
+    },
+    vibes: {
+      overallLevel: 0.5,
+      spread: 0,
+      tierName: 'Decent',
+      branchLabel: null,
+      isBalanced: true,
+      scaleTier: 1
+    }
   };
+  calculatePrimitives();
+  calculateHealthMetrics();
+  calculateVibes();
   calculateWeeklyProjection();
   generateWeekCandidates();
 }
@@ -163,10 +290,242 @@ function calculateUtilities() {
 
 function calculateWeeklyChurnCount() {
   const rentFactor = gameState.currentRent * gameConfig.churnRentMultiplier;
-  const totalChurnRate = Math.min(1, gameConfig.baseChurnRate + rentFactor);
+  const prReduction = gameState.healthMetrics.productivity * healthConfig.churnReductionMult;
+  const totalChurnRate = Math.min(1, Math.max(0, gameConfig.baseChurnRate + rentFactor - prReduction));
   const residentCount = gameState.communeResidents.length;
   const residentsLeaving = Math.floor(residentCount * totalChurnRate);
   return Math.min(residentsLeaving, residentCount);
+}
+
+function getAverageResidentStat(statKey) {
+  const residents = gameState.communeResidents;
+  if (residents.length === 0) return 10;
+  const sum = residents.reduce((acc, r) => acc + (r.stats[statKey] || 10), 0);
+  return sum / residents.length;
+}
+
+function statTo01(stat) {
+  return Math.max(0, Math.min(1, (stat - 1) / 19));
+}
+
+function getBuildingCapacity(buildingId) {
+  const b = gameState.buildings.find(bld => bld.id === buildingId);
+  return b ? b.count * b.capacity : 1;
+}
+
+function getBuildingQuality(buildingId) {
+  const b = gameState.buildings.find(bld => bld.id === buildingId);
+  return b ? (b.quality || 1) : 1;
+}
+
+function getBuildingMult(buildingId, multKey) {
+  const b = gameState.buildings.find(bld => bld.id === buildingId);
+  return b && b[multKey] !== undefined ? b[multKey] : 1;
+}
+
+function overcrowdingPenalty(ratio) {
+  const k = primitiveConfig.penaltyK;
+  const p = primitiveConfig.penaltyP;
+  const over = Math.max(0, ratio - 1);
+  return 1 + k * Math.pow(over, p);
+}
+
+function calculatePrimitives() {
+  const N = gameState.communeResidents.length;
+  if (N === 0) {
+    gameState.primitives = { crowding: 0, noise: 0, nutrition: 50, cleanliness: 0, maintenance: 0, fatigue: 0, fun: 50, drive: 50 };
+    return;
+  }
+  
+  const capBed = getBuildingCapacity('bedroom');
+  const capBath = getBuildingCapacity('bathroom');
+  const capKitch = getBuildingCapacity('kitchen');
+  const capLiv = getBuildingCapacity('living_room');
+  const capUtil = getBuildingCapacity('utility_closet');
+  
+  const shareTol = statTo01(getAverageResidentStat('sharingTolerance'));
+  const cookSkill = statTo01(getAverageResidentStat('cookingSkill'));
+  const tidiness = statTo01(getAverageResidentStat('tidiness'));
+  const handiness = statTo01(getAverageResidentStat('handiness'));
+  const consideration = statTo01(getAverageResidentStat('consideration'));
+  const sociability = statTo01(getAverageResidentStat('sociability'));
+  const partyStamina = statTo01(getAverageResidentStat('partyStamina'));
+  const workEthic = statTo01(getAverageResidentStat('workEthic'));
+  
+  const kQ = getBuildingQuality('kitchen');
+  const lQ = getBuildingQuality('living_room');
+  const bQ = getBuildingQuality('bedroom');
+  const bathQ = getBuildingQuality('bathroom');
+  const uQ = getBuildingQuality('utility_closet');
+  
+  const effectiveN = N * (1 - 0.3 * shareTol);
+  const rBed = effectiveN / capBed;
+  const rBath = effectiveN / capBath;
+  const rKitch = effectiveN / capKitch;
+  const rLiv = effectiveN / capLiv;
+  const maxRatio = Math.max(rBed, rBath, rKitch, rLiv);
+  const crowding = Math.min(100, maxRatio * 50 * overcrowdingPenalty(maxRatio));
+  
+  const cfg = primitiveConfig.noise;
+  const socialNoise = N * cfg.baseSocial * (1 + cfg.socioMult * sociability) * (1 - cfg.considMult * consideration);
+  const ambientNoise = cfg.baseAmbient * overcrowdingPenalty(N / capLiv);
+  const noise = Math.min(100, (socialNoise + ambientNoise) * (1 / lQ));
+  
+  const nCfg = primitiveConfig.nutrition;
+  const throughput = nCfg.baseThroughput * kQ * getBuildingMult('kitchen', 'foodMult');
+  const perRes = throughput / (1 + nCfg.dilutionRate * Math.max(0, N - 1));
+  const cookBonus = 1 + nCfg.cookMult * cookSkill;
+  const penaltyK = overcrowdingPenalty(N / capKitch);
+  const nutrition = Math.min(100, Math.max(0, perRes * cookBonus / penaltyK));
+  
+  const cCfg = primitiveConfig.cleanliness;
+  const messIn = N * cCfg.messPerResident * getBuildingMult('kitchen', 'messMult') * getBuildingMult('bathroom', 'messMult');
+  const bathPenalty = overcrowdingPenalty(N / capBath);
+  const cleanOut = cCfg.cleanBase * bathQ * getBuildingMult('bathroom', 'cleanMult') * (1 + 0.4 * tidiness + 0.3 * consideration);
+  const netMess = messIn * bathPenalty - cleanOut;
+  const oldClean = gameState.primitives.cleanliness || 0;
+  const cleanliness = Math.min(100, Math.max(0, oldClean + netMess * 0.5));
+  
+  const mCfg = primitiveConfig.maintenance;
+  const wearIn = mCfg.wearPerResident * N * overcrowdingPenalty(N / capUtil);
+  const repairOut = mCfg.repairBase * uQ * getBuildingMult('utility_closet', 'repairMult') * (1 + 0.5 * handiness + 0.2 * tidiness);
+  const netWear = wearIn - repairOut;
+  const oldMaint = gameState.primitives.maintenance || 0;
+  const maintenance = Math.min(100, Math.max(0, oldMaint + netWear * 0.5));
+  
+  const fCfg = primitiveConfig.fatigue;
+  const exertion = N * fCfg.exertBase * (1 + fCfg.workMult * workEthic + fCfg.socioMult * sociability);
+  const recovery = N * fCfg.recoverBase * bQ * getBuildingMult('bedroom', 'recoveryMult') * (1 + 0.3 * partyStamina);
+  const netFatigue = (exertion - recovery) / N;
+  const oldFatigue = gameState.primitives.fatigue || 0;
+  const fatigue = Math.min(100, Math.max(0, oldFatigue + netFatigue * 0.3));
+  
+  const funCfg = primitiveConfig.fun;
+  const crowdFactor = rLiv < 0.3 ? 0.7 : rLiv < 0.8 ? 1 + 0.3 * (rLiv - 0.3) : 1.15 / overcrowdingPenalty(rLiv);
+  const fun = Math.min(100, Math.max(0, funCfg.funBase * lQ * getBuildingMult('living_room', 'funMult') * 
+    (1 + funCfg.socioMult * sociability + funCfg.staminaMult * partyStamina) * crowdFactor));
+  
+  const dCfg = primitiveConfig.drive;
+  const distraction = (1 + 0.5 * sociability) * overcrowdingPenalty(N / capLiv) * (1 - 0.3 * consideration);
+  const drive = Math.min(100, Math.max(0, dCfg.driveBase * lQ * (1 + dCfg.workMult * workEthic) / (1 + dCfg.distractMult * distraction)));
+  
+  gameState.primitives = { crowding, noise, nutrition, cleanliness, maintenance, fatigue, fun, drive };
+}
+
+function dampener(value, weight) {
+  const norm = value / 100;
+  return Math.pow(1 - norm, weight);
+}
+
+function baseline(value, weight) {
+  const norm = value / 100;
+  return Math.pow(norm, weight);
+}
+
+function calculateHealthMetrics() {
+  const p = gameState.primitives;
+  const ls = healthConfig.livingStandards;
+  const pr = healthConfig.productivity;
+  const pt = healthConfig.partytime;
+  
+  const livingStandards = Math.max(0.01, Math.min(1,
+    baseline(p.nutrition, ls.nutritionWeight) *
+    dampener(p.cleanliness, ls.cleanlinessWeight) *
+    dampener(p.crowding, ls.crowdingDampen) *
+    dampener(p.maintenance, ls.maintenanceDampen)
+  ));
+  
+  const productivity = Math.max(0.01, Math.min(1,
+    baseline(p.drive, pr.driveWeight) *
+    dampener(p.fatigue, pr.fatigueWeight) *
+    dampener(p.noise, pr.noiseWeight) *
+    dampener(p.crowding, pr.crowdingWeight) *
+    baseline(p.nutrition, pr.nutritionWeight)
+  ));
+  
+  const noiseBonus = Math.min(pt.noiseBoostCap, pt.noiseBoostScale * p.noise / 100);
+  const partytime = Math.max(0.01, Math.min(1,
+    baseline(p.fun, pt.funWeight) *
+    dampener(p.fatigue, pt.fatigueWeight) *
+    baseline(p.nutrition, pt.nutritionWeight) *
+    (1 + noiseBonus)
+  ));
+  
+  gameState.healthMetrics = { livingStandards, productivity, partytime };
+}
+
+function calculateVibes() {
+  const hm = gameState.healthMetrics;
+  const N = gameState.communeResidents.length;
+  const cfg = vibesConfig;
+  
+  const ls = hm.livingStandards;
+  const pr = hm.productivity;
+  const pt = hm.partytime;
+  
+  const overallLevel = Math.pow(ls * pr * pt, 1/3);
+  const sorted = [ls, pr, pt].sort((a, b) => a - b);
+  const spread = sorted[2] - sorted[0];
+  const median = sorted[1];
+  
+  const isBalanced = spread <= cfg.balancedThreshold;
+  const isStrongImbalance = spread > cfg.strongImbalanceThreshold;
+  
+  let baseTierIndex = 0;
+  for (let i = 0; i < cfg.tierThresholds.length; i++) {
+    if (overallLevel >= cfg.tierThresholds[i].min && overallLevel < cfg.tierThresholds[i].max) {
+      baseTierIndex = i;
+      break;
+    }
+  }
+  if (overallLevel >= cfg.tierThresholds[cfg.tierThresholds.length - 1].min) {
+    baseTierIndex = cfg.tierThresholds.length - 1;
+  }
+  
+  let scaleTier = 1;
+  for (const s of cfg.scaleBreakpoints) {
+    if (N >= s.min && N <= s.max) {
+      scaleTier = cfg.scaleBreakpoints.indexOf(s) + 1;
+      baseTierIndex = Math.max(s.tierMin, Math.min(s.tierMax, baseTierIndex));
+      break;
+    }
+  }
+  
+  const tierName = cfg.tierThresholds[baseTierIndex].name;
+  
+  let branchLabel = null;
+  if (!isBalanced) {
+    const highDelta = sorted[2] - median;
+    const lowDelta = median - sorted[0];
+    const isHighDriver = highDelta >= lowDelta;
+    
+    let driverMetric;
+    let branchKey;
+    if (isHighDriver) {
+      if (sorted[2] === pt) { driverMetric = 'Partytime'; branchKey = 'highPartytime'; }
+      else if (sorted[2] === pr) { driverMetric = 'Productivity'; branchKey = 'highProductivity'; }
+      else { driverMetric = 'LivingStandards'; branchKey = 'highLivingStandards'; }
+    } else {
+      if (sorted[0] === ls) { driverMetric = 'LivingStandards'; branchKey = 'lowLivingStandards'; }
+      else if (sorted[0] === pr) { driverMetric = 'Productivity'; branchKey = 'lowProductivity'; }
+      else { driverMetric = 'Partytime'; branchKey = 'lowPartytime'; }
+    }
+    
+    const severity = isStrongImbalance ? 'strong' : 'mild';
+    branchLabel = cfg.branchLabels[branchKey]?.[severity] || null;
+  }
+  
+  gameState.vibes = { overallLevel, spread, tierName, branchLabel, isBalanced, scaleTier };
+}
+
+function calculateRecruitmentSlots() {
+  const pt = gameState.healthMetrics.partytime * 100;
+  return healthConfig.baseRecruitSlots + Math.floor(pt / healthConfig.ptSlotsThreshold);
+}
+
+function calculateRentCeiling() {
+  const ls = gameState.healthMetrics.livingStandards;
+  return Math.round(gameConfig.rentMax * (0.5 + healthConfig.rentCeilingMult * ls));
 }
 
 function getAvailableLlamas() {
@@ -196,6 +555,10 @@ function processDay() {
     });
   });
   gameState.pendingArrivals = gameState.pendingArrivals.filter(r => r.arrivalDay !== gameState.day);
+  
+  calculatePrimitives();
+  calculateHealthMetrics();
+  calculateVibes();
   
   let dailyIncome = 0;
   gameState.communeResidents.forEach(resident => {
@@ -288,7 +651,12 @@ app.get('/api/state', (req, res) => {
     residents: residentCount,
     pendingResidents: pendingCount,
     capacity,
-    config: gameConfig
+    config: gameConfig,
+    recruitmentSlots: calculateRecruitmentSlots(),
+    rentCeiling: calculateRentCeiling(),
+    primitiveConfig,
+    healthConfig,
+    vibesConfig
   });
 });
 
@@ -304,19 +672,51 @@ app.post('/api/config', (req, res) => {
 });
 
 app.post('/api/save-defaults', (req, res) => {
-  savedDefaults = { ...gameConfig };
+  savedDefaults = { 
+    ...gameConfig,
+    primitives: { ...primitiveConfig },
+    health: { ...healthConfig },
+    vibes: { ...vibesConfig }
+  };
   savedLlamaPool = JSON.parse(JSON.stringify(llamaPool));
-  savedBuildingsConfig = gameState.buildings.map(b => ({
-    id: b.id,
-    name: b.name,
-    capacity: b.capacity,
-    atStart: b.atStart,
-    cost: b.cost,
-    utilitiesMultiplier: b.utilitiesMultiplier,
-    groundRentMultiplier: b.groundRentMultiplier,
-    buildable: b.buildable
-  }));
+  savedBuildingsConfig = gameState.buildings.map(b => ({ ...b }));
   res.json({ success: true, defaults: savedDefaults });
+});
+
+app.get('/api/primitive-config', (req, res) => {
+  res.json(primitiveConfig);
+});
+
+app.post('/api/primitive-config', (req, res) => {
+  primitiveConfig = { ...primitiveConfig, ...req.body };
+  calculatePrimitives();
+  calculateHealthMetrics();
+  calculateVibes();
+  res.json({ success: true, config: primitiveConfig });
+});
+
+app.get('/api/health-config', (req, res) => {
+  res.json(healthConfig);
+});
+
+app.post('/api/health-config', (req, res) => {
+  healthConfig = { ...healthConfig, ...req.body };
+  if (req.body.livingStandards) healthConfig.livingStandards = { ...healthConfig.livingStandards, ...req.body.livingStandards };
+  if (req.body.productivity) healthConfig.productivity = { ...healthConfig.productivity, ...req.body.productivity };
+  if (req.body.partytime) healthConfig.partytime = { ...healthConfig.partytime, ...req.body.partytime };
+  calculateHealthMetrics();
+  calculateVibes();
+  res.json({ success: true, config: healthConfig });
+});
+
+app.get('/api/vibes-config', (req, res) => {
+  res.json(vibesConfig);
+});
+
+app.post('/api/vibes-config', (req, res) => {
+  vibesConfig = { ...vibesConfig, ...req.body };
+  calculateVibes();
+  res.json({ success: true, config: vibesConfig });
 });
 
 app.get('/api/llama-pool', (req, res) => {

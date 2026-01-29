@@ -46,9 +46,54 @@ Players manage a commune with the core loop being:
 - Utilities: `base × (1 + extraBedrooms × modifier)`
 
 ### Churn
-- `churnRate = baseChurn + (rent × churnMultiplier)`
-- Higher rent = more churn
+- `churnRate = baseChurn + (rent × churnMultiplier) - (productivity × churnReduction)`
+- Higher rent = more churn, higher Productivity = less churn
 - Churn calculated at end of week
+
+### Primitives System
+8 core metrics calculated daily from buildings + resident stats:
+
+**Instant Primitives** (recalculated each tick):
+- **Crowding** (0-100, lower is better): Overcrowding pressure from all room types
+- **Noise** (0-100, lower is better): Social + ambient noise from Living Room activity
+- **Nutrition** (0-100, higher is better): Food quality from Kitchen throughput × cooking skill
+- **Fun** (0-100, higher is better): Party energy from Living Room × sociability
+- **Drive** (0-100, higher is better): Motivation from workspace quality × work ethic
+
+**Stock Primitives** (accumulate/recover over time):
+- **Cleanliness debt** (0-100, lower is better): Mess accumulates, cleaning removes it
+- **Maintenance debt** (0-100, lower is better): Wear accumulates, repairs remove it
+- **Fatigue debt** (0-100, lower is better): Exertion accumulates, rest removes it
+
+**Overcrowding Penalty**: `penalty = 1 + k × max(0, ratio - 1)^p` (default k=2, p=2)
+
+### Health Metrics
+3 aggregate metrics derived from primitives:
+
+- **Living Standards** (LS): Nutrition baseline × Cleanliness/Crowding/Maintenance dampeners
+  - Effect: Higher LS = higher rent ceiling
+- **Productivity** (PR): Drive baseline × Fatigue/Noise/Crowding dampeners × Nutrition boost
+  - Effect: Higher PR = lower churn rate
+- **Partytime** (PT): Fun baseline × Fatigue/Nutrition dampeners × Noise boost
+  - Effect: Higher PT = more recruitment slots per week
+
+### Vibes System
+Headline status combining health metrics:
+
+**OverallLevel** = (LS × PR × PT)^(1/3) - geometric mean punishes imbalance
+
+**10 Tier Ladder**:
+- Omni-shambles (<0.12) → Mega-shambles → Shambles → Bad → Decent → Good → Great → Superb → Worldclass → Utopia (≥0.93)
+
+**Scale Gating**: Small communes (1-5 residents) capped at Bad-Good tier range; larger communes unlock extremes
+
+**Identity Labels** (when imbalanced):
+- High Partytime: Party House / Party Mansion
+- High Productivity: Grind House / Sweat Shop
+- High Living Standards: Showhome / Luxury Bubble
+- Low Living Standards: Shanty Town / Slum Spiral
+- Low Productivity: Chaos House / Dysfunctional Commune
+- Low Partytime: Dead Vibes / Funeral Parlour
 
 ### Resident System
 - 20 unique llamas, each with name, gender, age, bio, and 8 stats
@@ -97,6 +142,18 @@ All parameter changes trigger simulation reset.
 - Bedroom Build Cost: £2,000
 
 ## Recent Changes
+
+- 2026-01-29: **Primitives, Health Metrics & Vibes System**
+  - Full primitives system: 8 metrics (5 instant, 3 stock) calculated from buildings + resident stats
+  - Overcrowding penalty curve with tunable k/p parameters
+  - Health Metrics: Living Standards, Productivity, Partytime - each affects game mechanics
+  - LS affects rent ceiling, PR reduces churn, PT increases recruitment slots
+  - Vibes system: 10-tier ladder from Omni-shambles to Utopia
+  - Scale gating: commune size limits tier extremes
+  - Identity labels for imbalanced houses (Party Mansion, Sweat Shop, etc.)
+  - Dashboard shows Vibes headline, triangle balance glyph, health metric bars, primitive bars
+  - Dev Tools shows all primitive/health/vibes config values
+  - Buildings now have quality (1-3) and per-type multipliers (recoveryMult, foodMult, etc.)
 
 - 2026-01-27: **Buildings System**
   - Full buildings system with 5 types: Bedrooms (2 cap), Kitchen (20), Bathroom (4), Living Room (20), Utility Closet (40)

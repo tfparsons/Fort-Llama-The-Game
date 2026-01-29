@@ -370,6 +370,80 @@ function App() {
 
       {view === 'dashboard' && (
         <div className="main-content">
+          <div className="vibes-banner">
+            <div className="vibes-headline">
+              <span className="vibes-tier">{gameState.vibes?.tierName || 'Decent'}</span>
+              {gameState.vibes?.branchLabel && (
+                <span className="vibes-branch">: {gameState.vibes.branchLabel}</span>
+              )}
+            </div>
+            <div className="balance-section">
+              <div className="triangle-container">
+                <svg viewBox="0 0 100 87" className="balance-triangle">
+                  <polygon points="50,0 100,87 0,87" fill="none" stroke="#4a5568" strokeWidth="2"/>
+                  <text x="50" y="-5" textAnchor="middle" fill="#a0aec0" fontSize="8">LS</text>
+                  <text x="105" y="92" textAnchor="start" fill="#a0aec0" fontSize="8">PT</text>
+                  <text x="-5" y="92" textAnchor="end" fill="#a0aec0" fontSize="8">PR</text>
+                  {(() => {
+                    const ls = gameState.healthMetrics?.livingStandards || 0.5;
+                    const pr = gameState.healthMetrics?.productivity || 0.5;
+                    const pt = gameState.healthMetrics?.partytime || 0.5;
+                    const total = ls + pr + pt || 1;
+                    const x = 50 + (pt - pr) * 50 / total;
+                    const y = 87 - ls * 87 / total;
+                    return <circle cx={x} cy={y} r="5" fill={gameState.vibes?.isBalanced ? '#48bb78' : '#ed8936'}/>;
+                  })()}
+                </svg>
+              </div>
+              <div className="health-metrics">
+                {[
+                  { key: 'livingStandards', label: 'Living Standards', short: 'LS' },
+                  { key: 'productivity', label: 'Productivity', short: 'PR' },
+                  { key: 'partytime', label: 'Partytime', short: 'PT' }
+                ].map(m => {
+                  const val = Math.round((gameState.healthMetrics?.[m.key] || 0.5) * 100);
+                  const color = val >= 60 ? '#48bb78' : val >= 30 ? '#ed8936' : '#f56565';
+                  return (
+                    <div key={m.key} className="health-metric">
+                      <span className="hm-label">{m.label}</span>
+                      <div className="hm-bar-container">
+                        <div className="hm-bar" style={{ width: `${val}%`, backgroundColor: color }}/>
+                      </div>
+                      <span className="hm-value">{val}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          <div className="primitives-row">
+            {[
+              { key: 'crowding', label: 'Crowding', inverse: true },
+              { key: 'noise', label: 'Noise', inverse: true },
+              { key: 'nutrition', label: 'Nutrition', inverse: false },
+              { key: 'cleanliness', label: 'Cleanliness', inverse: true },
+              { key: 'maintenance', label: 'Maintenance', inverse: true },
+              { key: 'fatigue', label: 'Fatigue', inverse: true },
+              { key: 'fun', label: 'Fun', inverse: false },
+              { key: 'drive', label: 'Drive', inverse: false }
+            ].map(p => {
+              const val = Math.round(gameState.primitives?.[p.key] || 0);
+              const good = p.inverse ? val < 40 : val > 60;
+              const bad = p.inverse ? val > 60 : val < 40;
+              const color = good ? '#48bb78' : bad ? '#f56565' : '#ed8936';
+              return (
+                <div key={p.key} className="primitive-item">
+                  <span className="prim-label">{p.label}</span>
+                  <div className="prim-bar-container">
+                    <div className="prim-bar" style={{ width: `${val}%`, backgroundColor: color }}/>
+                  </div>
+                  <span className="prim-value">{val}</span>
+                </div>
+              );
+            })}
+          </div>
+
           <div className="content-grid">
             <div className="card">
               <h2>Commune Status</h2>
@@ -380,6 +454,10 @@ function App() {
               <div className="stat">
                 <span className="stat-label">Weekly Rent</span>
                 <span className="stat-value">{formatCurrency(gameState.currentRent)}</span>
+              </div>
+              <div className="stat">
+                <span className="stat-label">Rent Ceiling</span>
+                <span className="stat-value">{formatCurrency(gameState.rentCeiling || config.rentMax)}</span>
               </div>
               {gameState.pendingArrivals && gameState.pendingArrivals.length > 0 && (
                 <div className="stat">
@@ -417,6 +495,10 @@ function App() {
               ) : (
                 <div className="status-message paused">Paused</div>
               )}
+              <div className="stat">
+                <span className="stat-label">Recruit Slots</span>
+                <span className="stat-value">{gameState.recruitmentSlots || 1}</span>
+              </div>
               {gameState.lastWeekSummary && (
                 <div className="week-summary">
                   <div className="stat">
@@ -439,7 +521,7 @@ function App() {
               ))}
             </div>
 
-            <div className="card">
+            <div className="card residents-card">
               <h2>Residents ({gameState.communeResidents?.length || 0})</h2>
               <div className="residents-list">
                 {gameState.communeResidents && gameState.communeResidents.length > 0 ? (
@@ -601,6 +683,122 @@ function App() {
                 <input type="number" value={editConfig.tickSpeed} onChange={(e) => updateEditConfig('tickSpeed', e.target.value)} />
               </div>
             </div>
+          </div>
+
+          <h3 className="section-divider">Primitives & Health System</h3>
+          <div className="dev-tools-grid">
+            <div className="config-section">
+              <h3>Penalty Curve</h3>
+              <div className="config-field">
+                <label>k (severity)</label>
+                <input type="number" step="0.1" value={gameState?.primitiveConfig?.penaltyK || 2} readOnly />
+              </div>
+              <div className="config-field">
+                <label>p (steepness)</label>
+                <input type="number" step="0.1" value={gameState?.primitiveConfig?.penaltyP || 2} readOnly />
+              </div>
+            </div>
+
+            <div className="config-section">
+              <h3>Living Standards</h3>
+              <div className="config-field">
+                <label>Nutrition wt</label>
+                <input type="number" step="0.1" value={gameState?.healthConfig?.livingStandards?.nutritionWeight || 0.5} readOnly />
+              </div>
+              <div className="config-field">
+                <label>Cleanliness wt</label>
+                <input type="number" step="0.1" value={gameState?.healthConfig?.livingStandards?.cleanlinessWeight || 0.5} readOnly />
+              </div>
+              <div className="config-field">
+                <label>Crowding damp</label>
+                <input type="number" step="0.1" value={gameState?.healthConfig?.livingStandards?.crowdingDampen || 0.35} readOnly />
+              </div>
+            </div>
+
+            <div className="config-section">
+              <h3>Productivity</h3>
+              <div className="config-field">
+                <label>Drive wt</label>
+                <input type="number" step="0.1" value={gameState?.healthConfig?.productivity?.driveWeight || 1.0} readOnly />
+              </div>
+              <div className="config-field">
+                <label>Fatigue damp</label>
+                <input type="number" step="0.1" value={gameState?.healthConfig?.productivity?.fatigueWeight || 0.55} readOnly />
+              </div>
+              <div className="config-field">
+                <label>Noise damp</label>
+                <input type="number" step="0.1" value={gameState?.healthConfig?.productivity?.noiseWeight || 0.35} readOnly />
+              </div>
+            </div>
+
+            <div className="config-section">
+              <h3>Partytime</h3>
+              <div className="config-field">
+                <label>Fun wt</label>
+                <input type="number" step="0.1" value={gameState?.healthConfig?.partytime?.funWeight || 1.0} readOnly />
+              </div>
+              <div className="config-field">
+                <label>Noise boost</label>
+                <input type="number" step="0.01" value={gameState?.healthConfig?.partytime?.noiseBoostScale || 0.08} readOnly />
+              </div>
+              <div className="config-field">
+                <label>Fatigue damp</label>
+                <input type="number" step="0.1" value={gameState?.healthConfig?.partytime?.fatigueWeight || 0.45} readOnly />
+              </div>
+            </div>
+
+            <div className="config-section">
+              <h3>Mechanic Effects</h3>
+              <div className="config-field">
+                <label>Rent ceiling mult</label>
+                <input type="number" step="0.1" value={gameState?.healthConfig?.rentCeilingMult || 0.5} readOnly />
+              </div>
+              <div className="config-field">
+                <label>Churn reduction</label>
+                <input type="number" step="0.1" value={gameState?.healthConfig?.churnReductionMult || 0.5} readOnly />
+              </div>
+              <div className="config-field">
+                <label>PT slots thresh</label>
+                <input type="number" value={gameState?.healthConfig?.ptSlotsThreshold || 50} readOnly />
+              </div>
+            </div>
+
+            <div className="config-section">
+              <h3>Vibes Thresholds</h3>
+              <div className="config-field">
+                <label>Balanced spread</label>
+                <input type="number" step="0.01" value={gameState?.vibesConfig?.balancedThreshold || 0.18} readOnly />
+              </div>
+              <div className="config-field">
+                <label>Strong imbalance</label>
+                <input type="number" step="0.01" value={gameState?.vibesConfig?.strongImbalanceThreshold || 0.30} readOnly />
+              </div>
+            </div>
+          </div>
+
+          <h3 className="section-divider">Current Primitives</h3>
+          <div className="primitives-display">
+            {[
+              { key: 'crowding', label: 'Crowding', inverse: true },
+              { key: 'noise', label: 'Noise', inverse: true },
+              { key: 'nutrition', label: 'Nutrition', inverse: false },
+              { key: 'cleanliness', label: 'Cleanliness', inverse: true },
+              { key: 'maintenance', label: 'Maintenance', inverse: true },
+              { key: 'fatigue', label: 'Fatigue', inverse: true },
+              { key: 'fun', label: 'Fun', inverse: false },
+              { key: 'drive', label: 'Drive', inverse: false }
+            ].map(p => {
+              const val = Math.round(gameState?.primitives?.[p.key] || 0);
+              return (
+                <div key={p.key} className="prim-display-item">
+                  <span className="prim-display-label">{p.label}</span>
+                  <div className="prim-display-bar-container">
+                    <div className="prim-display-bar" style={{ width: `${val}%` }}/>
+                  </div>
+                  <span className="prim-display-value">{val}</span>
+                </div>
+              );
+            })}
           </div>
 
           <div className="llama-pool-section">
