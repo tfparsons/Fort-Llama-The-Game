@@ -375,7 +375,11 @@ function App() {
               <span className="vibes-label">Vibe: </span>
               <span className="vibes-tier">{gameState.vibes?.tierName || 'Decent'}</span>
               {gameState.vibes?.branchLabel && (
-                <span className="vibes-branch"> ({gameState.vibes.branchLabel})</span>
+                <>
+                  <span className="vibes-separator"> | </span>
+                  <span className="reputation-label">Reputation: </span>
+                  <span className="reputation-value">{gameState.vibes.branchLabel}</span>
+                </>
               )}
             </div>
             <div className="balance-section">

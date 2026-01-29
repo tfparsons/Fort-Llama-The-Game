@@ -136,10 +136,10 @@ const DEFAULT_VIBES_CONFIG = {
   branchLabels: {
     highPartytime: { mild: 'Party House', strong: 'Party Mansion' },
     highProductivity: { mild: 'Grind House', strong: 'Sweat Shop' },
-    highLivingStandards: { mild: 'Showhome', strong: 'Luxury Bubble' },
-    lowLivingStandards: { mild: 'Shanty Town', strong: 'Slum Spiral' },
-    lowProductivity: { mild: 'Chaos House', strong: 'Dysfunctional Commune' },
-    lowPartytime: { mild: 'Dead Vibes', strong: 'Funeral Parlour' }
+    highLivingStandards: { mild: 'Showhome', strong: 'Barbie House' },
+    lowLivingStandards: { mild: 'Shanty Town', strong: 'Slum' },
+    lowProductivity: { mild: 'Decadent', strong: 'Chaotic' },
+    lowPartytime: { mild: 'Low Energy', strong: 'Dead' }
   }
 };
 

@@ -1081,9 +1081,19 @@ body {
   color: #e94560;
 }
 
-.vibes-branch {
+.vibes-separator {
   font-size: 1.4rem;
-  color: #ed8936;
+  color: #4a5568;
+}
+
+.reputation-label {
+  font-size: 1.4rem;
+  color: #a0aec0;
+}
+
+.reputation-value {
+  font-size: 1.4rem;
+  color: #fff;
 }
 
 .balance-section {
