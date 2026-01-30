@@ -154,7 +154,7 @@ const INITIAL_DEFAULTS = {
   baseChurnRate: 0.20,
   churnRentMultiplier: 0.0003,
   gameOverLimit: -20000,
-  tickSpeed: 1000,
+  tickSpeed: 333,
   hoursPerTick: 4,
   primitives: { ...DEFAULT_PRIMITIVE_CONFIG },
   health: { ...DEFAULT_HEALTH_CONFIG },

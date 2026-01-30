@@ -96,17 +96,33 @@ function App() {
     }
   }, [showWeeklyPanel]);
 
-  // Continuous clock animation - runs purely client-side
-  // Only syncs with server when game pauses/unpauses
+  // Store current pause state in ref so animation can read fresh value
+  const isPausedRef = useRef(true);
+  const configRef = useRef({ tickSpeed: 333, hoursPerTick: 4 });
+  const gameStateRef = useRef(null);
+  
+  // Keep refs in sync with state
   useEffect(() => {
-    if (!config || !gameState) return;
+    if (gameState) {
+      isPausedRef.current = gameState.isPausedForWeeklyDecision || gameState.isGameOver;
+      gameStateRef.current = gameState;
+    }
+  }, [gameState]);
+  
+  useEffect(() => {
+    if (config) {
+      configRef.current = { 
+        tickSpeed: config.tickSpeed || 333, 
+        hoursPerTick: config.hoursPerTick || 4 
+      };
+    }
+  }, [config]);
+
+  // Handle pause/unpause transitions
+  useEffect(() => {
+    if (!gameState) return;
     
-    const tickInterval = config.tickInterval || 500;
-    const hoursPerTick = config.hoursPerTick || 4;
     const isPaused = gameState.isPausedForWeeklyDecision || gameState.isGameOver;
-    
-    // Calculate how many game-minutes pass per real millisecond
-    const gameMinutesPerMs = (hoursPerTick * 60) / tickInterval;
     
     // Detect pause/unpause transitions
     if (isPaused && !wasPausedRef.current) {
@@ -133,14 +149,20 @@ function App() {
         synced: true
       };
     }
-    
+  }, [gameState]);
+
+  // Continuous clock animation - runs purely client-side
+  useEffect(() => {
     const animate = () => {
       const now = Date.now();
+      const { tickSpeed, hoursPerTick } = configRef.current;
+      const gameMinutesPerMs = (hoursPerTick * 60) / tickSpeed;
       
-      if (isPaused) {
+      if (isPausedRef.current) {
         // When paused, show server time exactly
-        const serverHour = gameState.hour ?? 9;
-        const serverDay = gameState.day ?? 1;
+        const gs = gameStateRef.current;
+        const serverHour = gs?.hour ?? 9;
+        const serverDay = gs?.day ?? 1;
         setDisplayTime({ hour: serverHour, minute: 0, dayIndex: serverDay - 1 });
       } else {
         // Calculate time based purely on elapsed real time since unpause
@@ -170,7 +192,7 @@ function App() {
         cancelAnimationFrame(clockAnimationRef.current);
       }
     };
-  }, [config, gameState]);
+  }, []);
 
   const handlePanelMouseDown = (e) => {
     if (e.target.closest('.panel-btn')) return;
