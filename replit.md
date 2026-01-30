@@ -163,11 +163,14 @@ All parameter changes trigger simulation reset.
   - Minimized planner shows "Week N Planning" with expand button
 
 - 2026-01-30: **Primitives UI Redesign**
-  - Split primitives into two visual sections: Instant Metrics and Stock Levels
-  - Instant Metrics (horizontal bars): Crowding (👥), Noise (🔊), Nutrition (🍽️), Fun (🎉), Drive (💪)
-  - Stock Levels (vertical tanks): Mess (🧹), Wear (🔧), Tired (😴)
+  - Split primitives into three visual sections: Pressure, Instant Metrics, Stock Levels
+  - **Pressure** (circular gauges with needle + tier labels):
+    - Crowding (👥): Comfortable → Tight → Crowded → Unliveable
+    - Noise (🔊): Quiet → Buzzing → Loud → Chaos
+  - **Instant Metrics** (horizontal bars): Nutrition (🍽️), Fun (🎉), Drive (💪)
+  - **Stock Levels** (vertical tanks): Cleanliness (🧹), Maintenance (🔧), Fatigue (😴)
   - Tanks fill from bottom-up as debt accumulates, color shifts green→orange→red
-  - Visual metaphor communicates: instants = quick readings, stocks = pressure building up
+  - Gauges have animated needles, colored tier labels based on current state
 
 - 2026-01-30: **Churn-Based Rent Tiers**
   - Rent tier labels now based on actual churn impact (rent × churnMultiplier)
