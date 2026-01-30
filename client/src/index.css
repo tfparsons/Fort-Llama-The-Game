@@ -1176,12 +1176,13 @@ body {
 
 .headline-label {
   font-size: 1.1rem;
+  font-weight: 500;
   color: #718096;
 }
 
 .headline-value {
   font-size: 1.1rem;
-  font-weight: 600;
+  font-weight: 500;
   color: #fff;
 }
 
