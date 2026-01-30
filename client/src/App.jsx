@@ -20,7 +20,8 @@ function App() {
   
   const [displayTime, setDisplayTime] = useState({ hour: 9, minute: 0, dayIndex: 0 });
   const clockAnimationRef = useRef(null);
-  const lastServerTimeRef = useRef({ hour: 9, day: 1, timestamp: Date.now() });
+  const clockStartRef = useRef({ hour: 9, day: 1, realStartTime: Date.now(), synced: false });
+  const wasPausedRef = useRef(true);
   
   const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   
@@ -95,53 +96,66 @@ function App() {
     }
   }, [showWeeklyPanel]);
 
-  // Sync server time reference when server time changes
+  // Continuous clock animation - runs purely client-side
+  // Only syncs with server when game pauses/unpauses
   useEffect(() => {
-    if (gameState?.hour === undefined || gameState?.hour === null) return;
-    if (gameState?.day === undefined || gameState?.day === null) return;
-    
-    const serverHour = gameState.hour;
-    const serverDay = gameState.day;
-    
-    // Update reference point when server time changes
-    if (lastServerTimeRef.current.hour !== serverHour || lastServerTimeRef.current.day !== serverDay) {
-      lastServerTimeRef.current = { hour: serverHour, day: serverDay, timestamp: Date.now() };
-    }
-  }, [gameState?.hour, gameState?.day]);
-
-  // Continuous clock animation
-  useEffect(() => {
-    if (!config) return;
+    if (!config || !gameState) return;
     
     const tickInterval = config.tickInterval || 500;
     const hoursPerTick = config.hoursPerTick || 4;
-    const isPaused = gameState?.isPausedForWeeklyDecision || gameState?.isGameOver;
+    const isPaused = gameState.isPausedForWeeklyDecision || gameState.isGameOver;
     
     // Calculate how many game-minutes pass per real millisecond
-    // tickInterval ms = hoursPerTick hours = hoursPerTick * 60 minutes
     const gameMinutesPerMs = (hoursPerTick * 60) / tickInterval;
+    
+    // Detect pause/unpause transitions
+    if (isPaused && !wasPausedRef.current) {
+      // Just paused - sync display to server time
+      wasPausedRef.current = true;
+      clockStartRef.current.synced = false;
+    } else if (!isPaused && wasPausedRef.current) {
+      // Just unpaused - capture starting point for animation
+      wasPausedRef.current = false;
+      clockStartRef.current = {
+        hour: gameState.hour,
+        day: gameState.day,
+        realStartTime: Date.now(),
+        synced: true
+      };
+    }
+    
+    // Initial sync if not yet synced
+    if (!clockStartRef.current.synced && gameState.hour !== undefined) {
+      clockStartRef.current = {
+        hour: gameState.hour,
+        day: gameState.day,
+        realStartTime: Date.now(),
+        synced: true
+      };
+    }
     
     const animate = () => {
       const now = Date.now();
-      const elapsedMs = now - lastServerTimeRef.current.timestamp;
-      const serverDay = lastServerTimeRef.current.day;
-      const serverHour = lastServerTimeRef.current.hour;
       
       if (isPaused) {
-        // When paused, just show the server time exactly
+        // When paused, show server time exactly
+        const serverHour = gameState.hour ?? 9;
+        const serverDay = gameState.day ?? 1;
         setDisplayTime({ hour: serverHour, minute: 0, dayIndex: serverDay - 1 });
       } else {
-        // Calculate interpolated time
+        // Calculate time based purely on elapsed real time since unpause
+        const elapsedMs = now - clockStartRef.current.realStartTime;
         const elapsedGameMinutes = elapsedMs * gameMinutesPerMs;
-        const totalMinutes = (serverHour * 60) + elapsedGameMinutes;
+        const startMinutes = clockStartRef.current.hour * 60;
+        const totalMinutes = startMinutes + elapsedGameMinutes;
         
-        // Calculate total hours elapsed, including day crossings
+        // Calculate hours and days crossed
         const totalHours = totalMinutes / 60;
         const daysCrossed = Math.floor(totalHours / 24);
         
-        let hour = Math.floor(totalHours) % 24;
-        let minute = Math.floor(totalMinutes % 60);
-        let dayIndex = ((serverDay - 1) + daysCrossed) % 7;
+        const hour = Math.floor(totalHours) % 24;
+        const minute = Math.floor(totalMinutes % 60);
+        const dayIndex = ((clockStartRef.current.day - 1) + daysCrossed) % 7;
         
         setDisplayTime({ hour, minute, dayIndex });
       }
@@ -156,7 +170,7 @@ function App() {
         cancelAnimationFrame(clockAnimationRef.current);
       }
     };
-  }, [config, gameState?.isPausedForWeeklyDecision, gameState?.isGameOver]);
+  }, [config, gameState]);
 
   const handlePanelMouseDown = (e) => {
     if (e.target.closest('.panel-btn')) return;
@@ -169,7 +183,8 @@ function App() {
 
   const handleReset = async () => {
     await fetch(`${API_BASE}/api/reset`, { method: 'POST' });
-    lastServerTimeRef.current = { hour: 9, day: 1, timestamp: Date.now() };
+    clockStartRef.current = { hour: 9, day: 1, realStartTime: Date.now(), synced: false };
+    wasPausedRef.current = true;
     fetchState();
   };
 
