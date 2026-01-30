@@ -143,9 +143,16 @@ All parameter changes trigger simulation reset.
 
 ## Recent Changes
 
+- 2026-01-30: **Continuous Clock Animation**
+  - Clock now animates smoothly and continuously using requestAnimationFrame
+  - Time interpolates based on tick speed (no more pause between ticks)
+  - Creates constant "time is passing" visual feedback
+  - Clock pauses when game is paused for weekly planning
+  - Added "Time" header label for consistency, white text styling
+
 - 2026-01-30: **24-Hour Clock System**
-  - Added 24-hour clock display in header (top-right, yellow monospace)
-  - Time advances by hoursPerTick (default 4) each tick - clock spins like a stopwatch
+  - Added 24-hour clock display in header (top-right, monospace)
+  - Time advances by hoursPerTick (default 4) each tick
   - Day changes happen at midnight (hour 0)
   - Weekly Planner pause triggers at midnight Sunday→Monday (start of new week at 09:00)
 
