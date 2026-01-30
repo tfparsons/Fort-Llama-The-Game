@@ -144,9 +144,10 @@ All parameter changes trigger simulation reset.
 ## Recent Changes
 
 - 2026-01-30: **Continuous Clock Animation**
-  - Clock now animates smoothly and continuously using requestAnimationFrame
-  - Time interpolates based on tick speed (no more pause between ticks)
-  - Creates constant "time is passing" visual feedback
+  - Clock runs purely client-side using requestAnimationFrame (no flickering)
+  - Time interpolates based on tick speed - smooth, continuous advancement
+  - Day display derived from clock time, changes exactly at midnight
+  - Only syncs with server on pause/unpause transitions (not every poll)
   - Clock pauses when game is paused for weekly planning
   - Added "Time" header label for consistency, white text styling
 
