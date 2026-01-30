@@ -162,6 +162,13 @@ All parameter changes trigger simulation reset.
   - Weekly Planner minimized state now anchors to top-right of vibes banner (not free-floating)
   - Minimized planner shows "Week N Planning" with expand button
 
+- 2026-01-30: **Primitives UI Redesign**
+  - Split primitives into two visual sections: Instant Metrics and Stock Levels
+  - Instant Metrics (horizontal bars): Crowding (👥), Noise (🔊), Nutrition (🍽️), Fun (🎉), Drive (💪)
+  - Stock Levels (vertical tanks): Mess (🧹), Wear (🔧), Tired (😴)
+  - Tanks fill from bottom-up as debt accumulates, color shifts green→orange→red
+  - Visual metaphor communicates: instants = quick readings, stocks = pressure building up
+
 - 2026-01-30: **Churn-Based Rent Tiers**
   - Rent tier labels now based on actual churn impact (rent × churnMultiplier)
   - Removed ceiling display from Weekly Planner UI
