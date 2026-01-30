@@ -16,7 +16,6 @@ function App() {
   const [recruitCandidates, setRecruitCandidates] = useState([]);
   const [buildings, setBuildings] = useState([]);
   const [rentInput, setRentInput] = useState('');
-  const [rentError, setRentError] = useState('');
   const [hoveredResident, setHoveredResident] = useState(null);
   
   const [panelMinimized, setPanelMinimized] = useState(false);
@@ -136,26 +135,6 @@ function App() {
     handleSetRent(rentInput);
   };
 
-  const handleRentInputChange = (e) => {
-    setRentInput(e.target.value);
-    setRentError('');
-  };
-
-  const handleRentInputBlur = () => {
-    const val = parseInt(rentInput);
-    if (isNaN(val) || val < config.rentMin || val > config.rentMax) {
-      setRentError(`Rent must be between £${config.rentMin} and £${config.rentMax}`);
-      setRentInput(String(gameState.currentRent));
-    } else {
-      handleSetRent(val);
-    }
-  };
-
-  const handleRentInputKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      handleRentInputBlur();
-    }
-  };
 
   const handleOpenRecruitment = async () => {
     try {
@@ -829,8 +808,9 @@ function App() {
                 <div className="rent-info">
                   <span className="rent-tier">
                     {(() => {
+                      const rent = Number(rentInput) || gameState.currentRent || 0;
                       const ceiling = gameState.rentCeiling || config.rentMax;
-                      const pct = rentInput / ceiling;
+                      const pct = ceiling > 0 ? rent / ceiling : 0;
                       if (pct <= 0.30) return 'Bargain';
                       if (pct <= 0.50) return 'Cheap';
                       if (pct <= 0.75) return 'Fair';
