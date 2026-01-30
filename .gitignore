@@ -131,3 +131,6 @@ dist
 
 # Replit debugger
 .breakpoints
+
+# Game saved defaults (persisted user config)
+server/saved-defaults.json

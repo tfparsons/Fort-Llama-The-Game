@@ -1,8 +1,10 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 
 const app = express();
+const SAVED_DEFAULTS_FILE = path.join(__dirname, 'saved-defaults.json');
 const PORT = process.env.PORT || 3001;
 
 app.use(cors());
@@ -223,12 +225,29 @@ const INITIAL_DEFAULTS = {
   vibes: { ...DEFAULT_VIBES_CONFIG }
 };
 
-let savedDefaults = { ...INITIAL_DEFAULTS };
-let primitiveConfig = { ...DEFAULT_PRIMITIVE_CONFIG };
-let healthConfig = { ...DEFAULT_HEALTH_CONFIG };
-let vibesConfig = { ...DEFAULT_VIBES_CONFIG };
-let savedLlamaPool = null;
-let savedBuildingsConfig = null;
+function loadSavedDefaults() {
+  try {
+    if (fs.existsSync(SAVED_DEFAULTS_FILE)) {
+      const data = JSON.parse(fs.readFileSync(SAVED_DEFAULTS_FILE, 'utf8'));
+      return {
+        defaults: data.defaults || { ...INITIAL_DEFAULTS },
+        llamaPool: data.llamaPool || null,
+        buildings: data.buildings || null
+      };
+    }
+  } catch (err) {
+    console.error('Failed to load saved defaults:', err);
+  }
+  return { defaults: { ...INITIAL_DEFAULTS }, llamaPool: null, buildings: null };
+}
+
+const loadedData = loadSavedDefaults();
+let savedDefaults = loadedData.defaults;
+let primitiveConfig = savedDefaults.primitives ? { ...savedDefaults.primitives } : { ...DEFAULT_PRIMITIVE_CONFIG };
+let healthConfig = savedDefaults.health ? { ...savedDefaults.health } : { ...DEFAULT_HEALTH_CONFIG };
+let vibesConfig = savedDefaults.vibes ? { ...savedDefaults.vibes } : { ...DEFAULT_VIBES_CONFIG };
+let savedLlamaPool = loadedData.llamaPool;
+let savedBuildingsConfig = loadedData.buildings;
 
 function initializeGame(config = savedDefaults) {
   gameConfig = { ...config };
@@ -776,6 +795,20 @@ app.post('/api/save-defaults', (req, res) => {
   };
   savedLlamaPool = JSON.parse(JSON.stringify(llamaPool));
   savedBuildingsConfig = gameState.buildings.map(b => ({ ...b }));
+  
+  // Persist to file
+  try {
+    const dataToSave = {
+      defaults: savedDefaults,
+      llamaPool: savedLlamaPool,
+      buildings: savedBuildingsConfig
+    };
+    fs.writeFileSync(SAVED_DEFAULTS_FILE, JSON.stringify(dataToSave, null, 2));
+    console.log('Saved defaults to file');
+  } catch (err) {
+    console.error('Failed to save defaults to file:', err);
+  }
+  
   res.json({ success: true, defaults: savedDefaults });
 });
 
