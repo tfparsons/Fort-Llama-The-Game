@@ -951,51 +951,6 @@ function App() {
             </div>
           </div>
 
-          <h3 className="section-divider">Current Primitives</h3>
-          <div className="primitives-display">
-            {[
-              { key: 'crowding', label: 'Crowding', inverse: true },
-              { key: 'noise', label: 'Noise', inverse: true },
-              { key: 'nutrition', label: 'Nutrition', inverse: false },
-              { key: 'cleanliness', label: 'Cleanliness', inverse: true },
-              { key: 'maintenance', label: 'Maintenance', inverse: true },
-              { key: 'fatigue', label: 'Fatigue', inverse: true },
-              { key: 'fun', label: 'Fun', inverse: false },
-              { key: 'drive', label: 'Drive', inverse: false }
-            ].map(p => {
-              const val = Math.round(gameState?.primitives?.[p.key] || 0);
-              return (
-                <div key={p.key} className="prim-display-item">
-                  <span className="prim-display-label">{p.label}</span>
-                  <div className="prim-display-bar-container">
-                    <div className="prim-display-bar" style={{ width: `${val}%` }}/>
-                  </div>
-                  <span className="prim-display-value">{val}</span>
-                </div>
-              );
-            })}
-          </div>
-
-          <div className="llama-pool-section">
-            <h3>Llama Pool ({gameState?.communeResidents?.filter(r => !r.churned).length || 0} in commune)</h3>
-            <p className="pool-info">
-              Total llamas: 20 | Available for recruitment: {20 - (gameState?.communeResidents?.filter(r => !r.churned).length || 0) - (gameState?.pendingArrivals?.length || 0)}
-            </p>
-            <div className="llama-pool-grid">
-              {gameState?.communeResidents?.map(r => (
-                <div key={r.id} className="pool-llama in-commune">
-                  <span className="pool-name">{r.name}</span>
-                  <span className="pool-status">In Commune</span>
-                </div>
-              ))}
-              {gameState?.pendingArrivals?.map(r => (
-                <div key={r.id} className="pool-llama pending">
-                  <span className="pool-name">{r.name}</span>
-                  <span className="pool-status">Arriving</span>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
       )}
 
