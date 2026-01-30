@@ -143,6 +143,11 @@ All parameter changes trigger simulation reset.
 
 ## Recent Changes
 
+- 2026-01-30: **UI Layout Improvements**
+  - Restart button moved to header bar (next to Dashboard/Dev Tools) with confirmation dialog
+  - Weekly Planner minimized state now anchors to top-right of vibes banner (not free-floating)
+  - Minimized planner shows "Week N Planning" with expand button
+
 - 2026-01-30: **Rent Slider UI Improvements**
   - Rent slider now uses £10 increments for cleaner adjustments
   - Removed manual text input, replaced with static display

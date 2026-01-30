@@ -319,6 +319,16 @@ function App() {
             >
               Dev Tools
             </button>
+            <button 
+              className="btn-restart"
+              onClick={() => {
+                if (window.confirm('Are you sure you want to restart the game?')) {
+                  handleReset();
+                }
+              }}
+            >
+              Restart
+            </button>
           </div>
         </div>
         <div className="top-bar-stats">
@@ -350,7 +360,12 @@ function App() {
       {view === 'dashboard' && (
         <div className="main-content">
           <div className="vibes-banner">
-            <button className="btn-reset banner-restart" onClick={handleReset}>Restart</button>
+            {showWeeklyPanel && panelMinimized && (
+              <div className="minimized-planner" onClick={() => setPanelMinimized(false)}>
+                <span>Week {gameState.week} Planning</span>
+                <button className="panel-btn">+</button>
+              </div>
+            )}
             <div className="vibes-headline">
               <div className="headline-row">
                 <span className="headline-label">Vibe:</span>
@@ -771,25 +786,24 @@ function App() {
         </div>
       )}
 
-      {showWeeklyPanel && (
+      {showWeeklyPanel && !panelMinimized && (
         <div 
-          className={`floating-panel ${panelMinimized ? 'minimized' : ''}`}
+          className="floating-panel"
           ref={panelRef}
           style={{ left: panelPosition.x, top: panelPosition.y }}
         >
           <div className="panel-header" onMouseDown={handlePanelMouseDown}>
             <div className="panel-title">Week {gameState.week} Planning</div>
             <div className="panel-controls">
-              <button className="panel-btn minimize" onClick={() => setPanelMinimized(!panelMinimized)}>
-                {panelMinimized ? '+' : '−'}
+              <button className="panel-btn minimize" onClick={() => setPanelMinimized(true)}>
+                −
               </button>
             </div>
           </div>
           
-          {!panelMinimized && (
-            <div className="panel-content">
-              <div className="panel-section">
-                <label>Set Rent</label>
+          <div className="panel-content">
+            <div className="panel-section">
+              <label>Set Rent</label>
                 <div className="rent-row">
                   <input 
                     type="range" 
@@ -870,8 +884,7 @@ function App() {
               <button className="panel-confirm" onClick={handleDismissWeekly}>
                 Start Week
               </button>
-            </div>
-          )}
+          </div>
         </div>
       )}
 
