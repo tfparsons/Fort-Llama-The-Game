@@ -143,6 +143,14 @@ All parameter changes trigger simulation reset.
 
 ## Recent Changes
 
+- 2026-01-30: **Dynamic Rent Tier Thresholds**
+  - Rent tier labels (Bargain/Cheap/Fair/Pricey/Extortionate) now scale with Living Standards
+  - Formula: `scaledThreshold = baseThreshold × (0.5 + livingStandards)`
+  - Higher LS = more rent tolerance (player can charge more while staying "Fair")
+  - Lower LS = stricter thresholds (same rent feels more "Pricey")
+  - Removed static Rent Tier Thresholds panel from Dev Tools (no longer needed)
+  - Tiers are player feedback only - they don't affect the churn calculation
+
 - 2026-01-30: **Continuous Clock Animation**
   - Clock runs purely client-side using requestAnimationFrame (no flickering)
   - Time interpolates based on tick speed - smooth, continuous advancement
