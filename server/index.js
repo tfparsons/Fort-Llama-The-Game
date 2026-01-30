@@ -147,7 +147,8 @@ const DEFAULT_HEALTH_CONFIG = {
     nutritionWeight: 0.5,
     cleanlinessWeight: 0.5,
     crowdingDampen: 0.35,
-    maintenanceDampen: 0.35
+    maintenanceDampen: 0.35,
+    rentCurve: 2
   },
   productivity: {
     driveWeight: 1.0,
@@ -271,7 +272,7 @@ function deepMergePrimitives(defaults, overrides) {
 function initializeGame(config = savedDefaults) {
   gameConfig = { ...config };
   primitiveConfig = deepMergePrimitives(DEFAULT_PRIMITIVE_CONFIG, config.primitives);
-  healthConfig = config.health ? { ...config.health } : { ...DEFAULT_HEALTH_CONFIG };
+  healthConfig = deepMergePrimitives(DEFAULT_HEALTH_CONFIG, config.health);
   vibesConfig = config.vibes ? { ...config.vibes } : { ...DEFAULT_VIBES_CONFIG };
   
   llamaPool = savedLlamaPool 
@@ -628,17 +629,20 @@ function calculateRecruitmentSlots() {
 }
 
 function calculateRentTier(rent) {
-  const churnContribution = rent * gameConfig.churnRentMultiplier;
-  const thresholds = gameConfig.rentTierThresholds || INITIAL_DEFAULTS.rentTierThresholds;
-  const ls = gameState.healthMetrics?.livingStandards || 0.5;
-  const lsMultiplier = 0.5 + ls;
+  const ls = Math.max(0, Math.min(1, gameState.healthMetrics?.livingStandards || 0.5));
+  const rentMin = gameConfig.rentMin || 50;
+  const rentMax = gameConfig.rentMax || 500;
+  const rentCurve = Math.max(0.1, healthConfig.livingStandards?.rentCurve || 2);
   
-  for (const tier of thresholds) {
-    const scaledMaxChurn = tier.maxChurn * lsMultiplier;
-    if (churnContribution <= scaledMaxChurn) {
-      return tier.name;
-    }
-  }
+  const curvedLS = Math.pow(ls, 1 / rentCurve);
+  const maxTolerantRent = rentMin + (rentMax - rentMin) * curvedLS;
+  
+  const tierRatio = rent / maxTolerantRent;
+  
+  if (tierRatio <= 0.3) return 'Bargain';
+  if (tierRatio <= 0.5) return 'Cheap';
+  if (tierRatio <= 0.7) return 'Fair';
+  if (tierRatio <= 0.9) return 'Pricey';
   return 'Extortionate';
 }
 

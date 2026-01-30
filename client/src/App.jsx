@@ -906,6 +906,12 @@ function App() {
                 <input type="number" step="0.1" value={editConfig?.health?.livingStandards?.maintenanceDampen ?? 0.35} 
                   onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, livingStandards: {...editConfig.health?.livingStandards, maintenanceDampen: parseFloat(e.target.value)}}})} />
               </div>
+              <div className="section-divider-line"></div>
+              <div className="config-field">
+                <label>LS Rent Curve</label>
+                <input type="number" step="0.1" value={editConfig?.health?.livingStandards?.rentCurve ?? 2} 
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, livingStandards: {...editConfig.health?.livingStandards, rentCurve: parseFloat(e.target.value)}}})} />
+              </div>
             </div>
 
             <div className="config-section">
@@ -1446,23 +1452,19 @@ function App() {
                   <span className="rent-tier">
                     {(() => {
                       const rent = Number(rentInput) || gameState.currentRent || 0;
-                      const thresholds = gameState.rentTierThresholds || config.rentTierThresholds || [
-                        { name: 'Bargain', maxChurn: 0.02 },
-                        { name: 'Cheap', maxChurn: 0.05 },
-                        { name: 'Fair', maxChurn: 0.08 },
-                        { name: 'Pricey', maxChurn: 0.12 },
-                        { name: 'Extortionate', maxChurn: 1.0 }
-                      ];
-                      const churnMult = config.churnRentMultiplier || 0.0003;
-                      const churnContribution = rent * churnMult;
-                      const ls = gameState.healthMetrics?.livingStandards || 0.5;
-                      const lsMultiplier = 0.5 + ls;
-                      for (const tier of thresholds) {
-                        const scaledMaxChurn = tier.maxChurn * lsMultiplier;
-                        if (churnContribution <= scaledMaxChurn) {
-                          return tier.name;
-                        }
-                      }
+                      const ls = Math.max(0, Math.min(1, gameState.healthMetrics?.livingStandards || 0.5));
+                      const rentMin = config.rentMin || 50;
+                      const rentMax = config.rentMax || 500;
+                      const rentCurve = Math.max(0.1, gameState.healthConfig?.livingStandards?.rentCurve || 2);
+                      
+                      const curvedLS = Math.pow(ls, 1 / rentCurve);
+                      const maxTolerantRent = rentMin + (rentMax - rentMin) * curvedLS;
+                      const tierRatio = rent / maxTolerantRent;
+                      
+                      if (tierRatio <= 0.3) return 'Bargain';
+                      if (tierRatio <= 0.5) return 'Cheap';
+                      if (tierRatio <= 0.7) return 'Fair';
+                      if (tierRatio <= 0.9) return 'Pricey';
                       return 'Extortionate';
                     })()}
                   </span>
@@ -1561,7 +1563,9 @@ function App() {
                 </div>
                 <div className="formula-section effect">
                   <h4>Game Effect</h4>
-                  <p>Higher Living Standards = higher rent tolerance. Rent tier thresholds are scaled by (0.5 + LS), so players can charge more before the tier label shifts to "Pricey" or "Extortionate".</p>
+                  <p>Higher Living Standards = higher rent tolerance. Uses a diminishing returns curve:</p>
+                  <code>maxTolerantRent = rentMin + (rentMax - rentMin) × LS^(1/rentCurve)</code>
+                  <p>Higher rentCurve values mean early LS improvements yield bigger rent gains. Rent tier is based on where current rent falls relative to maxTolerantRent.</p>
                 </div>
               </>
             )}
