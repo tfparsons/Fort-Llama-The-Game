@@ -822,6 +822,7 @@ function App() {
             </div>
           </div>
 
+          <h3 className="section-divider">Basic Settings</h3>
           <div className="dev-tools-grid">
             <div className="config-section">
               <h3>Starting Values</h3>
@@ -882,7 +883,7 @@ function App() {
 
           </div>
 
-          <h3 className="section-divider">Primitives & Health System</h3>
+          <h3 className="section-divider">Health Metric Settings</h3>
           <div className="dev-tools-grid">
             <div className="config-section">
               <h3>Living Standards <span className="info-icon" onClick={() => setInfoPopup('livingStandards')}>&#9432;</span></h3>
@@ -997,7 +998,7 @@ function App() {
             </div>
           </div>
 
-          <h3 className="section-divider">Primitive Calculations</h3>
+          <h3 className="section-divider">Primitive Settings</h3>
           <div className="primitives-accordion">
             
             <div className={`primitive-section ${expandedPrimitives.crowding ? 'expanded' : ''}`}>
