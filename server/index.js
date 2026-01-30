@@ -132,14 +132,14 @@ const DEFAULT_BUILDINGS = [
 const DEFAULT_PRIMITIVE_CONFIG = {
   penaltyK: 2,
   penaltyP: 2,
-  crowding: { weight: 1.0 },
-  noise: { baseSocial: 5, baseAmbient: 10, socioMult: 0.1, considMult: 0.3 },
-  nutrition: { baseThroughput: 50, cookMult: 0.5, dilutionRate: 0.05 },
-  cleanliness: { messPerResident: 2, cleanBase: 5, recoveryRate: 0.1 },
-  maintenance: { wearPerResident: 1, repairBase: 3, recoveryRate: 0.1 },
+  crowding: { weight: 1.0, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
+  noise: { baseSocial: 5, baseAmbient: 10, socioMult: 0.1, considMult: 0.3, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
+  nutrition: { baseThroughput: 50, cookMult: 0.5, dilutionRate: 0.05, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
+  cleanliness: { messPerResident: 2, cleanBase: 5, recoveryRate: 0.1, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
+  maintenance: { wearPerResident: 1, repairBase: 3, recoveryRate: 0.1, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
   fatigue: { exertBase: 3, recoverBase: 5, workMult: 0.3, socioMult: 0.2 },
-  fun: { funBase: 50, socioMult: 0.4, staminaMult: 0.2 },
-  drive: { driveBase: 50, workMult: 0.5, distractMult: 0.3 }
+  fun: { funBase: 50, socioMult: 0.4, staminaMult: 0.2, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
+  drive: { driveBase: 50, workMult: 0.5, distractMult: 0.3, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 }
 };
 
 const DEFAULT_HEALTH_CONFIG = {
@@ -250,9 +250,27 @@ let vibesConfig = savedDefaults.vibes ? { ...savedDefaults.vibes } : { ...DEFAUL
 let savedLlamaPool = loadedData.llamaPool;
 let savedBuildingsConfig = loadedData.buildings;
 
+function deepMergePrimitives(defaults, overrides) {
+  const result = { ...defaults };
+  if (!overrides) return result;
+  for (const key of Object.keys(defaults)) {
+    if (typeof defaults[key] === 'object' && defaults[key] !== null && !Array.isArray(defaults[key])) {
+      result[key] = { ...defaults[key], ...(overrides[key] || {}) };
+    } else if (overrides[key] !== undefined) {
+      result[key] = overrides[key];
+    }
+  }
+  for (const key of Object.keys(overrides)) {
+    if (!(key in defaults)) {
+      result[key] = overrides[key];
+    }
+  }
+  return result;
+}
+
 function initializeGame(config = savedDefaults) {
   gameConfig = { ...config };
-  primitiveConfig = config.primitives ? { ...config.primitives } : { ...DEFAULT_PRIMITIVE_CONFIG };
+  primitiveConfig = deepMergePrimitives(DEFAULT_PRIMITIVE_CONFIG, config.primitives);
   healthConfig = config.health ? { ...config.health } : { ...DEFAULT_HEALTH_CONFIG };
   vibesConfig = config.vibes ? { ...config.vibes } : { ...DEFAULT_VIBES_CONFIG };
   
@@ -408,9 +426,13 @@ function getBuildingMult(buildingId, multKey) {
   return b && b[multKey] !== undefined ? b[multKey] : 1;
 }
 
-function overcrowdingPenalty(ratio) {
-  const k = primitiveConfig.penaltyK;
-  const p = primitiveConfig.penaltyP;
+function overcrowdingPenalty(ratio, primitiveName = null) {
+  let k = primitiveConfig.penaltyK;
+  let p = primitiveConfig.penaltyP;
+  if (primitiveName && primitiveConfig[primitiveName]?.useCustomPenalty) {
+    k = primitiveConfig[primitiveName].penaltyK ?? k;
+    p = primitiveConfig[primitiveName].penaltyP ?? p;
+  }
   const over = Math.max(0, ratio - 1);
   return 1 + k * Math.pow(over, p);
 }
@@ -449,30 +471,30 @@ function calculatePrimitives() {
   const rKitch = effectiveN / capKitch;
   const rLiv = effectiveN / capLiv;
   const maxRatio = Math.max(rBed, rBath, rKitch, rLiv);
-  const crowding = Math.min(100, maxRatio * 50 * overcrowdingPenalty(maxRatio));
+  const crowding = Math.min(100, maxRatio * 50 * overcrowdingPenalty(maxRatio, 'crowding'));
   
   const cfg = primitiveConfig.noise;
   const socialNoise = N * cfg.baseSocial * (1 + cfg.socioMult * sociability) * (1 - cfg.considMult * consideration);
-  const ambientNoise = cfg.baseAmbient * overcrowdingPenalty(N / capLiv);
+  const ambientNoise = cfg.baseAmbient * overcrowdingPenalty(N / capLiv, 'noise');
   const noise = Math.min(100, (socialNoise + ambientNoise) * (1 / lQ));
   
   const nCfg = primitiveConfig.nutrition;
   const throughput = nCfg.baseThroughput * kQ * getBuildingMult('kitchen', 'foodMult');
   const perRes = throughput / (1 + nCfg.dilutionRate * Math.max(0, N - 1));
   const cookBonus = 1 + nCfg.cookMult * cookSkill;
-  const penaltyK = overcrowdingPenalty(N / capKitch);
-  const nutrition = Math.min(100, Math.max(0, perRes * cookBonus / penaltyK));
+  const nutritionPenalty = overcrowdingPenalty(N / capKitch, 'nutrition');
+  const nutrition = Math.min(100, Math.max(0, perRes * cookBonus / nutritionPenalty));
   
   const cCfg = primitiveConfig.cleanliness;
   const messIn = N * cCfg.messPerResident * getBuildingMult('kitchen', 'messMult') * getBuildingMult('bathroom', 'messMult');
-  const bathPenalty = overcrowdingPenalty(N / capBath);
+  const bathPenalty = overcrowdingPenalty(N / capBath, 'cleanliness');
   const cleanOut = cCfg.cleanBase * bathQ * getBuildingMult('bathroom', 'cleanMult') * (1 + 0.4 * tidiness + 0.3 * consideration);
   const netMess = messIn * bathPenalty - cleanOut;
   const oldClean = gameState.primitives.cleanliness || 0;
   const cleanliness = Math.min(100, Math.max(0, oldClean + netMess * 0.5));
   
   const mCfg = primitiveConfig.maintenance;
-  const wearIn = mCfg.wearPerResident * N * overcrowdingPenalty(N / capUtil);
+  const wearIn = mCfg.wearPerResident * N * overcrowdingPenalty(N / capUtil, 'maintenance');
   const repairOut = mCfg.repairBase * uQ * getBuildingMult('utility_closet', 'repairMult') * (1 + 0.5 * handiness + 0.2 * tidiness);
   const netWear = wearIn - repairOut;
   const oldMaint = gameState.primitives.maintenance || 0;
@@ -486,12 +508,12 @@ function calculatePrimitives() {
   const fatigue = Math.min(100, Math.max(0, oldFatigue + netFatigue * 0.3));
   
   const funCfg = primitiveConfig.fun;
-  const crowdFactor = rLiv < 0.3 ? 0.7 : rLiv < 0.8 ? 1 + 0.3 * (rLiv - 0.3) : 1.15 / overcrowdingPenalty(rLiv);
+  const crowdFactor = rLiv < 0.3 ? 0.7 : rLiv < 0.8 ? 1 + 0.3 * (rLiv - 0.3) : 1.15 / overcrowdingPenalty(rLiv, 'fun');
   const fun = Math.min(100, Math.max(0, funCfg.funBase * lQ * getBuildingMult('living_room', 'funMult') * 
     (1 + funCfg.socioMult * sociability + funCfg.staminaMult * partyStamina) * crowdFactor));
   
   const dCfg = primitiveConfig.drive;
-  const distraction = (1 + 0.5 * sociability) * overcrowdingPenalty(N / capLiv) * (1 - 0.3 * consideration);
+  const distraction = (1 + 0.5 * sociability) * overcrowdingPenalty(N / capLiv, 'drive') * (1 - 0.3 * consideration);
   const drive = Math.min(100, Math.max(0, dCfg.driveBase * lQ * (1 + dCfg.workMult * workEthic) / (1 + dCfg.distractMult * distraction)));
   
   gameState.primitives = { crowding, noise, nutrition, cleanliness, maintenance, fatigue, fun, drive };

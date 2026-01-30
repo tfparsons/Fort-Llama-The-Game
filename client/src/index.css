@@ -1236,6 +1236,173 @@ body {
   justify-content: flex-end;
 }
 
+.config-hint {
+  font-size: 0.75rem;
+  color: #718096;
+  margin-top: 8px;
+  font-style: italic;
+}
+
+.primitives-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.primitive-section {
+  background: #16213e;
+  border: 1px solid #0f3460;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.primitive-section.expanded {
+  border-color: #e94560;
+}
+
+.primitive-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.primitive-header:hover {
+  background: rgba(233, 69, 96, 0.1);
+}
+
+.expand-icon {
+  color: #e94560;
+  font-size: 0.75rem;
+  width: 12px;
+}
+
+.primitive-name {
+  font-weight: 600;
+  flex: 1;
+}
+
+.primitive-type {
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+  text-transform: uppercase;
+}
+
+.primitive-type.pressure {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+.primitive-type.instant {
+  background: rgba(59, 130, 246, 0.2);
+  color: #3b82f6;
+}
+
+.primitive-type.stock {
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+}
+
+.primitive-value {
+  font-family: monospace;
+  font-size: 0.9rem;
+  color: #a0aec0;
+  min-width: 40px;
+  text-align: right;
+}
+
+.primitive-body {
+  padding: 16px;
+  border-top: 1px solid #0f3460;
+  background: #1a1a2e;
+}
+
+.formula-display {
+  font-family: monospace;
+  font-size: 0.85rem;
+  color: #e94560;
+  background: rgba(233, 69, 96, 0.1);
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin-bottom: 12px;
+}
+
+.primitive-controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.primitive-controls .config-field {
+  margin-bottom: 0;
+}
+
+.primitive-controls .config-field label {
+  font-size: 0.7rem;
+  color: #718096;
+}
+
+.primitive-controls .config-field input {
+  width: 100%;
+  padding: 6px 8px;
+  font-size: 0.85rem;
+}
+
+.primitive-info,
+.linked-buildings {
+  font-size: 0.8rem;
+  color: #a0aec0;
+  margin-top: 8px;
+}
+
+.info-label {
+  color: #718096;
+  margin-right: 4px;
+}
+
+.penalty-toggle {
+  margin: 12px 0;
+  padding: 10px 12px;
+  background: rgba(15, 52, 96, 0.5);
+  border-radius: 4px;
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: #a0aec0;
+}
+
+.toggle-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.penalty-fields {
+  display: flex;
+  gap: 16px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #0f3460;
+}
+
+.penalty-fields .config-field {
+  margin-bottom: 0;
+}
+
+.penalty-fields .config-field input {
+  width: 70px;
+}
+
 .vibes-banner {
   position: relative;
   background: linear-gradient(135deg, #16213e 0%, #1a1a2e 100%);
