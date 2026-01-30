@@ -18,9 +18,11 @@ function App() {
   const [rentInput, setRentInput] = useState('');
   const [hoveredResident, setHoveredResident] = useState(null);
   
-  const [displayTime, setDisplayTime] = useState({ hour: 9, minute: 0 });
+  const [displayTime, setDisplayTime] = useState({ hour: 9, minute: 0, dayIndex: 0 });
   const clockAnimationRef = useRef(null);
-  const lastServerTimeRef = useRef({ hour: 9, timestamp: Date.now() });
+  const lastServerTimeRef = useRef({ hour: 9, day: 1, timestamp: Date.now() });
+  
+  const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   
   const [panelMinimized, setPanelMinimized] = useState(false);
   const [panelPosition, setPanelPosition] = useState({ 
@@ -93,17 +95,19 @@ function App() {
     }
   }, [showWeeklyPanel]);
 
-  // Sync server time reference when server hour changes
+  // Sync server time reference when server time changes
   useEffect(() => {
     if (gameState?.hour === undefined || gameState?.hour === null) return;
+    if (gameState?.day === undefined || gameState?.day === null) return;
     
     const serverHour = gameState.hour;
+    const serverDay = gameState.day;
     
     // Update reference point when server time changes
-    if (lastServerTimeRef.current.hour !== serverHour) {
-      lastServerTimeRef.current = { hour: serverHour, timestamp: Date.now() };
+    if (lastServerTimeRef.current.hour !== serverHour || lastServerTimeRef.current.day !== serverDay) {
+      lastServerTimeRef.current = { hour: serverHour, day: serverDay, timestamp: Date.now() };
     }
-  }, [gameState?.hour]);
+  }, [gameState?.hour, gameState?.day]);
 
   // Continuous clock animation
   useEffect(() => {
@@ -120,19 +124,26 @@ function App() {
     const animate = () => {
       const now = Date.now();
       const elapsedMs = now - lastServerTimeRef.current.timestamp;
+      const serverDay = lastServerTimeRef.current.day;
+      const serverHour = lastServerTimeRef.current.hour;
       
       if (isPaused) {
         // When paused, just show the server time exactly
-        setDisplayTime({ hour: lastServerTimeRef.current.hour, minute: 0 });
+        setDisplayTime({ hour: serverHour, minute: 0, dayIndex: serverDay - 1 });
       } else {
         // Calculate interpolated time
         const elapsedGameMinutes = elapsedMs * gameMinutesPerMs;
-        const totalMinutes = (lastServerTimeRef.current.hour * 60) + elapsedGameMinutes;
+        const totalMinutes = (serverHour * 60) + elapsedGameMinutes;
         
-        let hour = Math.floor(totalMinutes / 60) % 24;
+        // Calculate total hours elapsed, including day crossings
+        const totalHours = totalMinutes / 60;
+        const daysCrossed = Math.floor(totalHours / 24);
+        
+        let hour = Math.floor(totalHours) % 24;
         let minute = Math.floor(totalMinutes % 60);
+        let dayIndex = ((serverDay - 1) + daysCrossed) % 7;
         
-        setDisplayTime({ hour, minute });
+        setDisplayTime({ hour, minute, dayIndex });
       }
       
       clockAnimationRef.current = requestAnimationFrame(animate);
@@ -158,7 +169,7 @@ function App() {
 
   const handleReset = async () => {
     await fetch(`${API_BASE}/api/reset`, { method: 'POST' });
-    lastServerTimeRef.current = { hour: 9, timestamp: Date.now() };
+    lastServerTimeRef.current = { hour: 9, day: 1, timestamp: Date.now() };
     fetchState();
   };
 
@@ -398,7 +409,7 @@ function App() {
           </div>
           <div className="top-stat">
             <span className="top-stat-label">Week {gameState.week}</span>
-            <span className="top-stat-value">{gameState.dayName}</span>
+            <span className="top-stat-value">{DAY_NAMES[displayTime.dayIndex]}</span>
           </div>
           <div className="top-stat clock">
             <span className="top-stat-label">Time</span>
