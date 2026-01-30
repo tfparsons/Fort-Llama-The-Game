@@ -1312,6 +1312,7 @@ body {
   display: flex;
   gap: 16px;
   margin-bottom: 16px;
+  max-width: 1000px;
 }
 
 .instants-column {

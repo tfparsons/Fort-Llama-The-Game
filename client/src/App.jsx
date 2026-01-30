@@ -543,9 +543,9 @@ function App() {
               </div>
               <div className="stocks-tanks">
                 {[
-                  { key: 'cleanliness', label: 'Mess', icon: '🧹' },
-                  { key: 'maintenance', label: 'Wear', icon: '🔧' },
-                  { key: 'fatigue', label: 'Tired', icon: '😴' }
+                  { key: 'cleanliness', label: 'Cleanliness', icon: '🧹' },
+                  { key: 'maintenance', label: 'Maintenance', icon: '🔧' },
+                  { key: 'fatigue', label: 'Fatigue', icon: '😴' }
                 ].map(p => {
                   const val = Math.round(gameState.primitives?.[p.key] || 0);
                   const fillColor = val < 30 ? '#48bb78' : val < 60 ? '#ed8936' : '#f56565';
