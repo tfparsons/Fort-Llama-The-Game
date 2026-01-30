@@ -955,6 +955,12 @@ function App() {
                 <input type="number" step="0.01" value={editConfig?.health?.partytime?.noiseBoostScale ?? 0.08} 
                   onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, partytime: {...editConfig.health?.partytime, noiseBoostScale: parseFloat(e.target.value)}}})} />
               </div>
+              <div className="section-divider-line"></div>
+              <div className="config-field">
+                <label>PT Extra Resident Threshold</label>
+                <input type="number" value={editConfig?.health?.ptSlotsThreshold ?? 50} 
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, ptSlotsThreshold: parseInt(e.target.value)}})} />
+              </div>
             </div>
 
             <div className="config-section">
@@ -970,15 +976,6 @@ function App() {
                   onChange={(e) => updatePrimitiveConfig('global', 'penaltyP', parseFloat(e.target.value))} />
               </div>
               <p className="config-hint">penalty = 1 + k × (ratio - 1)^p when over capacity</p>
-            </div>
-
-            <div className="config-section">
-              <h3>Mechanic Effects</h3>
-              <div className="config-field">
-                <label>PT slots threshold</label>
-                <input type="number" value={editConfig?.health?.ptSlotsThreshold ?? 50} 
-                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, ptSlotsThreshold: parseInt(e.target.value)}})} />
-              </div>
             </div>
 
             <div className="config-section">
