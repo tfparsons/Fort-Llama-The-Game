@@ -412,6 +412,7 @@ function App() {
             <span className="top-stat-value">{gameState.dayName}</span>
           </div>
           <div className="top-stat clock">
+            <span className="top-stat-label">Time</span>
             <span className="top-stat-value">
               {String(displayTime.hour).padStart(2, '0')}:{String(displayTime.minute).padStart(2, '0')}
             </span>
