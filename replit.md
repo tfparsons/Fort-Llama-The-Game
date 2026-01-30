@@ -18,10 +18,10 @@ The project follows a client-server architecture:
     -   The main content area uses cards for Commune Status, Weekly Projection, and Game Status.
     -   Weekly actions are managed via a draggable, minimizable floating panel, allowing dashboard visibility during decision-making.
     -   A continuous, client-side 24-hour clock system uses `requestAnimationFrame` for smooth animation.
-    -   Primitives are visualized with distinct UI elements: circular gauges for "Pressure" (Crowding, Noise), horizontal bars for "Instant Metrics" (Nutrition, Fun, Drive), and vertical tanks for "Stock Levels" (Cleanliness, Maintenance, Fatigue). Tanks visually fill and change color based on debt accumulation.
+    -   Primitives are visualized with distinct UI elements: circular gauges for "Pressure" (Crowding, Noise), horizontal bars for "Instant Metrics" (Nutrition, Cleanliness, Fun, Drive), and vertical tanks for "Stock Levels" (Maintenance, Fatigue). Tanks visually fill and change color based on debt accumulation.
 -   **Game Mechanics:**
     -   **Time System:** Daily ticks (7 days per week) with an auto-pause at the end of each week for player decisions. The weekly action modal appears on Monday at 9 am.
-    -   **Primitives System:** Eight core metrics (5 instant, 3 stock) are calculated daily based on buildings and resident stats. These include Crowding, Noise, Nutrition, Fun, Drive (instant), and Cleanliness debt, Maintenance debt, Fatigue debt (stock). An overcrowding penalty curve is applied.
+    -   **Primitives System:** Eight core metrics (6 instant, 2 stock) are calculated daily based on buildings and resident stats. These include Crowding, Noise, Nutrition, Cleanliness, Fun, Drive (instant), and Maintenance debt, Fatigue debt (stock). An overcrowding penalty curve is applied.
     -   **Health Metrics:** Three aggregate metrics—Living Standards (LS), Productivity (PR), and Partytime (PT)—are derived from primitives.
         -   LS affects overall "Vibes".
         -   PR reduces the churn rate.

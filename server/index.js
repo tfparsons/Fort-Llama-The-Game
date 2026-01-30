@@ -135,7 +135,7 @@ const DEFAULT_PRIMITIVE_CONFIG = {
   crowding: { weight: 1.0, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
   noise: { baseSocial: 5, baseAmbient: 10, socioMult: 0.1, considMult: 0.3, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
   nutrition: { baseThroughput: 50, cookMult: 0.5, dilutionRate: 0.05, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
-  cleanliness: { messPerResident: 2, cleanBase: 5, recoveryRate: 0.1, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
+  cleanliness: { baseThroughput: 50, tidyMult: 0.5, dilutionRate: 0.05, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
   maintenance: { wearPerResident: 1, repairBase: 3, recoveryRate: 0.1, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
   fatigue: { exertBase: 3, recoverBase: 5, workMult: 0.3, socioMult: 0.2 },
   fun: { funBase: 50, socioMult: 0.4, staminaMult: 0.2, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
@@ -317,7 +317,7 @@ function initializeGame(config = savedDefaults) {
       crowding: 0,
       noise: 0,
       nutrition: 50,
-      cleanliness: 0,
+      cleanliness: 50,
       maintenance: 0,
       fatigue: 0,
       fun: 50,
@@ -440,7 +440,7 @@ function overcrowdingPenalty(ratio, primitiveName = null) {
 function calculatePrimitives() {
   const N = gameState.communeResidents.length;
   if (N === 0) {
-    gameState.primitives = { crowding: 0, noise: 0, nutrition: 50, cleanliness: 0, maintenance: 0, fatigue: 0, fun: 50, drive: 50 };
+    gameState.primitives = { crowding: 0, noise: 0, nutrition: 50, cleanliness: 50, maintenance: 0, fatigue: 0, fun: 50, drive: 50 };
     return;
   }
   
@@ -486,12 +486,11 @@ function calculatePrimitives() {
   const nutrition = Math.min(100, Math.max(0, perRes * cookBonus / nutritionPenalty));
   
   const cCfg = primitiveConfig.cleanliness;
-  const messIn = N * cCfg.messPerResident * getBuildingMult('kitchen', 'messMult') * getBuildingMult('bathroom', 'messMult');
-  const bathPenalty = overcrowdingPenalty(N / capBath, 'cleanliness');
-  const cleanOut = cCfg.cleanBase * bathQ * getBuildingMult('bathroom', 'cleanMult') * (1 + 0.4 * tidiness + 0.3 * consideration);
-  const netMess = messIn * bathPenalty - cleanOut;
-  const oldClean = gameState.primitives.cleanliness || 0;
-  const cleanliness = Math.min(100, Math.max(0, oldClean + netMess * 0.5));
+  const bathThroughput = cCfg.baseThroughput * bathQ * getBuildingMult('bathroom', 'cleanMult');
+  const perResCleanliness = bathThroughput / (1 + cCfg.dilutionRate * Math.max(0, N - 1));
+  const tidyBonus = 1 + cCfg.tidyMult * tidiness;
+  const cleanlinessPenalty = overcrowdingPenalty(N / capBath, 'cleanliness');
+  const cleanliness = Math.min(100, Math.max(0, perResCleanliness * tidyBonus / cleanlinessPenalty));
   
   const mCfg = primitiveConfig.maintenance;
   const wearIn = mCfg.wearPerResident * N * overcrowdingPenalty(N / capUtil, 'maintenance');
@@ -537,7 +536,7 @@ function calculateHealthMetrics() {
   
   const livingStandards = Math.max(0.01, Math.min(1,
     baseline(p.nutrition, ls.nutritionWeight) *
-    dampener(p.cleanliness, ls.cleanlinessWeight) *
+    baseline(p.cleanliness, ls.cleanlinessWeight) *
     dampener(p.crowding, ls.crowdingDampen) *
     dampener(p.maintenance, ls.maintenanceDampen)
   ));

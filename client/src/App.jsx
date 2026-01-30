@@ -625,6 +625,7 @@ function App() {
               </div>
               {[
                 { key: 'nutrition', label: 'Nutrition', icon: '🍽️', inverse: false },
+                { key: 'cleanliness', label: 'Cleanliness', icon: '🧹', inverse: false },
                 { key: 'fun', label: 'Fun', icon: '🎉', inverse: false },
                 { key: 'drive', label: 'Drive', icon: '💪', inverse: false }
               ].map(p => {
@@ -650,7 +651,6 @@ function App() {
               </div>
               <div className="stocks-tanks">
                 {[
-                  { key: 'cleanliness', label: 'Cleanliness', icon: '🧹' },
                   { key: 'maintenance', label: 'Maintenance', icon: '🔧' },
                   { key: 'fatigue', label: 'Fatigue', icon: '😴' }
                 ].map(p => {
@@ -1266,22 +1266,27 @@ function App() {
               <div className="primitive-header" onClick={() => togglePrimitiveExpanded('cleanliness')}>
                 <span className="expand-icon">{expandedPrimitives.cleanliness ? '▼' : '▶'}</span>
                 <span className="primitive-name">Cleanliness</span>
-                <span className="primitive-type stock">Stock (Debt)</span>
+                <span className="primitive-type instant">Instant</span>
                 <span className="primitive-value">{gameState?.primitives?.cleanliness?.toFixed(1) ?? 0}</span>
               </div>
               {expandedPrimitives.cleanliness && (
                 <div className="primitive-body">
-                  <div className="formula-display">accumulates: messIn × penalty - cleanOut</div>
+                  <div className="formula-display">bathThroughput / dilution × tidyBonus / penalty</div>
                   <div className="primitive-controls">
                     <div className="config-field">
-                      <label>messPerResident</label>
-                      <input type="number" step="0.5" value={editConfig?.primitives?.cleanliness?.messPerResident ?? 2}
-                        onChange={(e) => updatePrimitiveConfig('cleanliness', 'messPerResident', parseFloat(e.target.value))} />
+                      <label>baseThroughput</label>
+                      <input type="number" step="5" value={editConfig?.primitives?.cleanliness?.baseThroughput ?? 50}
+                        onChange={(e) => updatePrimitiveConfig('cleanliness', 'baseThroughput', parseFloat(e.target.value))} />
                     </div>
                     <div className="config-field">
-                      <label>cleanBase</label>
-                      <input type="number" step="0.5" value={editConfig?.primitives?.cleanliness?.cleanBase ?? 5}
-                        onChange={(e) => updatePrimitiveConfig('cleanliness', 'cleanBase', parseFloat(e.target.value))} />
+                      <label>tidyMult</label>
+                      <input type="number" step="0.1" value={editConfig?.primitives?.cleanliness?.tidyMult ?? 0.5}
+                        onChange={(e) => updatePrimitiveConfig('cleanliness', 'tidyMult', parseFloat(e.target.value))} />
+                    </div>
+                    <div className="config-field">
+                      <label>dilutionRate</label>
+                      <input type="number" step="0.01" value={editConfig?.primitives?.cleanliness?.dilutionRate ?? 0.05}
+                        onChange={(e) => updatePrimitiveConfig('cleanliness', 'dilutionRate', parseFloat(e.target.value))} />
                     </div>
                   </div>
                   <div className="penalty-toggle">
@@ -1306,7 +1311,7 @@ function App() {
                     )}
                   </div>
                   <div className="linked-buildings">
-                    <span className="info-label">Buildings:</span> Bathroom (cleanMult), Kitchen (messMult)
+                    <span className="info-label">Buildings:</span> Bathroom (cleanMult)
                   </div>
                 </div>
               )}
