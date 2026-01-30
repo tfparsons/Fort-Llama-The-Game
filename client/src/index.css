@@ -1205,6 +1205,31 @@ body {
   width: auto;
 }
 
+.primitive-mult-cell {
+  min-width: 140px;
+}
+
+.mult-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.mult-row:last-child {
+  margin-bottom: 0;
+}
+
+.mult-row label {
+  font-size: 0.75rem;
+  color: #a0aec0;
+  min-width: 50px;
+}
+
+.mult-row input {
+  width: 60px !important;
+}
+
 .buildings-actions {
   display: flex;
   gap: 12px;

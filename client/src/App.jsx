@@ -331,11 +331,13 @@ function App() {
   const updateBuildingField = (buildingId, field, value) => {
     setEditableBuildings(prev => prev.map(b => {
       if (b.id !== buildingId) return b;
-      if (field === 'capacity' || field === 'atStart' || field === 'cost') {
+      if (field === 'capacity' || field === 'atStart' || field === 'cost' || field === 'quality') {
         const parsed = value === '' ? null : parseInt(value);
         return { ...b, [field]: parsed };
       }
-      if (field === 'utilitiesMultiplier' || field === 'groundRentMultiplier') {
+      if (field === 'utilitiesMultiplier' || field === 'groundRentMultiplier' || 
+          field === 'recoveryMult' || field === 'foodMult' || field === 'messMult' ||
+          field === 'cleanMult' || field === 'funMult' || field === 'noiseMult' || field === 'repairMult') {
         const parsed = value === '' ? null : parseFloat(value);
         return { ...b, [field]: parsed };
       }
@@ -1461,9 +1463,11 @@ function App() {
                     <th>Building</th>
                     <th>Capacity</th>
                     <th>At Start</th>
+                    <th>Quality</th>
+                    <th>Primitive Mult</th>
                     <th>Cost</th>
-                    <th>Utilities Mult</th>
-                    <th>Ground Rent Mult</th>
+                    <th>Util Mult</th>
+                    <th>Rent Mult</th>
                     <th>Buildable</th>
                   </tr>
                 </thead>
@@ -1486,6 +1490,73 @@ function App() {
                           onChange={(e) => updateBuildingField(b.id, 'atStart', e.target.value)}
                           min="0"
                         />
+                      </td>
+                      <td>
+                        <input 
+                          type="number" 
+                          value={b.quality ?? 1} 
+                          onChange={(e) => updateBuildingField(b.id, 'quality', e.target.value)}
+                          min="1"
+                          max="3"
+                        />
+                      </td>
+                      <td className="primitive-mult-cell">
+                        {b.id === 'bedroom' && (
+                          <div className="mult-row">
+                            <label>Recovery:</label>
+                            <input type="number" step="0.1" value={b.recoveryMult ?? 1.0} 
+                              onChange={(e) => updateBuildingField(b.id, 'recoveryMult', e.target.value)} />
+                          </div>
+                        )}
+                        {b.id === 'kitchen' && (
+                          <>
+                            <div className="mult-row">
+                              <label>Food:</label>
+                              <input type="number" step="0.1" value={b.foodMult ?? 1.0} 
+                                onChange={(e) => updateBuildingField(b.id, 'foodMult', e.target.value)} />
+                            </div>
+                            <div className="mult-row">
+                              <label>Mess:</label>
+                              <input type="number" step="0.1" value={b.messMult ?? 1.0} 
+                                onChange={(e) => updateBuildingField(b.id, 'messMult', e.target.value)} />
+                            </div>
+                          </>
+                        )}
+                        {b.id === 'bathroom' && (
+                          <>
+                            <div className="mult-row">
+                              <label>Clean:</label>
+                              <input type="number" step="0.1" value={b.cleanMult ?? 1.0} 
+                                onChange={(e) => updateBuildingField(b.id, 'cleanMult', e.target.value)} />
+                            </div>
+                            <div className="mult-row">
+                              <label>Mess:</label>
+                              <input type="number" step="0.1" value={b.messMult ?? 1.0} 
+                                onChange={(e) => updateBuildingField(b.id, 'messMult', e.target.value)} />
+                            </div>
+                          </>
+                        )}
+                        {b.id === 'living_room' && (
+                          <>
+                            <div className="mult-row">
+                              <label>Fun:</label>
+                              <input type="number" step="0.1" value={b.funMult ?? 1.0} 
+                                onChange={(e) => updateBuildingField(b.id, 'funMult', e.target.value)} />
+                            </div>
+                            <div className="mult-row">
+                              <label>Noise:</label>
+                              <input type="number" step="0.1" value={b.noiseMult ?? 1.0} 
+                                onChange={(e) => updateBuildingField(b.id, 'noiseMult', e.target.value)} />
+                            </div>
+                          </>
+                        )}
+                        {b.id === 'utility_closet' && (
+                          <div className="mult-row">
+                            <label>Repair:</label>
+                            <input type="number" step="0.1" value={b.repairMult ?? 1.0} 
+                              onChange={(e) => updateBuildingField(b.id, 'repairMult', e.target.value)} />
+                          </div>
+                        )}
                       </td>
                       <td>
                         <input 
