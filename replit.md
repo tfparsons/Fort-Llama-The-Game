@@ -33,6 +33,7 @@ The project follows a client-server architecture:
     -   **Recruitment:** Candidates are presented with stats and bios; invited llamas arrive later in the week with pro-rata rent.
     -   **Game Over:** Occurs when the treasury reaches -£20,000.
 -   **Development Tools:** A comprehensive admin panel (Dev Tools) allows tuning of all game parameters, including starting values, rent settings, overheads, building costs, churn settings, and health/primitive/vibes configurations. All changes trigger a simulation reset.
+    -   **Primitive Calculations Section:** Features collapsible accordion UI for all 8 primitives (color-coded by type: pressure/instant/stock). Each accordion displays formulas, editable base parameters, linked buildings (read-only), and optional per-primitive penalty curve overrides (custom K/P values). Global penalty curve controls (penaltyK/penaltyP) apply to all primitives by default, with per-primitive toggles to use custom curves.
 -   **Default Configuration:**
     -   Starting Treasury: £0, Bedrooms: 4, Residents: 2
     -   Default Rent: £100
