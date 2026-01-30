@@ -143,6 +143,13 @@ All parameter changes trigger simulation reset.
 
 ## Recent Changes
 
+- 2026-01-30: **Health Metric Info Popups**
+  - Added clickable info icons (ℹ️) next to Living Standards, Productivity, and Partytime in Dev Tools
+  - Each popup shows: Formula, Primitives Used (with config weights), Buildings, Resident Stats, and Game Effect
+  - Formulas use baseline/dampener notation matching server calculations
+  - Includes exact config parameter names (e.g., nutritionWeight, fatigueWeight, noiseBoostScale)
+  - Game effects show actual formulas (e.g., churnReductionMult for Productivity, ptSlotsThreshold for Partytime)
+
 - 2026-01-30: **Dynamic Rent Tier Thresholds**
   - Rent tier labels (Bargain/Cheap/Fair/Pricey/Extortionate) now scale with Living Standards
   - Formula: `scaledThreshold = baseThreshold × (0.5 + livingStandards)`
