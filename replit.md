@@ -143,11 +143,20 @@ All parameter changes trigger simulation reset.
 
 ## Recent Changes
 
+- 2026-01-30: **Simplified Health Metric Formulas**
+  - Removed Nutrition from Productivity formula (was redundant with Living Standards)
+  - Removed Nutrition from Partytime formula (was redundant with Living Standards)
+  - Removed noiseBoostCap from Partytime (noise is already bounded 0-100, cap was unnecessary)
+  - Simplified formulas:
+    - Productivity: `Drive × damp(Fatigue) × damp(Noise) × damp(Crowding)`
+    - Partytime: `Fun × damp(Fatigue) × (1 + noiseBoostScale × noise/100)`
+  - Updated Dev Tools controls and info popups to match
+
 - 2026-01-30: **Health Metric Controls - Full Coverage**
   - All health config parameters now have editable controls in Dev Tools
   - Living Standards: nutritionWeight, cleanlinessWeight, crowdingDampen, maintenanceDampen
-  - Productivity: driveWeight, fatigueWeight, noiseWeight, crowdingWeight, nutritionWeight
-  - Partytime: funWeight, fatigueWeight, nutritionWeight, noiseBoostScale, noiseBoostCap
+  - Productivity: driveWeight, fatigueWeight, noiseWeight, crowdingWeight
+  - Partytime: funWeight, fatigueWeight, noiseBoostScale
   - Mechanic Effects: churnReductionMult, baseRecruitSlots, ptSlotsThreshold
   - Fixed editConfig initialization to include health/primitives/vibes when opening Dev Tools
 
