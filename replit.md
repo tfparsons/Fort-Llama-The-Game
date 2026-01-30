@@ -71,7 +71,7 @@ Players manage a commune with the core loop being:
 3 aggregate metrics derived from primitives:
 
 - **Living Standards** (LS): Nutrition baseline × Cleanliness/Crowding/Maintenance dampeners
-  - Effect: Higher LS = higher rent ceiling
+  - Effect: Higher LS = better vibes score
 - **Productivity** (PR): Drive baseline × Fatigue/Noise/Crowding dampeners × Nutrition boost
   - Effect: Higher PR = lower churn rate
 - **Partytime** (PT): Fun baseline × Fatigue/Nutrition dampeners × Noise boost
@@ -162,11 +162,16 @@ All parameter changes trigger simulation reset.
   - Weekly Planner minimized state now anchors to top-right of vibes banner (not free-floating)
   - Minimized planner shows "Week N Planning" with expand button
 
-- 2026-01-30: **Rent Slider UI Improvements**
-  - Rent slider now uses £10 increments for cleaner adjustments
-  - Removed manual text input, replaced with static display
-  - Added neutral-colored tier labels (Bargain/Cheap/Fair/Pricey/Extortionate) based on % of ceiling
-  - Tier thresholds: ≤30% Bargain, ≤50% Cheap, ≤75% Fair, ≤90% Pricey, >90% Extortionate
+- 2026-01-30: **Churn-Based Rent Tiers**
+  - Rent tier labels now based on actual churn impact (rent × churnMultiplier)
+  - Removed ceiling display from Weekly Planner UI
+  - Tier thresholds (configurable in Dev Tools):
+    - Bargain: ≤2% churn contribution (player could charge more)
+    - Cheap: ≤5% churn contribution (still undercharging)
+    - Fair: ≤8% churn contribution (minimal impact)
+    - Pricey: ≤12% churn contribution (churn becoming noticeable)
+    - Extortionate: >12% churn contribution (severe impact)
+  - Rent slider still uses £10 increments
 
 - 2026-01-30: **Churned Residents Feature**
   - Churned residents stay on the residents panel with red strikethrough styling
