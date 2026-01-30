@@ -18,6 +18,7 @@ function App() {
   const [rentInput, setRentInput] = useState('');
   const [hoveredResident, setHoveredResident] = useState(null);
   const [pendingInvite, setPendingInvite] = useState(null);
+  const [infoPopup, setInfoPopup] = useState(null);
   
   const [displayTime, setDisplayTime] = useState({ hour: 9, minute: 0, dayIndex: 0 });
   const clockAnimationRef = useRef(null);
@@ -847,7 +848,7 @@ function App() {
           <h3 className="section-divider">Primitives & Health System</h3>
           <div className="dev-tools-grid">
             <div className="config-section">
-              <h3>Living Standards</h3>
+              <h3>Living Standards <span className="info-icon" onClick={() => setInfoPopup('livingStandards')}>&#9432;</span></h3>
               <div className="config-field">
                 <label>Nutrition wt</label>
                 <input type="number" step="0.1" value={gameState?.healthConfig?.livingStandards?.nutritionWeight || 0.5} readOnly />
@@ -863,7 +864,7 @@ function App() {
             </div>
 
             <div className="config-section">
-              <h3>Productivity</h3>
+              <h3>Productivity <span className="info-icon" onClick={() => setInfoPopup('productivity')}>&#9432;</span></h3>
               <div className="config-field">
                 <label>Drive wt</label>
                 <input type="number" step="0.1" value={gameState?.healthConfig?.productivity?.driveWeight || 1.0} readOnly />
@@ -879,7 +880,7 @@ function App() {
             </div>
 
             <div className="config-section">
-              <h3>Partytime</h3>
+              <h3>Partytime <span className="info-icon" onClick={() => setInfoPopup('partytime')}>&#9432;</span></h3>
               <div className="config-field">
                 <label>Fun wt</label>
                 <input type="number" step="0.1" value={gameState?.healthConfig?.partytime?.funWeight || 1.0} readOnly />
@@ -1040,6 +1041,136 @@ function App() {
               <button className="panel-confirm" onClick={handleDismissWeekly}>
                 Start Week
               </button>
+          </div>
+        </div>
+      )}
+
+      {infoPopup && (
+        <div className="modal-overlay" onClick={() => setInfoPopup(null)}>
+          <div className="info-popup-modal" onClick={(e) => e.stopPropagation()}>
+            <button className="close-button" onClick={() => setInfoPopup(null)}>×</button>
+            {infoPopup === 'livingStandards' && (
+              <>
+                <h2>Living Standards</h2>
+                <div className="formula-section">
+                  <h4>Formula</h4>
+                  <code>LS = baseline(Nutrition) × damp(Cleanliness) × damp(Crowding) × damp(Maintenance)</code>
+                  <p>Nutrition provides the baseline (0-100 scaled by weight). Cleanliness, Crowding, and Maintenance are dampeners that reduce LS as debt accumulates.</p>
+                </div>
+                <div className="formula-section">
+                  <h4>Primitives Used</h4>
+                  <ul>
+                    <li><strong>Nutrition</strong> (baseline × nutritionWeight) - Food quality from Kitchen</li>
+                    <li><strong>Cleanliness</strong> (dampener × cleanlinessWeight) - Mess debt reduces LS</li>
+                    <li><strong>Crowding</strong> (dampener × crowdingDampen) - Worst ratio across all rooms</li>
+                    <li><strong>Maintenance</strong> (dampener × maintenanceDampen) - Wear debt reduces LS</li>
+                  </ul>
+                </div>
+                <div className="formula-section">
+                  <h4>Buildings</h4>
+                  <ul>
+                    <li><strong>Kitchen</strong> - Quality & foodMult affect Nutrition throughput</li>
+                    <li><strong>Bathroom</strong> - Count, quality & cleanMult affect Cleanliness recovery</li>
+                    <li><strong>All rooms</strong> - Crowding = max ratio across Bedroom/Bathroom/Kitchen/Living Room</li>
+                    <li><strong>Utility Closet</strong> - Quality & repairMult affect Maintenance recovery</li>
+                  </ul>
+                </div>
+                <div className="formula-section">
+                  <h4>Resident Stats</h4>
+                  <ul>
+                    <li><strong>Cooking Skill</strong> - Boosts Nutrition output</li>
+                    <li><strong>Tidiness</strong> - Boosts Cleanliness recovery</li>
+                    <li><strong>Handiness</strong> - Boosts Maintenance recovery</li>
+                    <li><strong>Sharing Tolerance</strong> - Reduces effective resident count for crowding</li>
+                    <li><strong>Consideration</strong> - Helps Cleanliness recovery</li>
+                  </ul>
+                </div>
+                <div className="formula-section effect">
+                  <h4>Game Effect</h4>
+                  <p>Higher Living Standards = higher rent tolerance. Rent tier thresholds are scaled by (0.5 + LS), so players can charge more before the tier label shifts to "Pricey" or "Extortionate".</p>
+                </div>
+              </>
+            )}
+            {infoPopup === 'productivity' && (
+              <>
+                <h2>Productivity</h2>
+                <div className="formula-section">
+                  <h4>Formula</h4>
+                  <code>PR = baseline(Drive) × damp(Fatigue) × damp(Noise) × damp(Crowding) × baseline(Nutrition)</code>
+                  <p>Drive and Nutrition provide baselines. Fatigue, Noise, and Crowding are dampeners that reduce productivity.</p>
+                </div>
+                <div className="formula-section">
+                  <h4>Primitives Used</h4>
+                  <ul>
+                    <li><strong>Drive</strong> (baseline × driveWeight) - Motivation from workspace</li>
+                    <li><strong>Fatigue</strong> (dampener × fatigueWeight) - Tiredness reduces output</li>
+                    <li><strong>Noise</strong> (dampener × noiseWeight) - Distractions reduce focus</li>
+                    <li><strong>Crowding</strong> (dampener × crowdingWeight) - Overcrowding hurts focus</li>
+                    <li><strong>Nutrition</strong> (baseline × nutritionWeight) - Well-fed = more energy</li>
+                  </ul>
+                </div>
+                <div className="formula-section">
+                  <h4>Buildings</h4>
+                  <ul>
+                    <li><strong>Living Room</strong> - Quality affects Drive; capacity affects distractions</li>
+                    <li><strong>Bedroom</strong> - Quality & recoveryMult affect Fatigue recovery</li>
+                    <li><strong>Kitchen</strong> - Quality & foodMult affect Nutrition</li>
+                  </ul>
+                </div>
+                <div className="formula-section">
+                  <h4>Resident Stats</h4>
+                  <ul>
+                    <li><strong>Work Ethic</strong> - Directly boosts Drive</li>
+                    <li><strong>Consideration</strong> - Reduces noise and distractions</li>
+                    <li><strong>Party Stamina</strong> - Improves Fatigue recovery</li>
+                    <li><strong>Sociability</strong> - Increases noise/distractions (negative here!)</li>
+                  </ul>
+                </div>
+                <div className="formula-section effect">
+                  <h4>Game Effect</h4>
+                  <p>Higher Productivity = lower churn rate. Churn is reduced by (Productivity × churnReductionMult). Productive communes keep residents longer even at higher rents.</p>
+                </div>
+              </>
+            )}
+            {infoPopup === 'partytime' && (
+              <>
+                <h2>Partytime</h2>
+                <div className="formula-section">
+                  <h4>Formula</h4>
+                  <code>PT = baseline(Fun) × damp(Fatigue) × baseline(Nutrition) × (1 + NoiseBonus)</code>
+                  <p>Fun and Nutrition are baselines. Fatigue is a dampener. Noise provides a bonus (capped at noiseBoostCap)!</p>
+                </div>
+                <div className="formula-section">
+                  <h4>Primitives Used</h4>
+                  <ul>
+                    <li><strong>Fun</strong> (baseline × funWeight) - Party energy from social activity</li>
+                    <li><strong>Fatigue</strong> (dampener × fatigueWeight) - Too tired to party</li>
+                    <li><strong>Nutrition</strong> (baseline × nutritionWeight) - Need energy for fun</li>
+                    <li><strong>Noise</strong> (bonus × noiseBoostScale, capped) - Unlike other metrics, noise HELPS!</li>
+                  </ul>
+                </div>
+                <div className="formula-section">
+                  <h4>Buildings</h4>
+                  <ul>
+                    <li><strong>Living Room</strong> - Quality & funMult directly affect Fun; capacity affects crowd factor</li>
+                    <li><strong>Bedroom</strong> - Quality & recoveryMult affect Fatigue recovery</li>
+                    <li><strong>Kitchen</strong> - Quality & foodMult affect Nutrition</li>
+                  </ul>
+                </div>
+                <div className="formula-section">
+                  <h4>Resident Stats</h4>
+                  <ul>
+                    <li><strong>Sociability</strong> - Boosts Fun and increases Noise (both positive here!)</li>
+                    <li><strong>Party Stamina</strong> - Boosts Fun and Fatigue recovery</li>
+                    <li><strong>Consideration</strong> - Reduces noise (slight negative for Partytime!)</li>
+                  </ul>
+                </div>
+                <div className="formula-section effect">
+                  <h4>Game Effect</h4>
+                  <p>Higher Partytime = more recruitment slots per week. Formula: baseSlots + floor(Partytime × 100 / ptSlotsThreshold). A fun commune attracts more potential residents.</p>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

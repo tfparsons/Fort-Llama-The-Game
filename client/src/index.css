@@ -1628,3 +1628,118 @@ body {
   font-weight: bold;
   color: #fff;
 }
+
+.info-icon {
+  display: inline-block;
+  cursor: pointer;
+  color: #4299e1;
+  font-size: 1rem;
+  margin-left: 6px;
+  opacity: 0.7;
+  transition: opacity 0.2s, color 0.2s;
+}
+
+.info-icon:hover {
+  opacity: 1;
+  color: #63b3ed;
+}
+
+.info-popup-modal {
+  background: #1a1a2e;
+  border: 2px solid #0f3460;
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.info-popup-modal h2 {
+  color: #e94560;
+  margin: 0 0 20px 0;
+  font-size: 1.4rem;
+}
+
+.info-popup-modal .close-button {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  color: #a0aec0;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  line-height: 1;
+}
+
+.info-popup-modal .close-button:hover {
+  color: #fff;
+}
+
+.formula-section {
+  margin-bottom: 16px;
+  padding: 12px;
+  background: #16213e;
+  border-radius: 8px;
+  border-left: 3px solid #4299e1;
+}
+
+.formula-section.effect {
+  border-left-color: #48bb78;
+  background: #1a2e1a;
+}
+
+.formula-section h4 {
+  color: #4299e1;
+  margin: 0 0 8px 0;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.formula-section.effect h4 {
+  color: #48bb78;
+}
+
+.formula-section code {
+  display: block;
+  background: #0f3460;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-family: 'Monaco', 'Consolas', monospace;
+  font-size: 0.85rem;
+  color: #f0e68c;
+  margin-bottom: 8px;
+  overflow-x: auto;
+}
+
+.formula-section p {
+  color: #a0aec0;
+  font-size: 0.9rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.formula-section ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.formula-section li {
+  color: #a0aec0;
+  font-size: 0.85rem;
+  padding: 4px 0;
+  border-bottom: 1px solid #0f3460;
+}
+
+.formula-section li:last-child {
+  border-bottom: none;
+}
+
+.formula-section li strong {
+  color: #fff;
+}
