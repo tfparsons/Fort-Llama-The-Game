@@ -143,6 +143,14 @@ All parameter changes trigger simulation reset.
 
 ## Recent Changes
 
+- 2026-01-30: **Health Metric Controls - Full Coverage**
+  - All health config parameters now have editable controls in Dev Tools
+  - Living Standards: nutritionWeight, cleanlinessWeight, crowdingDampen, maintenanceDampen
+  - Productivity: driveWeight, fatigueWeight, noiseWeight, crowdingWeight, nutritionWeight
+  - Partytime: funWeight, fatigueWeight, nutritionWeight, noiseBoostScale, noiseBoostCap
+  - Mechanic Effects: churnReductionMult, baseRecruitSlots, ptSlotsThreshold
+  - Fixed editConfig initialization to include health/primitives/vibes when opening Dev Tools
+
 - 2026-01-30: **Health Metric Info Popups**
   - Added clickable info icons (ℹ️) next to Living Standards, Productivity, and Partytime in Dev Tools
   - Each popup shows: Formula, Primitives Used (with config weights), Buildings, Resident Stats, and Game Effect
