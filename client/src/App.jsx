@@ -25,7 +25,7 @@ function App() {
   
   const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   
-  const [panelMinimized, setPanelMinimized] = useState(false);
+  const [panelMinimized, setPanelMinimized] = useState(true);
   const [panelPosition, setPanelPosition] = useState({ 
     x: Math.max(20, (window.innerWidth - 360) / 2), 
     y: Math.max(80, (window.innerHeight - 450) / 2) 
@@ -470,7 +470,7 @@ function App() {
           <div className="vibes-banner">
             {showWeeklyPanel && panelMinimized && (
               <div className="minimized-planner" onClick={() => setPanelMinimized(false)}>
-                <span>Week {gameState.week} Planning</span>
+                <span>Week {gameState.week} Planning !</span>
                 <button className="panel-btn">+</button>
               </div>
             )}
