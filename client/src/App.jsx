@@ -19,8 +19,8 @@ function App() {
   const [hoveredResident, setHoveredResident] = useState(null);
   
   const [displayTime, setDisplayTime] = useState({ hour: 9, minute: 0 });
-  const [lastServerHour, setLastServerHour] = useState(null);
   const clockAnimationRef = useRef(null);
+  const lastServerTimeRef = useRef({ hour: 9, timestamp: Date.now() });
   
   const [panelMinimized, setPanelMinimized] = useState(false);
   const [panelPosition, setPanelPosition] = useState({ 
@@ -93,70 +93,59 @@ function App() {
     }
   }, [showWeeklyPanel]);
 
+  // Sync server time reference when server hour changes
   useEffect(() => {
     if (gameState?.hour === undefined || gameState?.hour === null) return;
     
     const serverHour = gameState.hour;
     
-    if (lastServerHour === null) {
-      setLastServerHour(serverHour);
-      setDisplayTime({ hour: serverHour, minute: 0 });
-      return;
+    // Update reference point when server time changes
+    if (lastServerTimeRef.current.hour !== serverHour) {
+      lastServerTimeRef.current = { hour: serverHour, timestamp: Date.now() };
     }
+  }, [gameState?.hour]);
+
+  // Continuous clock animation
+  useEffect(() => {
+    if (!config) return;
     
-    if (serverHour === lastServerHour) return;
+    const tickInterval = config.tickInterval || 500;
+    const hoursPerTick = config.hoursPerTick || 4;
+    const isPaused = gameState?.isPausedForWeeklyDecision || gameState?.isGameOver;
     
-    if (clockAnimationRef.current) {
-      clearInterval(clockAnimationRef.current);
-    }
+    // Calculate how many game-minutes pass per real millisecond
+    // tickInterval ms = hoursPerTick hours = hoursPerTick * 60 minutes
+    const gameMinutesPerMs = (hoursPerTick * 60) / tickInterval;
     
-    let startHour = lastServerHour;
-    let endHour = serverHour;
-    let totalMinutes;
-    
-    if (endHour > startHour) {
-      totalMinutes = (endHour - startHour) * 60;
-    } else {
-      totalMinutes = ((24 - startHour) + endHour) * 60;
-    }
-    
-    const animationDuration = 800;
-    const stepsPerSecond = 30;
-    const totalSteps = Math.floor(animationDuration / 1000 * stepsPerSecond);
-    const minutesPerStep = Math.ceil(totalMinutes / totalSteps);
-    const stepInterval = animationDuration / totalSteps;
-    
-    let currentMinuteOffset = 0;
-    
-    clockAnimationRef.current = setInterval(() => {
-      currentMinuteOffset += minutesPerStep;
+    const animate = () => {
+      const now = Date.now();
+      const elapsedMs = now - lastServerTimeRef.current.timestamp;
       
-      if (currentMinuteOffset >= totalMinutes) {
-        clearInterval(clockAnimationRef.current);
-        clockAnimationRef.current = null;
-        setDisplayTime({ hour: endHour, minute: 0 });
-        setLastServerHour(serverHour);
-        return;
+      if (isPaused) {
+        // When paused, just show the server time exactly
+        setDisplayTime({ hour: lastServerTimeRef.current.hour, minute: 0 });
+      } else {
+        // Calculate interpolated time
+        const elapsedGameMinutes = elapsedMs * gameMinutesPerMs;
+        const totalMinutes = (lastServerTimeRef.current.hour * 60) + elapsedGameMinutes;
+        
+        let hour = Math.floor(totalMinutes / 60) % 24;
+        let minute = Math.floor(totalMinutes % 60);
+        
+        setDisplayTime({ hour, minute });
       }
       
-      let animHour = startHour + Math.floor(currentMinuteOffset / 60);
-      let animMinute = currentMinuteOffset % 60;
-      
-      if (animHour >= 24) {
-        animHour = animHour % 24;
-      }
-      
-      setDisplayTime({ hour: animHour, minute: animMinute });
-    }, stepInterval);
+      clockAnimationRef.current = requestAnimationFrame(animate);
+    };
     
-    setLastServerHour(serverHour);
+    clockAnimationRef.current = requestAnimationFrame(animate);
     
     return () => {
       if (clockAnimationRef.current) {
-        clearInterval(clockAnimationRef.current);
+        cancelAnimationFrame(clockAnimationRef.current);
       }
     };
-  }, [gameState?.hour]);
+  }, [config, gameState?.isPausedForWeeklyDecision, gameState?.isGameOver]);
 
   const handlePanelMouseDown = (e) => {
     if (e.target.closest('.panel-btn')) return;
@@ -169,7 +158,7 @@ function App() {
 
   const handleReset = async () => {
     await fetch(`${API_BASE}/api/reset`, { method: 'POST' });
-    setLastServerHour(null);
+    lastServerTimeRef.current = { hour: 9, timestamp: Date.now() };
     fetchState();
   };
 
