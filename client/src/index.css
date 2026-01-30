@@ -1188,8 +1188,9 @@ body {
 .balance-section {
   display: flex;
   align-items: center;
-  gap: 30px;
-  justify-content: space-between;
+  gap: 24px;
+  justify-content: flex-start;
+  max-width: 500px;
 }
 
 .triangle-container {
