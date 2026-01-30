@@ -510,13 +510,80 @@ function App() {
           </div>
 
           <div className="primitives-section">
+            <div className="pressure-column">
+              <div className="section-header">
+                <span className="section-title">Pressure</span>
+              </div>
+              <div className="pressure-gauges">
+                {[
+                  { key: 'crowding', label: 'Crowding', icon: '👥', tiers: ['Comfortable', 'Tight', 'Crowded', 'Unliveable'] },
+                  { key: 'noise', label: 'Noise', icon: '🔊', tiers: ['Quiet', 'Buzzing', 'Loud', 'Chaos'] }
+                ].map(p => {
+                  const val = Math.round(gameState.primitives?.[p.key] || 0);
+                  const tierIndex = val < 25 ? 0 : val < 50 ? 1 : val < 75 ? 2 : 3;
+                  const tierLabel = p.tiers[tierIndex];
+                  const needleAngle = -135 + (val / 100) * 270;
+                  const tierColors = ['#48bb78', '#ed8936', '#f56565', '#e53e3e'];
+                  const tierColor = tierColors[tierIndex];
+                  
+                  return (
+                    <div key={p.key} className="pressure-gauge">
+                      <svg viewBox="0 0 100 60" className="gauge-svg">
+                        <path
+                          d="M 10 50 A 40 40 0 0 1 90 50"
+                          fill="none"
+                          stroke="#1a1a2e"
+                          strokeWidth="8"
+                          strokeLinecap="round"
+                        />
+                        <path
+                          d="M 10 50 A 40 40 0 0 1 90 50"
+                          fill="none"
+                          stroke="url(#gaugeGradient)"
+                          strokeWidth="8"
+                          strokeLinecap="round"
+                          strokeDasharray={`${(val / 100) * 126} 126`}
+                        />
+                        <defs>
+                          <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stopColor="#48bb78" />
+                            <stop offset="50%" stopColor="#ed8936" />
+                            <stop offset="100%" stopColor="#e53e3e" />
+                          </linearGradient>
+                        </defs>
+                        <line
+                          x1="50"
+                          y1="50"
+                          x2="50"
+                          y2="18"
+                          stroke="#fff"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          style={{
+                            transformOrigin: '50px 50px',
+                            transform: `rotate(${needleAngle}deg)`,
+                            transition: 'transform 0.5s ease-out'
+                          }}
+                        />
+                        <circle cx="50" cy="50" r="4" fill="#fff" />
+                      </svg>
+                      <div className="gauge-label" style={{ color: tierColor }}>
+                        {tierLabel}
+                      </div>
+                      <div className="gauge-title">
+                        <span className="gauge-icon">{p.icon}</span>
+                        <span>{p.label}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
             <div className="instants-column">
               <div className="section-header">
                 <span className="section-title">Instant Metrics</span>
               </div>
               {[
-                { key: 'crowding', label: 'Crowding', icon: '👥', inverse: true },
-                { key: 'noise', label: 'Noise', icon: '🔊', inverse: true },
                 { key: 'nutrition', label: 'Nutrition', icon: '🍽️', inverse: false },
                 { key: 'fun', label: 'Fun', icon: '🎉', inverse: false },
                 { key: 'drive', label: 'Drive', icon: '💪', inverse: false }
