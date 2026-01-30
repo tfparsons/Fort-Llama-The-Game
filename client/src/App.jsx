@@ -834,7 +834,7 @@ function App() {
                 <input type="number" step="0.01" value={editConfig.baseChurnRate} onChange={(e) => updateEditConfig('baseChurnRate', e.target.value)} />
               </div>
               <div className="config-field">
-                <label>Rent Mult</label>
+                <label title="How much each £ of rent adds to churn rate. At 0.0003, charging £100 adds 3% to weekly churn.">Rent Impact ⓘ</label>
                 <input type="number" step="0.0001" value={editConfig.churnRentMultiplier} onChange={(e) => updateEditConfig('churnRentMultiplier', e.target.value)} />
               </div>
             </div>

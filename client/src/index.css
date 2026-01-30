@@ -600,6 +600,10 @@ body {
   font-size: 0.8rem;
 }
 
+.config-field label[title] {
+  cursor: help;
+}
+
 .config-field input {
   width: 70px;
   padding: 5px;
