@@ -1308,29 +1308,63 @@ body {
   color: #fff;
 }
 
-.primitives-row {
+.primitives-section {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.instants-column {
+  flex: 1;
   background: #16213e;
   border: 1px solid #0f3460;
   border-radius: 8px;
   padding: 12px 16px;
-  margin-bottom: 16px;
+}
+
+.stocks-column {
+  width: 180px;
+  background: #16213e;
+  border: 1px solid #0f3460;
+  border-radius: 8px;
+  padding: 12px 16px;
+  flex-shrink: 0;
+}
+
+.section-header {
+  margin-bottom: 10px;
+}
+
+.section-title {
+  font-size: 0.7rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .primitive-item {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.primitive-item:last-child {
+  margin-bottom: 0;
+}
+
+.prim-icon {
+  font-size: 0.9rem;
+  width: 20px;
+  text-align: center;
 }
 
 .prim-label {
   font-size: 0.75rem;
   color: #888;
   text-transform: uppercase;
-  width: 90px;
+  width: 70px;
   flex-shrink: 0;
 }
 
@@ -1352,8 +1386,68 @@ body {
   font-size: 0.8rem;
   color: #fff;
   font-weight: bold;
-  width: 30px;
+  width: 28px;
   text-align: right;
+}
+
+.stocks-tanks {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.stock-tank {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.tank-container {
+  width: 100%;
+  height: 80px;
+  background: #1a1a2e;
+  border-radius: 6px;
+  border: 1px solid #0f3460;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+}
+
+.tank-fill {
+  width: 100%;
+  transition: height 0.5s ease, background-color 0.3s ease;
+  border-radius: 0 0 5px 5px;
+}
+
+.tank-value {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+}
+
+.tank-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 6px;
+  gap: 2px;
+}
+
+.tank-icon {
+  font-size: 1rem;
+}
+
+.tank-label span:last-child {
+  font-size: 0.65rem;
+  color: #888;
+  text-transform: uppercase;
 }
 
 .residents-card {

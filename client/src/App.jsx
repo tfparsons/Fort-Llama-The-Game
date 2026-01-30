@@ -509,31 +509,61 @@ function App() {
             </div>
           </div>
 
-          <div className="primitives-row">
-            {[
-              { key: 'crowding', label: 'Crowding', inverse: true },
-              { key: 'noise', label: 'Noise', inverse: true },
-              { key: 'nutrition', label: 'Nutrition', inverse: false },
-              { key: 'cleanliness', label: 'Cleanliness', inverse: true },
-              { key: 'maintenance', label: 'Maintenance', inverse: true },
-              { key: 'fatigue', label: 'Fatigue', inverse: true },
-              { key: 'fun', label: 'Fun', inverse: false },
-              { key: 'drive', label: 'Drive', inverse: false }
-            ].map(p => {
-              const val = Math.round(gameState.primitives?.[p.key] || 0);
-              const good = p.inverse ? val < 40 : val > 60;
-              const bad = p.inverse ? val > 60 : val < 40;
-              const color = good ? '#48bb78' : bad ? '#f56565' : '#ed8936';
-              return (
-                <div key={p.key} className="primitive-item">
-                  <span className="prim-label">{p.label}</span>
-                  <div className="prim-bar-container">
-                    <div className="prim-bar" style={{ width: `${val}%`, backgroundColor: color }}/>
+          <div className="primitives-section">
+            <div className="instants-column">
+              <div className="section-header">
+                <span className="section-title">Instant Metrics</span>
+              </div>
+              {[
+                { key: 'crowding', label: 'Crowding', icon: '👥', inverse: true },
+                { key: 'noise', label: 'Noise', icon: '🔊', inverse: true },
+                { key: 'nutrition', label: 'Nutrition', icon: '🍽️', inverse: false },
+                { key: 'fun', label: 'Fun', icon: '🎉', inverse: false },
+                { key: 'drive', label: 'Drive', icon: '💪', inverse: false }
+              ].map(p => {
+                const val = Math.round(gameState.primitives?.[p.key] || 0);
+                const good = p.inverse ? val < 40 : val > 60;
+                const bad = p.inverse ? val > 60 : val < 40;
+                const color = good ? '#48bb78' : bad ? '#f56565' : '#ed8936';
+                return (
+                  <div key={p.key} className="primitive-item">
+                    <span className="prim-icon">{p.icon}</span>
+                    <span className="prim-label">{p.label}</span>
+                    <div className="prim-bar-container">
+                      <div className="prim-bar" style={{ width: `${val}%`, backgroundColor: color }}/>
+                    </div>
+                    <span className="prim-value">{val}</span>
                   </div>
-                  <span className="prim-value">{val}</span>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
+            <div className="stocks-column">
+              <div className="section-header">
+                <span className="section-title">Stock Levels</span>
+              </div>
+              <div className="stocks-tanks">
+                {[
+                  { key: 'cleanliness', label: 'Mess', icon: '🧹' },
+                  { key: 'maintenance', label: 'Wear', icon: '🔧' },
+                  { key: 'fatigue', label: 'Tired', icon: '😴' }
+                ].map(p => {
+                  const val = Math.round(gameState.primitives?.[p.key] || 0);
+                  const fillColor = val < 30 ? '#48bb78' : val < 60 ? '#ed8936' : '#f56565';
+                  return (
+                    <div key={p.key} className="stock-tank">
+                      <div className="tank-container">
+                        <div className="tank-fill" style={{ height: `${val}%`, backgroundColor: fillColor }}/>
+                        <span className="tank-value">{val}</span>
+                      </div>
+                      <div className="tank-label">
+                        <span className="tank-icon">{p.icon}</span>
+                        <span>{p.label}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
 
           <div className="content-grid">
