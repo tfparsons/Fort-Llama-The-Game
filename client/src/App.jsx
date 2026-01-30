@@ -815,28 +815,32 @@ function App() {
                   <input 
                     type="range" 
                     min={config.rentMin} 
-                    max={config.rentMax} 
+                    max={config.rentMax}
+                    step="10"
                     value={rentInput}
                     onChange={handleRentSliderChange}
                     onMouseUp={handleRentSliderRelease}
                     onTouchEnd={handleRentSliderRelease}
                   />
-                  <div className="rent-value">
-                    <span>£</span>
-                    <input
-                      type="number"
-                      value={rentInput}
-                      onChange={handleRentInputChange}
-                      onBlur={handleRentInputBlur}
-                      onKeyDown={handleRentInputKeyDown}
-                      min={config.rentMin}
-                      max={config.rentMax}
-                    />
+                  <div className="rent-display">
+                    {formatCurrency(rentInput)}
                   </div>
                 </div>
-                {rentError && <div className="panel-error">{rentError}</div>}
-                <div className="rent-ceiling">
-                  Ceiling: {formatCurrency(gameState.rentCeiling || config.rentMax)}
+                <div className="rent-info">
+                  <span className="rent-tier">
+                    {(() => {
+                      const ceiling = gameState.rentCeiling || config.rentMax;
+                      const pct = rentInput / ceiling;
+                      if (pct <= 0.30) return 'Bargain';
+                      if (pct <= 0.50) return 'Cheap';
+                      if (pct <= 0.75) return 'Fair';
+                      if (pct <= 0.90) return 'Pricey';
+                      return 'Extortionate';
+                    })()}
+                  </span>
+                  <span className="rent-ceiling-value">
+                    Ceiling: {formatCurrency(gameState.rentCeiling || config.rentMax)}
+                  </span>
                 </div>
               </div>
 

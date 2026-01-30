@@ -359,52 +359,44 @@ body {
 
 .rent-row {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  align-items: center;
+  gap: 12px;
 }
 
 .rent-row input[type="range"] {
-  width: 100%;
+  flex: 1;
 }
 
-.rent-value {
+.rent-display {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #fff;
+  min-width: 60px;
+  text-align: right;
+}
+
+.rent-info {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 4px;
+  margin-top: 8px;
 }
 
-.rent-value span {
-  color: #e94560;
-  font-weight: bold;
+.rent-tier {
+  color: #aaa;
+  font-size: 0.85rem;
+  font-style: italic;
 }
 
-.rent-value input {
-  width: 70px;
-  padding: 6px 8px;
-  background: #1a1a2e;
-  border: 1px solid #0f3460;
-  border-radius: 4px;
-  color: #eee;
-  font-size: 1rem;
-  text-align: center;
-}
-
-.rent-value input:focus {
-  border-color: #e94560;
-  outline: none;
+.rent-ceiling-value {
+  color: #718096;
+  font-size: 0.8rem;
 }
 
 .panel-error {
   color: #f87171;
   font-size: 0.75rem;
   margin-top: 4px;
-}
-
-.rent-ceiling {
-  color: #aaa;
-  font-size: 0.8rem;
-  margin-top: 8px;
-  text-align: right;
 }
 
 .panel-action {
