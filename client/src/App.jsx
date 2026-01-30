@@ -847,18 +847,6 @@ function App() {
           <h3 className="section-divider">Primitives & Health System</h3>
           <div className="dev-tools-grid">
             <div className="config-section">
-              <h3>Penalty Curve</h3>
-              <div className="config-field">
-                <label>k (severity)</label>
-                <input type="number" step="0.1" value={gameState?.primitiveConfig?.penaltyK || 2} readOnly />
-              </div>
-              <div className="config-field">
-                <label>p (steepness)</label>
-                <input type="number" step="0.1" value={gameState?.primitiveConfig?.penaltyP || 2} readOnly />
-              </div>
-            </div>
-
-            <div className="config-section">
               <h3>Living Standards</h3>
               <div className="config-field">
                 <label>Nutrition wt</label>
@@ -903,6 +891,18 @@ function App() {
               <div className="config-field">
                 <label>Fatigue damp</label>
                 <input type="number" step="0.1" value={gameState?.healthConfig?.partytime?.fatigueWeight || 0.45} readOnly />
+              </div>
+            </div>
+
+            <div className="config-section">
+              <h3>Penalty Curve</h3>
+              <div className="config-field">
+                <label>k (severity)</label>
+                <input type="number" step="0.1" value={gameState?.primitiveConfig?.penaltyK || 2} readOnly />
+              </div>
+              <div className="config-field">
+                <label>p (steepness)</label>
+                <input type="number" step="0.1" value={gameState?.primitiveConfig?.penaltyP || 2} readOnly />
               </div>
             </div>
 
