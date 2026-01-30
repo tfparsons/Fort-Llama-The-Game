@@ -153,15 +153,12 @@ const DEFAULT_HEALTH_CONFIG = {
     driveWeight: 1.0,
     fatigueWeight: 0.55,
     noiseWeight: 0.35,
-    crowdingWeight: 0.25,
-    nutritionWeight: 0.2
+    crowdingWeight: 0.25
   },
   partytime: {
     funWeight: 1.0,
     fatigueWeight: 0.45,
-    nutritionWeight: 0.25,
-    noiseBoostScale: 0.08,
-    noiseBoostCap: 0.08
+    noiseBoostScale: 0.08
   },
   churnReductionMult: 0.5,
   baseRecruitSlots: 1,
@@ -527,15 +524,13 @@ function calculateHealthMetrics() {
     baseline(p.drive, pr.driveWeight) *
     dampener(p.fatigue, pr.fatigueWeight) *
     dampener(p.noise, pr.noiseWeight) *
-    dampener(p.crowding, pr.crowdingWeight) *
-    baseline(p.nutrition, pr.nutritionWeight)
+    dampener(p.crowding, pr.crowdingWeight)
   ));
   
-  const noiseBonus = Math.min(pt.noiseBoostCap, pt.noiseBoostScale * p.noise / 100);
+  const noiseBonus = pt.noiseBoostScale * p.noise / 100;
   const partytime = Math.max(0.01, Math.min(1,
     baseline(p.fun, pt.funWeight) *
     dampener(p.fatigue, pt.fatigueWeight) *
-    baseline(p.nutrition, pt.nutritionWeight) *
     (1 + noiseBonus)
   ));
   

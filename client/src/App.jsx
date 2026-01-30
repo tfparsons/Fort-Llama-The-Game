@@ -903,11 +903,6 @@ function App() {
                 <input type="number" step="0.1" value={editConfig?.health?.productivity?.crowdingWeight ?? 0.25} 
                   onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, productivity: {...editConfig.health?.productivity, crowdingWeight: parseFloat(e.target.value)}}})} />
               </div>
-              <div className="config-field">
-                <label>Nutrition wt</label>
-                <input type="number" step="0.1" value={editConfig?.health?.productivity?.nutritionWeight ?? 0.2} 
-                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, productivity: {...editConfig.health?.productivity, nutritionWeight: parseFloat(e.target.value)}}})} />
-              </div>
             </div>
 
             <div className="config-section">
@@ -923,19 +918,9 @@ function App() {
                   onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, partytime: {...editConfig.health?.partytime, fatigueWeight: parseFloat(e.target.value)}}})} />
               </div>
               <div className="config-field">
-                <label>Nutrition wt</label>
-                <input type="number" step="0.1" value={editConfig?.health?.partytime?.nutritionWeight ?? 0.25} 
-                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, partytime: {...editConfig.health?.partytime, nutritionWeight: parseFloat(e.target.value)}}})} />
-              </div>
-              <div className="config-field">
-                <label>Noise boost scale</label>
+                <label>Noise boost</label>
                 <input type="number" step="0.01" value={editConfig?.health?.partytime?.noiseBoostScale ?? 0.08} 
                   onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, partytime: {...editConfig.health?.partytime, noiseBoostScale: parseFloat(e.target.value)}}})} />
-              </div>
-              <div className="config-field">
-                <label>Noise boost cap</label>
-                <input type="number" step="0.01" value={editConfig?.health?.partytime?.noiseBoostCap ?? 0.08} 
-                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, partytime: {...editConfig.health?.partytime, noiseBoostCap: parseFloat(e.target.value)}}})} />
               </div>
             </div>
 
@@ -1147,8 +1132,8 @@ function App() {
                 <h2>Productivity</h2>
                 <div className="formula-section">
                   <h4>Formula</h4>
-                  <code>PR = baseline(Drive) × damp(Fatigue) × damp(Noise) × damp(Crowding) × baseline(Nutrition)</code>
-                  <p>Drive and Nutrition provide baselines. Fatigue, Noise, and Crowding are dampeners that reduce productivity.</p>
+                  <code>PR = baseline(Drive) × damp(Fatigue) × damp(Noise) × damp(Crowding)</code>
+                  <p>Drive provides the baseline. Fatigue, Noise, and Crowding are dampeners that reduce productivity.</p>
                 </div>
                 <div className="formula-section">
                   <h4>Primitives Used</h4>
@@ -1157,7 +1142,6 @@ function App() {
                     <li><strong>Fatigue</strong> (dampener × fatigueWeight) - Tiredness reduces output</li>
                     <li><strong>Noise</strong> (dampener × noiseWeight) - Distractions reduce focus</li>
                     <li><strong>Crowding</strong> (dampener × crowdingWeight) - Overcrowding hurts focus</li>
-                    <li><strong>Nutrition</strong> (baseline × nutritionWeight) - Well-fed = more energy</li>
                   </ul>
                 </div>
                 <div className="formula-section">
@@ -1165,7 +1149,6 @@ function App() {
                   <ul>
                     <li><strong>Living Room</strong> - Quality affects Drive; capacity affects distractions</li>
                     <li><strong>Bedroom</strong> - Quality & recoveryMult affect Fatigue recovery</li>
-                    <li><strong>Kitchen</strong> - Quality & foodMult affect Nutrition</li>
                   </ul>
                 </div>
                 <div className="formula-section">
@@ -1188,16 +1171,15 @@ function App() {
                 <h2>Partytime</h2>
                 <div className="formula-section">
                   <h4>Formula</h4>
-                  <code>PT = baseline(Fun) × damp(Fatigue) × baseline(Nutrition) × (1 + NoiseBonus)</code>
-                  <p>Fun and Nutrition are baselines. Fatigue is a dampener. Noise provides a bonus (capped at noiseBoostCap)!</p>
+                  <code>PT = baseline(Fun) × damp(Fatigue) × (1 + NoiseBonus)</code>
+                  <p>Fun provides the baseline. Fatigue is a dampener. Noise provides a bonus (noiseBoostScale × noise / 100)!</p>
                 </div>
                 <div className="formula-section">
                   <h4>Primitives Used</h4>
                   <ul>
                     <li><strong>Fun</strong> (baseline × funWeight) - Party energy from social activity</li>
                     <li><strong>Fatigue</strong> (dampener × fatigueWeight) - Too tired to party</li>
-                    <li><strong>Nutrition</strong> (baseline × nutritionWeight) - Need energy for fun</li>
-                    <li><strong>Noise</strong> (bonus × noiseBoostScale, capped) - Unlike other metrics, noise HELPS!</li>
+                    <li><strong>Noise</strong> (bonus × noiseBoostScale) - Unlike other metrics, noise HELPS!</li>
                   </ul>
                 </div>
                 <div className="formula-section">
@@ -1205,7 +1187,6 @@ function App() {
                   <ul>
                     <li><strong>Living Room</strong> - Quality & funMult directly affect Fun; capacity affects crowd factor</li>
                     <li><strong>Bedroom</strong> - Quality & recoveryMult affect Fatigue recovery</li>
-                    <li><strong>Kitchen</strong> - Quality & foodMult affect Nutrition</li>
                   </ul>
                 </div>
                 <div className="formula-section">
