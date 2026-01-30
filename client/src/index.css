@@ -149,6 +149,74 @@ body {
   color: #f87171;
 }
 
+.stat.has-tooltip {
+  position: relative;
+  cursor: pointer;
+}
+
+.projection-tooltip {
+  display: none;
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1e2a4a;
+  border: 1px solid #e94560;
+  border-radius: 8px;
+  padding: 12px;
+  min-width: 200px;
+  z-index: 100;
+  margin-bottom: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.stat.has-tooltip:hover .projection-tooltip {
+  display: block;
+}
+
+.projection-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 8px solid transparent;
+  border-top-color: #e94560;
+}
+
+.tooltip-title {
+  font-weight: bold;
+  color: #fff;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #4a5568;
+  font-size: 0.85rem;
+}
+
+.tooltip-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  font-size: 0.8rem;
+  color: #aaa;
+}
+
+.tooltip-row.total {
+  border-top: 1px solid #4a5568;
+  margin-top: 4px;
+  padding-top: 8px;
+  font-weight: bold;
+  color: #fff;
+}
+
+.tooltip-row .positive {
+  color: #4ade80;
+}
+
+.tooltip-row .negative {
+  color: #f87171;
+}
+
 .controls {
   margin-top: 12px;
 }

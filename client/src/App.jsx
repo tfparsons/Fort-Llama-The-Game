@@ -476,13 +476,39 @@ function App() {
 
             <div className="card">
               <h2>Weekly Projection</h2>
-              <div className="stat">
+              <div className="stat has-tooltip">
                 <span className="stat-label">Income</span>
                 <span className="stat-value positive">{formatCurrency(projectedIncome)}</span>
+                <div className="projection-tooltip">
+                  <div className="tooltip-title">Income Breakdown</div>
+                  <div className="tooltip-row">
+                    <span>Residents</span>
+                    <span>{gameState.communeResidents?.filter(r => !r.churned).length || 0} × {formatCurrency(gameState.currentRent)}</span>
+                  </div>
+                  <div className="tooltip-row total">
+                    <span>Total</span>
+                    <span className="positive">{formatCurrency(projectedIncome)}</span>
+                  </div>
+                </div>
               </div>
-              <div className="stat">
+              <div className="stat has-tooltip">
                 <span className="stat-label">Expenses</span>
                 <span className="stat-value negative">-{formatCurrency(projectedGroundRent + projectedUtilities)}</span>
+                <div className="projection-tooltip">
+                  <div className="tooltip-title">Expenses Breakdown</div>
+                  <div className="tooltip-row">
+                    <span>Ground Rent</span>
+                    <span className="negative">-{formatCurrency(projectedGroundRent)}</span>
+                  </div>
+                  <div className="tooltip-row">
+                    <span>Utilities</span>
+                    <span className="negative">-{formatCurrency(projectedUtilities)}</span>
+                  </div>
+                  <div className="tooltip-row total">
+                    <span>Total</span>
+                    <span className="negative">-{formatCurrency(projectedGroundRent + projectedUtilities)}</span>
+                  </div>
+                </div>
               </div>
               <div className="stat highlight">
                 <span className="stat-label">Net</span>
