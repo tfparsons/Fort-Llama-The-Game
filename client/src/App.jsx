@@ -820,16 +820,24 @@ function App() {
             <div className="config-section">
               <h3>Mechanic Effects</h3>
               <div className="config-field">
-                <label>Rent ceiling mult</label>
-                <input type="number" step="0.1" value={gameState?.healthConfig?.rentCeilingMult || 0.5} readOnly />
-              </div>
-              <div className="config-field">
                 <label>Churn reduction</label>
                 <input type="number" step="0.1" value={gameState?.healthConfig?.churnReductionMult || 0.5} readOnly />
               </div>
               <div className="config-field">
                 <label>PT slots thresh</label>
                 <input type="number" value={gameState?.healthConfig?.ptSlotsThreshold || 50} readOnly />
+              </div>
+            </div>
+            
+            <div className="config-section">
+              <h3>Rent Tier Thresholds</h3>
+              <div className="tier-thresholds-display">
+                {(gameState?.rentTierThresholds || config?.rentTierThresholds || []).map((tier, i) => (
+                  <div key={i} className="tier-threshold-row">
+                    <span className="tier-name">{tier.name}</span>
+                    <span className="tier-churn">≤{(tier.maxChurn * 100).toFixed(0)}% churn</span>
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -931,17 +939,22 @@ function App() {
                   <span className="rent-tier">
                     {(() => {
                       const rent = Number(rentInput) || gameState.currentRent || 0;
-                      const ceiling = gameState.rentCeiling || config.rentMax;
-                      const pct = ceiling > 0 ? rent / ceiling : 0;
-                      if (pct <= 0.30) return 'Bargain';
-                      if (pct <= 0.50) return 'Cheap';
-                      if (pct <= 0.75) return 'Fair';
-                      if (pct <= 0.90) return 'Pricey';
+                      const thresholds = gameState.rentTierThresholds || config.rentTierThresholds || [
+                        { name: 'Bargain', maxChurn: 0.02 },
+                        { name: 'Cheap', maxChurn: 0.05 },
+                        { name: 'Fair', maxChurn: 0.08 },
+                        { name: 'Pricey', maxChurn: 0.12 },
+                        { name: 'Extortionate', maxChurn: 1.0 }
+                      ];
+                      const churnMult = config.churnRentMultiplier || 0.0003;
+                      const churnContribution = rent * churnMult;
+                      for (const tier of thresholds) {
+                        if (churnContribution <= tier.maxChurn) {
+                          return tier.name;
+                        }
+                      }
                       return 'Extortionate';
                     })()}
-                  </span>
-                  <span className="rent-ceiling-value">
-                    Ceiling: {formatCurrency(gameState.rentCeiling || config.rentMax)}
                   </span>
                 </div>
               </div>

@@ -611,6 +611,26 @@ body {
   font-size: 0.85rem;
 }
 
+.tier-thresholds-display {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tier-threshold-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+}
+
+.tier-threshold-row .tier-name {
+  color: #eee;
+}
+
+.tier-threshold-row .tier-churn {
+  color: #888;
+}
+
 .apply-button {
   padding: 12px 20px;
   background: #fbbf24;

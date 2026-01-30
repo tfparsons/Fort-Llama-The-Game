@@ -156,6 +156,13 @@ const INITIAL_DEFAULTS = {
   gameOverLimit: -20000,
   tickSpeed: 333,
   hoursPerTick: 4,
+  rentTierThresholds: [
+    { name: 'Bargain', maxChurn: 0.02 },
+    { name: 'Cheap', maxChurn: 0.05 },
+    { name: 'Fair', maxChurn: 0.08 },
+    { name: 'Pricey', maxChurn: 0.12 },
+    { name: 'Extortionate', maxChurn: 1.0 }
+  ],
   primitives: { ...DEFAULT_PRIMITIVE_CONFIG },
   health: { ...DEFAULT_HEALTH_CONFIG },
   vibes: { ...DEFAULT_VIBES_CONFIG }
@@ -531,6 +538,18 @@ function calculateRentCeiling() {
   return Math.round(gameConfig.rentMax * (0.5 + healthConfig.rentCeilingMult * ls));
 }
 
+function calculateRentTier(rent) {
+  const churnContribution = rent * gameConfig.churnRentMultiplier;
+  const thresholds = gameConfig.rentTierThresholds || INITIAL_DEFAULTS.rentTierThresholds;
+  
+  for (const tier of thresholds) {
+    if (churnContribution <= tier.maxChurn) {
+      return tier.name;
+    }
+  }
+  return 'Extortionate';
+}
+
 function getAvailableLlamas() {
   const activeResidentIds = gameState.communeResidents.filter(r => !r.churned).map(r => r.id);
   const pendingIds = gameState.pendingArrivals.map(r => r.id);
@@ -679,7 +698,8 @@ app.get('/api/state', (req, res) => {
     capacity,
     config: gameConfig,
     recruitmentSlots: calculateRecruitmentSlots(),
-    rentCeiling: calculateRentCeiling(),
+    rentTier: calculateRentTier(gameState.currentRent),
+    rentTierThresholds: gameConfig.rentTierThresholds,
     primitiveConfig,
     healthConfig,
     vibesConfig
