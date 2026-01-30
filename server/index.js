@@ -161,7 +161,6 @@ const DEFAULT_HEALTH_CONFIG = {
     noiseBoostScale: 0.08,
     noiseBoostCap: 0.08
   },
-  rentCeilingMult: 0.5,
   churnReductionMult: 0.5,
   baseRecruitSlots: 1,
   ptSlotsThreshold: 50
@@ -587,11 +586,6 @@ function calculateVibes() {
 function calculateRecruitmentSlots() {
   const pt = gameState.healthMetrics.partytime * 100;
   return healthConfig.baseRecruitSlots + Math.floor(pt / healthConfig.ptSlotsThreshold);
-}
-
-function calculateRentCeiling() {
-  const ls = gameState.healthMetrics.livingStandards;
-  return Math.round(gameConfig.rentMax * (0.5 + healthConfig.rentCeilingMult * ls));
 }
 
 function calculateRentTier(rent) {
