@@ -836,17 +836,6 @@ function App() {
               </div>
             </div>
 
-            <div className="config-section">
-              <h3>Rent Tier Thresholds</h3>
-              <div className="tier-thresholds-display">
-                {(gameState?.rentTierThresholds || config?.rentTierThresholds || []).map((tier, i) => (
-                  <div key={i} className="tier-threshold-row">
-                    <span className="tier-name">{tier.name}</span>
-                    <span className="tier-churn">≤{(tier.maxChurn * 100).toFixed(0)}% churn</span>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
 
           <h3 className="section-divider">Primitives & Health System</h3>
@@ -985,8 +974,11 @@ function App() {
                       ];
                       const churnMult = config.churnRentMultiplier || 0.0003;
                       const churnContribution = rent * churnMult;
+                      const ls = gameState.healthMetrics?.livingStandards || 0.5;
+                      const lsMultiplier = 0.5 + ls;
                       for (const tier of thresholds) {
-                        if (churnContribution <= tier.maxChurn) {
+                        const scaledMaxChurn = tier.maxChurn * lsMultiplier;
+                        if (churnContribution <= scaledMaxChurn) {
                           return tier.name;
                         }
                       }

@@ -610,9 +610,12 @@ function calculateRecruitmentSlots() {
 function calculateRentTier(rent) {
   const churnContribution = rent * gameConfig.churnRentMultiplier;
   const thresholds = gameConfig.rentTierThresholds || INITIAL_DEFAULTS.rentTierThresholds;
+  const ls = gameState.healthMetrics?.livingStandards || 0.5;
+  const lsMultiplier = 0.5 + ls;
   
   for (const tier of thresholds) {
-    if (churnContribution <= tier.maxChurn) {
+    const scaledMaxChurn = tier.maxChurn * lsMultiplier;
+    if (churnContribution <= scaledMaxChurn) {
       return tier.name;
     }
   }
