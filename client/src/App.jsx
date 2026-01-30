@@ -930,6 +930,12 @@ function App() {
                 <input type="number" step="0.1" value={editConfig?.health?.productivity?.crowdingWeight ?? 0.25} 
                   onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, productivity: {...editConfig.health?.productivity, crowdingWeight: parseFloat(e.target.value)}}})} />
               </div>
+              <div className="section-divider-line"></div>
+              <div className="config-field">
+                <label>PR churn reduction mult</label>
+                <input type="number" step="0.1" value={editConfig?.health?.churnReductionMult ?? 0.5} 
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, churnReductionMult: parseFloat(e.target.value)}})} />
+              </div>
             </div>
 
             <div className="config-section">
@@ -968,11 +974,6 @@ function App() {
 
             <div className="config-section">
               <h3>Mechanic Effects</h3>
-              <div className="config-field">
-                <label>Churn reduction mult</label>
-                <input type="number" step="0.1" value={editConfig?.health?.churnReductionMult ?? 0.5} 
-                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, churnReductionMult: parseFloat(e.target.value)}})} />
-              </div>
               <div className="config-field">
                 <label>PT slots threshold</label>
                 <input type="number" value={editConfig?.health?.ptSlotsThreshold ?? 50} 

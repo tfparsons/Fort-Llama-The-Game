@@ -1776,6 +1776,11 @@ body {
   border-bottom: 1px solid #0f3460;
 }
 
+.section-divider-line {
+  border-top: 1px solid #0f3460;
+  margin: 12px 0 8px 0;
+}
+
 .primitives-display {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
