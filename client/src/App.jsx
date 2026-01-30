@@ -43,7 +43,12 @@ function App() {
       setGameState(data);
       setConfig(data.config);
       if (!editConfig) {
-        setEditConfig(data.config);
+        setEditConfig({
+          ...data.config,
+          health: data.healthConfig,
+          primitives: data.primitiveConfig,
+          vibes: data.vibesConfig
+        });
       }
       if (rentInput === '' || rentInput === String(data.currentRent)) {
         setRentInput(String(data.currentRent));
@@ -425,7 +430,12 @@ function App() {
             </button>
             <button 
               className={view === 'devtools' ? 'active' : ''} 
-              onClick={() => { setView('devtools'); setEditConfig(config); }}
+              onClick={() => { setView('devtools'); setEditConfig({
+                ...config,
+                health: gameState?.healthConfig,
+                primitives: gameState?.primitiveConfig,
+                vibes: gameState?.vibesConfig
+              }); }}
             >
               Dev Tools
             </button>
@@ -851,15 +861,23 @@ function App() {
               <h3>Living Standards <span className="info-icon" onClick={() => setInfoPopup('livingStandards')}>&#9432;</span></h3>
               <div className="config-field">
                 <label>Nutrition wt</label>
-                <input type="number" step="0.1" value={gameState?.healthConfig?.livingStandards?.nutritionWeight || 0.5} readOnly />
+                <input type="number" step="0.1" value={editConfig?.health?.livingStandards?.nutritionWeight ?? 0.5} 
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, livingStandards: {...editConfig.health?.livingStandards, nutritionWeight: parseFloat(e.target.value)}}})} />
               </div>
               <div className="config-field">
                 <label>Cleanliness wt</label>
-                <input type="number" step="0.1" value={gameState?.healthConfig?.livingStandards?.cleanlinessWeight || 0.5} readOnly />
+                <input type="number" step="0.1" value={editConfig?.health?.livingStandards?.cleanlinessWeight ?? 0.5} 
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, livingStandards: {...editConfig.health?.livingStandards, cleanlinessWeight: parseFloat(e.target.value)}}})} />
               </div>
               <div className="config-field">
                 <label>Crowding damp</label>
-                <input type="number" step="0.1" value={gameState?.healthConfig?.livingStandards?.crowdingDampen || 0.35} readOnly />
+                <input type="number" step="0.1" value={editConfig?.health?.livingStandards?.crowdingDampen ?? 0.35} 
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, livingStandards: {...editConfig.health?.livingStandards, crowdingDampen: parseFloat(e.target.value)}}})} />
+              </div>
+              <div className="config-field">
+                <label>Maintenance damp</label>
+                <input type="number" step="0.1" value={editConfig?.health?.livingStandards?.maintenanceDampen ?? 0.35} 
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, livingStandards: {...editConfig.health?.livingStandards, maintenanceDampen: parseFloat(e.target.value)}}})} />
               </div>
             </div>
 
@@ -867,15 +885,28 @@ function App() {
               <h3>Productivity <span className="info-icon" onClick={() => setInfoPopup('productivity')}>&#9432;</span></h3>
               <div className="config-field">
                 <label>Drive wt</label>
-                <input type="number" step="0.1" value={gameState?.healthConfig?.productivity?.driveWeight || 1.0} readOnly />
+                <input type="number" step="0.1" value={editConfig?.health?.productivity?.driveWeight ?? 1.0} 
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, productivity: {...editConfig.health?.productivity, driveWeight: parseFloat(e.target.value)}}})} />
               </div>
               <div className="config-field">
                 <label>Fatigue damp</label>
-                <input type="number" step="0.1" value={gameState?.healthConfig?.productivity?.fatigueWeight || 0.55} readOnly />
+                <input type="number" step="0.1" value={editConfig?.health?.productivity?.fatigueWeight ?? 0.55} 
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, productivity: {...editConfig.health?.productivity, fatigueWeight: parseFloat(e.target.value)}}})} />
               </div>
               <div className="config-field">
                 <label>Noise damp</label>
-                <input type="number" step="0.1" value={gameState?.healthConfig?.productivity?.noiseWeight || 0.35} readOnly />
+                <input type="number" step="0.1" value={editConfig?.health?.productivity?.noiseWeight ?? 0.35} 
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, productivity: {...editConfig.health?.productivity, noiseWeight: parseFloat(e.target.value)}}})} />
+              </div>
+              <div className="config-field">
+                <label>Crowding damp</label>
+                <input type="number" step="0.1" value={editConfig?.health?.productivity?.crowdingWeight ?? 0.25} 
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, productivity: {...editConfig.health?.productivity, crowdingWeight: parseFloat(e.target.value)}}})} />
+              </div>
+              <div className="config-field">
+                <label>Nutrition wt</label>
+                <input type="number" step="0.1" value={editConfig?.health?.productivity?.nutritionWeight ?? 0.2} 
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, productivity: {...editConfig.health?.productivity, nutritionWeight: parseFloat(e.target.value)}}})} />
               </div>
             </div>
 
@@ -883,15 +914,28 @@ function App() {
               <h3>Partytime <span className="info-icon" onClick={() => setInfoPopup('partytime')}>&#9432;</span></h3>
               <div className="config-field">
                 <label>Fun wt</label>
-                <input type="number" step="0.1" value={gameState?.healthConfig?.partytime?.funWeight || 1.0} readOnly />
-              </div>
-              <div className="config-field">
-                <label>Noise boost</label>
-                <input type="number" step="0.01" value={gameState?.healthConfig?.partytime?.noiseBoostScale || 0.08} readOnly />
+                <input type="number" step="0.1" value={editConfig?.health?.partytime?.funWeight ?? 1.0} 
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, partytime: {...editConfig.health?.partytime, funWeight: parseFloat(e.target.value)}}})} />
               </div>
               <div className="config-field">
                 <label>Fatigue damp</label>
-                <input type="number" step="0.1" value={gameState?.healthConfig?.partytime?.fatigueWeight || 0.45} readOnly />
+                <input type="number" step="0.1" value={editConfig?.health?.partytime?.fatigueWeight ?? 0.45} 
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, partytime: {...editConfig.health?.partytime, fatigueWeight: parseFloat(e.target.value)}}})} />
+              </div>
+              <div className="config-field">
+                <label>Nutrition wt</label>
+                <input type="number" step="0.1" value={editConfig?.health?.partytime?.nutritionWeight ?? 0.25} 
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, partytime: {...editConfig.health?.partytime, nutritionWeight: parseFloat(e.target.value)}}})} />
+              </div>
+              <div className="config-field">
+                <label>Noise boost scale</label>
+                <input type="number" step="0.01" value={editConfig?.health?.partytime?.noiseBoostScale ?? 0.08} 
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, partytime: {...editConfig.health?.partytime, noiseBoostScale: parseFloat(e.target.value)}}})} />
+              </div>
+              <div className="config-field">
+                <label>Noise boost cap</label>
+                <input type="number" step="0.01" value={editConfig?.health?.partytime?.noiseBoostCap ?? 0.08} 
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, partytime: {...editConfig.health?.partytime, noiseBoostCap: parseFloat(e.target.value)}}})} />
               </div>
             </div>
 
@@ -910,12 +954,19 @@ function App() {
             <div className="config-section">
               <h3>Mechanic Effects</h3>
               <div className="config-field">
-                <label>Churn reduction</label>
-                <input type="number" step="0.1" value={gameState?.healthConfig?.churnReductionMult || 0.5} readOnly />
+                <label>Churn reduction mult</label>
+                <input type="number" step="0.1" value={editConfig?.health?.churnReductionMult ?? 0.5} 
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, churnReductionMult: parseFloat(e.target.value)}})} />
               </div>
               <div className="config-field">
-                <label>PT slots thresh</label>
-                <input type="number" value={gameState?.healthConfig?.ptSlotsThreshold || 50} readOnly />
+                <label>Base recruit slots</label>
+                <input type="number" value={editConfig?.health?.baseRecruitSlots ?? 1} 
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, baseRecruitSlots: parseInt(e.target.value)}})} />
+              </div>
+              <div className="config-field">
+                <label>PT slots threshold</label>
+                <input type="number" value={editConfig?.health?.ptSlotsThreshold ?? 50} 
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, ptSlotsThreshold: parseInt(e.target.value)}})} />
               </div>
             </div>
 
