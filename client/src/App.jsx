@@ -18,6 +18,10 @@ function App() {
   const [rentInput, setRentInput] = useState('');
   const [hoveredResident, setHoveredResident] = useState(null);
   
+  const [displayTime, setDisplayTime] = useState({ hour: 9, minute: 0 });
+  const [lastServerHour, setLastServerHour] = useState(null);
+  const clockAnimationRef = useRef(null);
+  
   const [panelMinimized, setPanelMinimized] = useState(false);
   const [panelPosition, setPanelPosition] = useState({ 
     x: Math.max(20, (window.innerWidth - 360) / 2), 
@@ -89,6 +93,71 @@ function App() {
     }
   }, [showWeeklyPanel]);
 
+  useEffect(() => {
+    if (gameState?.hour === undefined || gameState?.hour === null) return;
+    
+    const serverHour = gameState.hour;
+    
+    if (lastServerHour === null) {
+      setLastServerHour(serverHour);
+      setDisplayTime({ hour: serverHour, minute: 0 });
+      return;
+    }
+    
+    if (serverHour === lastServerHour) return;
+    
+    if (clockAnimationRef.current) {
+      clearInterval(clockAnimationRef.current);
+    }
+    
+    let startHour = lastServerHour;
+    let endHour = serverHour;
+    let totalMinutes;
+    
+    if (endHour > startHour) {
+      totalMinutes = (endHour - startHour) * 60;
+    } else {
+      totalMinutes = ((24 - startHour) + endHour) * 60;
+    }
+    
+    const animationDuration = 800;
+    const stepsPerSecond = 30;
+    const totalSteps = Math.floor(animationDuration / 1000 * stepsPerSecond);
+    const minutesPerStep = Math.ceil(totalMinutes / totalSteps);
+    const stepInterval = animationDuration / totalSteps;
+    
+    let currentMinuteOffset = 0;
+    
+    clockAnimationRef.current = setInterval(() => {
+      currentMinuteOffset += minutesPerStep;
+      
+      if (currentMinuteOffset >= totalMinutes) {
+        clearInterval(clockAnimationRef.current);
+        clockAnimationRef.current = null;
+        setDisplayTime({ hour: endHour, minute: 0 });
+        setLastServerHour(serverHour);
+        return;
+      }
+      
+      let animHour = startHour + Math.floor(currentMinuteOffset / 60);
+      let animMinute = currentMinuteOffset % 60;
+      
+      if (animHour >= 24) {
+        animHour = animHour % 24;
+      }
+      
+      setDisplayTime({ hour: animHour, minute: animMinute });
+    }, stepInterval);
+    
+    setLastServerHour(serverHour);
+    
+    return () => {
+      if (clockAnimationRef.current) {
+        clearInterval(clockAnimationRef.current);
+      }
+    };
+  }, [gameState?.hour]);
+
   const handlePanelMouseDown = (e) => {
     if (e.target.closest('.panel-btn')) return;
     setIsDragging(true);
@@ -100,7 +169,7 @@ function App() {
 
   const handleReset = async () => {
     await fetch(`${API_BASE}/api/reset`, { method: 'POST' });
-    setRentError('');
+    setLastServerHour(null);
     fetchState();
   };
 
@@ -112,10 +181,8 @@ function App() {
   const handleSetRent = async (rent) => {
     const rentNum = parseInt(rent);
     if (isNaN(rentNum) || rentNum < config.rentMin || rentNum > config.rentMax) {
-      setRentError(`Rent must be between £${config.rentMin} and £${config.rentMax}`);
       return false;
     }
-    setRentError('');
     await fetch(`${API_BASE}/api/action/set-rent`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -128,7 +195,6 @@ function App() {
 
   const handleRentSliderChange = (e) => {
     setRentInput(e.target.value);
-    setRentError('');
   };
 
   const handleRentSliderRelease = () => {
@@ -272,7 +338,6 @@ function App() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(editConfig)
     });
-    setRentError('');
     fetchState();
     setView('dashboard');
   };
@@ -348,7 +413,7 @@ function App() {
           </div>
           <div className="top-stat clock">
             <span className="top-stat-value">
-              {String(gameState.hour || 0).padStart(2, '0')}:00
+              {String(displayTime.hour).padStart(2, '0')}:{String(displayTime.minute).padStart(2, '0')}
             </span>
           </div>
         </div>
