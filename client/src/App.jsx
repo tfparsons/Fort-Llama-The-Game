@@ -802,10 +802,18 @@ function App() {
                 <label>Utilities (£/wk)</label>
                 <input type="number" value={editConfig.utilitiesBase} onChange={(e) => updateEditConfig('utilitiesBase', e.target.value)} />
               </div>
+              <div className="config-field">
+                <label>Game Over (£)</label>
+                <input type="number" value={editConfig.gameOverLimit} onChange={(e) => updateEditConfig('gameOverLimit', e.target.value)} />
+              </div>
+              <div className="config-field">
+                <label>Tick (ms)</label>
+                <input type="number" value={editConfig.tickSpeed} onChange={(e) => updateEditConfig('tickSpeed', e.target.value)} />
+              </div>
             </div>
 
             <div className="config-section">
-              <h3>Rent</h3>
+              <h3>Rent & Churn</h3>
               <div className="config-field">
                 <label>Min (£)</label>
                 <input type="number" value={editConfig.rentMin} onChange={(e) => updateEditConfig('rentMin', e.target.value)} />
@@ -818,12 +826,8 @@ function App() {
                 <label>Default (£)</label>
                 <input type="number" value={editConfig.defaultRent} onChange={(e) => updateEditConfig('defaultRent', e.target.value)} />
               </div>
-            </div>
-
-            <div className="config-section">
-              <h3>Churn</h3>
               <div className="config-field">
-                <label>Base Rate</label>
+                <label>Base Churn</label>
                 <input type="number" step="0.01" value={editConfig.baseChurnRate} onChange={(e) => updateEditConfig('baseChurnRate', e.target.value)} />
               </div>
               <div className="config-field">
@@ -833,14 +837,14 @@ function App() {
             </div>
 
             <div className="config-section">
-              <h3>Game</h3>
-              <div className="config-field">
-                <label>Game Over (£)</label>
-                <input type="number" value={editConfig.gameOverLimit} onChange={(e) => updateEditConfig('gameOverLimit', e.target.value)} />
-              </div>
-              <div className="config-field">
-                <label>Tick (ms)</label>
-                <input type="number" value={editConfig.tickSpeed} onChange={(e) => updateEditConfig('tickSpeed', e.target.value)} />
+              <h3>Rent Tier Thresholds</h3>
+              <div className="tier-thresholds-display">
+                {(gameState?.rentTierThresholds || config?.rentTierThresholds || []).map((tier, i) => (
+                  <div key={i} className="tier-threshold-row">
+                    <span className="tier-name">{tier.name}</span>
+                    <span className="tier-churn">≤{(tier.maxChurn * 100).toFixed(0)}% churn</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -916,18 +920,6 @@ function App() {
               <div className="config-field">
                 <label>PT slots thresh</label>
                 <input type="number" value={gameState?.healthConfig?.ptSlotsThreshold || 50} readOnly />
-              </div>
-            </div>
-            
-            <div className="config-section">
-              <h3>Rent Tier Thresholds</h3>
-              <div className="tier-thresholds-display">
-                {(gameState?.rentTierThresholds || config?.rentTierThresholds || []).map((tier, i) => (
-                  <div key={i} className="tier-threshold-row">
-                    <span className="tier-name">{tier.name}</span>
-                    <span className="tier-churn">≤{(tier.maxChurn * 100).toFixed(0)}% churn</span>
-                  </div>
-                ))}
               </div>
             </div>
 
