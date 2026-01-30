@@ -17,6 +17,7 @@ function App() {
   const [buildings, setBuildings] = useState([]);
   const [rentInput, setRentInput] = useState('');
   const [hoveredResident, setHoveredResident] = useState(null);
+  const [pendingInvite, setPendingInvite] = useState(null);
   
   const [displayTime, setDisplayTime] = useState({ hour: 9, minute: 0, dayIndex: 0 });
   const clockAnimationRef = useRef(null);
@@ -1130,7 +1131,7 @@ function App() {
                         <span>Work Ethic</span><span>{llama.stats.workEthic}</span>
                       </div>
                     </div>
-                    <button className="invite-button" onClick={() => handleInvite(llama.id)}>
+                    <button className="invite-button" onClick={() => setPendingInvite(llama)}>
                       Invite
                     </button>
                   </div>
@@ -1141,6 +1142,22 @@ function App() {
             <button className="modal-close" onClick={handlePassRecruitment}>
               Pass
             </button>
+          </div>
+        </div>
+      )}
+
+      {pendingInvite && (
+        <div className="modal-overlay" onClick={() => setPendingInvite(null)}>
+          <div className="modal confirm-modal" onClick={(e) => e.stopPropagation()}>
+            <h2>Invite {pendingInvite.name}?</h2>
+            <div className="confirm-buttons">
+              <button className="confirm-btn confirm" onClick={() => { handleInvite(pendingInvite.id); setPendingInvite(null); }}>
+                Confirm
+              </button>
+              <button className="confirm-btn cancel" onClick={() => setPendingInvite(null)}>
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}
