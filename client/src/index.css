@@ -665,6 +665,18 @@ body {
   background: #e94560;
 }
 
+.resident-chip.churned {
+  background: #4a3333;
+  color: #888;
+  text-decoration: line-through;
+  text-decoration-color: #e94560;
+  text-decoration-thickness: 2px;
+}
+
+.resident-chip.churned:hover {
+  background: #5a4040;
+}
+
 .resident-tooltip {
   position: absolute;
   bottom: 100%;

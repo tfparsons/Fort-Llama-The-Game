@@ -503,13 +503,13 @@ function App() {
             </div>
 
             <div className="card residents-card">
-              <h2>Residents ({gameState.communeResidents?.length || 0})</h2>
+              <h2>Residents ({gameState.communeResidents?.filter(r => !r.churned).length || 0})</h2>
               <div className="residents-list">
                 {gameState.communeResidents && gameState.communeResidents.length > 0 ? (
                   gameState.communeResidents.map(resident => (
                     <div 
                       key={resident.id} 
-                      className="resident-chip"
+                      className={`resident-chip${resident.churned ? ' churned' : ''}`}
                       onMouseEnter={() => setHoveredResident(resident)}
                       onMouseLeave={() => setHoveredResident(null)}
                     >
@@ -539,7 +539,7 @@ function App() {
                 )}
               </div>
               {gameState.communeResidents && gameState.communeResidents.length > 0 && (() => {
-                const residents = gameState.communeResidents;
+                const residents = gameState.communeResidents.filter(r => !r.churned);
                 const count = residents.length;
                 const calcPct = (statKey) => {
                   const avg = residents.reduce((sum, r) => sum + (r.stats[statKey] || 10), 0) / count;
@@ -783,9 +783,9 @@ function App() {
           </div>
 
           <div className="llama-pool-section">
-            <h3>Llama Pool ({gameState?.communeResidents?.length || 0} in commune)</h3>
+            <h3>Llama Pool ({gameState?.communeResidents?.filter(r => !r.churned).length || 0} in commune)</h3>
             <p className="pool-info">
-              Total llamas: 20 | Available for recruitment: {20 - (gameState?.communeResidents?.length || 0) - (gameState?.pendingArrivals?.length || 0)}
+              Total llamas: 20 | Available for recruitment: {20 - (gameState?.communeResidents?.filter(r => !r.churned).length || 0) - (gameState?.pendingArrivals?.length || 0)}
             </p>
             <div className="llama-pool-grid">
               {gameState?.communeResidents?.map(r => (

@@ -143,6 +143,13 @@ All parameter changes trigger simulation reset.
 
 ## Recent Changes
 
+- 2026-01-30: **Churned Residents Feature**
+  - Churned residents stay on the residents panel with red strikethrough styling
+  - Churned residents return to the recruitable pool (can be re-recruited)
+  - Re-recruited churned residents rejoin with normal UI styling
+  - Only active (non-churned) residents count for rent income, capacity, and stat calculations
+  - All aggregated stats and counts exclude churned residents
+
 - 2026-01-29: **Primitives, Health Metrics & Vibes System**
   - Full primitives system: 8 metrics (5 instant, 3 stock) calculated from buildings + resident stats
   - Overcrowding penalty curve with tunable k/p parameters

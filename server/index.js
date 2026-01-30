@@ -292,13 +292,14 @@ function calculateWeeklyChurnCount() {
   const rentFactor = gameState.currentRent * gameConfig.churnRentMultiplier;
   const prReduction = gameState.healthMetrics.productivity * healthConfig.churnReductionMult;
   const totalChurnRate = Math.min(1, Math.max(0, gameConfig.baseChurnRate + rentFactor - prReduction));
-  const residentCount = gameState.communeResidents.length;
+  const activeResidents = gameState.communeResidents.filter(r => !r.churned);
+  const residentCount = activeResidents.length;
   const residentsLeaving = Math.floor(residentCount * totalChurnRate);
   return Math.min(residentsLeaving, residentCount);
 }
 
 function getAverageResidentStat(statKey) {
-  const residents = gameState.communeResidents;
+  const residents = gameState.communeResidents.filter(r => !r.churned);
   if (residents.length === 0) return 10;
   const sum = residents.reduce((acc, r) => acc + (r.stats[statKey] || 10), 0);
   return sum / residents.length;
@@ -529,9 +530,9 @@ function calculateRentCeiling() {
 }
 
 function getAvailableLlamas() {
-  const inCommuneIds = gameState.communeResidents.map(r => r.id);
+  const activeResidentIds = gameState.communeResidents.filter(r => !r.churned).map(r => r.id);
   const pendingIds = gameState.pendingArrivals.map(r => r.id);
-  return llamaPool.filter(l => !inCommuneIds.includes(l.id) && !pendingIds.includes(l.id));
+  return llamaPool.filter(l => !activeResidentIds.includes(l.id) && !pendingIds.includes(l.id));
 }
 
 function getRandomArrivalDay() {
@@ -548,11 +549,18 @@ function processDay() {
   const arrivingToday = gameState.pendingArrivals.filter(r => r.arrivalDay === gameState.day);
   arrivingToday.forEach(resident => {
     const daysRemaining = 8 - gameState.day;
-    gameState.communeResidents.push({
-      ...resident,
-      daysThisWeek: daysRemaining,
-      arrivalDay: null
-    });
+    const existingChurned = gameState.communeResidents.find(r => r.id === resident.id && r.churned);
+    if (existingChurned) {
+      existingChurned.churned = false;
+      existingChurned.daysThisWeek = daysRemaining;
+      existingChurned.arrivalDay = null;
+    } else {
+      gameState.communeResidents.push({
+        ...resident,
+        daysThisWeek: daysRemaining,
+        arrivalDay: null
+      });
+    }
   });
   gameState.pendingArrivals = gameState.pendingArrivals.filter(r => r.arrivalDay !== gameState.day);
   
@@ -561,7 +569,7 @@ function processDay() {
   calculateVibes();
   
   let dailyIncome = 0;
-  gameState.communeResidents.forEach(resident => {
+  gameState.communeResidents.filter(r => !r.churned).forEach(resident => {
     const proRataRent = Math.ceil((resident.daysThisWeek / 7) * gameState.currentRent);
     dailyIncome += proRataRent / resident.daysThisWeek;
   });
@@ -583,9 +591,11 @@ function processWeekEnd() {
   const churnCount = calculateWeeklyChurnCount();
   const churnedResidents = [];
   
-  for (let i = 0; i < churnCount && gameState.communeResidents.length > 0; i++) {
-    const randomIndex = Math.floor(Math.random() * gameState.communeResidents.length);
-    const churned = gameState.communeResidents.splice(randomIndex, 1)[0];
+  const activeResidents = gameState.communeResidents.filter(r => !r.churned);
+  for (let i = 0; i < churnCount && activeResidents.length > 0; i++) {
+    const randomIndex = Math.floor(Math.random() * activeResidents.length);
+    const churned = activeResidents.splice(randomIndex, 1)[0];
+    churned.churned = true;
     churnedResidents.push(churned);
   }
 
@@ -800,7 +810,8 @@ app.post('/api/action/invite', (req, res) => {
   }
   
   const capacity = calculateTotalCapacity();
-  const futureResidents = gameState.communeResidents.length + gameState.pendingArrivals.length + 1;
+  const activeResidents = gameState.communeResidents.filter(r => !r.churned).length;
+  const futureResidents = activeResidents + gameState.pendingArrivals.length + 1;
   
   if (futureResidents > capacity) {
     res.status(400).json({ error: 'Not enough capacity' });
@@ -815,7 +826,7 @@ app.post('/api/action/invite', (req, res) => {
     return;
   }
   
-  const inCommune = gameState.communeResidents.some(r => r.id === llamaId);
+  const inCommune = gameState.communeResidents.some(r => r.id === llamaId && !r.churned);
   const isPending = gameState.pendingArrivals.some(r => r.id === llamaId);
   
   if (inCommune || isPending) {
