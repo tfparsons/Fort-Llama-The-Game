@@ -453,28 +453,6 @@ function App() {
 
           <div className="content-grid">
             <div className="card">
-              <h2>Commune Status</h2>
-              <div className="stat">
-                <span className="stat-label">Beds</span>
-                <span className="stat-value">{gameState.residents}/{gameState.capacity}</span>
-              </div>
-              <div className="stat">
-                <span className="stat-label">Weekly Rent</span>
-                <span className="stat-value">{formatCurrency(gameState.currentRent)}</span>
-              </div>
-              <div className="stat">
-                <span className="stat-label">Rent Ceiling</span>
-                <span className="stat-value">{formatCurrency(gameState.rentCeiling || config.rentMax)}</span>
-              </div>
-              {gameState.pendingArrivals && gameState.pendingArrivals.length > 0 && (
-                <div className="stat">
-                  <span className="stat-label">Pending</span>
-                  <span className="stat-value positive">+{gameState.pendingArrivals.length}</span>
-                </div>
-              )}
-            </div>
-
-            <div className="card">
               <h2>Weekly Projection</h2>
               <div className="stat has-tooltip">
                 <span className="stat-label">Income</span>
@@ -874,6 +852,9 @@ function App() {
                   </div>
                 </div>
                 {rentError && <div className="panel-error">{rentError}</div>}
+                <div className="rent-ceiling">
+                  Ceiling: {formatCurrency(gameState.rentCeiling || config.rentMax)}
+                </div>
               </div>
 
               <div className="panel-section">
