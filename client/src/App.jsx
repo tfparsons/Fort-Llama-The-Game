@@ -849,6 +849,11 @@ function App() {
                 <label>Tick (ms)</label>
                 <input type="number" value={editConfig.tickSpeed} onChange={(e) => updateEditConfig('tickSpeed', e.target.value)} />
               </div>
+              <div className="config-field">
+                <label>Recruit Slots</label>
+                <input type="number" value={editConfig?.health?.baseRecruitSlots ?? 1} 
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, baseRecruitSlots: parseInt(e.target.value)}})} />
+              </div>
             </div>
 
             <div className="config-section">
@@ -967,11 +972,6 @@ function App() {
                 <label>Churn reduction mult</label>
                 <input type="number" step="0.1" value={editConfig?.health?.churnReductionMult ?? 0.5} 
                   onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, churnReductionMult: parseFloat(e.target.value)}})} />
-              </div>
-              <div className="config-field">
-                <label>Base recruit slots</label>
-                <input type="number" value={editConfig?.health?.baseRecruitSlots ?? 1} 
-                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, baseRecruitSlots: parseInt(e.target.value)}})} />
               </div>
               <div className="config-field">
                 <label>PT slots threshold</label>
