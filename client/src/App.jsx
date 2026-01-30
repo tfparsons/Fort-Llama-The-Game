@@ -381,7 +381,13 @@ function App() {
   };
 
   const handleSaveDefaults = async () => {
+    await fetch(`${API_BASE}/api/config`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(editConfig)
+    });
     await fetch(`${API_BASE}/api/save-defaults`, { method: 'POST' });
+    fetchState();
     alert('Current settings saved as defaults!');
   };
 

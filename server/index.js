@@ -228,12 +228,16 @@ const INITIAL_DEFAULTS = {
 function loadSavedDefaults() {
   try {
     if (fs.existsSync(SAVED_DEFAULTS_FILE)) {
+      console.log('Loading saved defaults from file:', SAVED_DEFAULTS_FILE);
       const data = JSON.parse(fs.readFileSync(SAVED_DEFAULTS_FILE, 'utf8'));
+      console.log('Loaded defaults - tickSpeed:', data.defaults?.tickSpeed, 'startingResidents:', data.defaults?.startingResidents);
       return {
         defaults: data.defaults || { ...INITIAL_DEFAULTS },
         llamaPool: data.llamaPool || null,
         buildings: data.buildings || null
       };
+    } else {
+      console.log('No saved defaults file found, using INITIAL_DEFAULTS');
     }
   } catch (err) {
     console.error('Failed to load saved defaults:', err);
