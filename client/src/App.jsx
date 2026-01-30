@@ -793,6 +793,14 @@ function App() {
                 <label>Residents</label>
                 <input type="number" value={editConfig.startingResidents} onChange={(e) => updateEditConfig('startingResidents', e.target.value)} />
               </div>
+              <div className="config-field">
+                <label>Ground Rent (£/wk)</label>
+                <input type="number" value={editConfig.groundRentBase} onChange={(e) => updateEditConfig('groundRentBase', e.target.value)} />
+              </div>
+              <div className="config-field">
+                <label>Utilities (£/wk)</label>
+                <input type="number" value={editConfig.utilitiesBase} onChange={(e) => updateEditConfig('utilitiesBase', e.target.value)} />
+              </div>
             </div>
 
             <div className="config-section">
@@ -808,22 +816,6 @@ function App() {
               <div className="config-field">
                 <label>Default (£)</label>
                 <input type="number" value={editConfig.defaultRent} onChange={(e) => updateEditConfig('defaultRent', e.target.value)} />
-              </div>
-            </div>
-
-            <div className="config-section">
-              <h3>Ground Rent</h3>
-              <div className="config-field">
-                <label>Base (£/wk)</label>
-                <input type="number" value={editConfig.groundRentBase} onChange={(e) => updateEditConfig('groundRentBase', e.target.value)} />
-              </div>
-            </div>
-
-            <div className="config-section">
-              <h3>Utilities</h3>
-              <div className="config-field">
-                <label>Base (£/wk)</label>
-                <input type="number" value={editConfig.utilitiesBase} onChange={(e) => updateEditConfig('utilitiesBase', e.target.value)} />
               </div>
             </div>
 
