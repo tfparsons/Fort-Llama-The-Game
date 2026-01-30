@@ -346,6 +346,11 @@ function App() {
             <span className="top-stat-label">Week {gameState.week}</span>
             <span className="top-stat-value">{gameState.dayName}</span>
           </div>
+          <div className="top-stat clock">
+            <span className="top-stat-value">
+              {String(gameState.hour || 0).padStart(2, '0')}:00
+            </span>
+          </div>
         </div>
       </div>
 

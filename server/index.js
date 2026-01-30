@@ -155,6 +155,7 @@ const INITIAL_DEFAULTS = {
   churnRentMultiplier: 0.0003,
   gameOverLimit: -20000,
   tickSpeed: 1000,
+  hoursPerTick: 4,
   primitives: { ...DEFAULT_PRIMITIVE_CONFIG },
   health: { ...DEFAULT_HEALTH_CONFIG },
   vibes: { ...DEFAULT_VIBES_CONFIG }
@@ -200,7 +201,8 @@ function initializeGame(config = savedDefaults) {
     pendingArrivals: [],
     currentRent: gameConfig.defaultRent,
     week: 1,
-    day: 0,
+    day: 1,
+    hour: 9,
     dayName: 'Monday',
     isRunning: false,
     isPausedForWeeklyDecision: true,
@@ -540,46 +542,59 @@ function getRandomArrivalDay() {
   return days[Math.floor(Math.random() * days.length)];
 }
 
-function processDay() {
+function processTick() {
   if (gameState.isGameOver || gameState.isPausedForWeeklyDecision) return;
 
-  gameState.day += 1;
-  gameState.dayName = DAY_NAMES[gameState.day - 1] || 'Monday';
+  const previousDay = gameState.day;
+  gameState.hour += gameConfig.hoursPerTick;
   
-  const arrivingToday = gameState.pendingArrivals.filter(r => r.arrivalDay === gameState.day);
-  arrivingToday.forEach(resident => {
-    const daysRemaining = 8 - gameState.day;
-    const existingChurned = gameState.communeResidents.find(r => r.id === resident.id && r.churned);
-    if (existingChurned) {
-      existingChurned.churned = false;
-      existingChurned.daysThisWeek = daysRemaining;
-      existingChurned.arrivalDay = null;
-    } else {
-      gameState.communeResidents.push({
-        ...resident,
-        daysThisWeek: daysRemaining,
-        arrivalDay: null
-      });
+  if (gameState.hour >= 24) {
+    gameState.hour = gameState.hour % 24;
+    gameState.day += 1;
+    
+    if (gameState.day > 7) {
+      processWeekEnd();
+      return;
     }
-  });
-  gameState.pendingArrivals = gameState.pendingArrivals.filter(r => r.arrivalDay !== gameState.day);
+    
+    gameState.dayName = DAY_NAMES[gameState.day - 1] || 'Monday';
+    
+    const arrivingToday = gameState.pendingArrivals.filter(r => r.arrivalDay === gameState.day);
+    arrivingToday.forEach(resident => {
+      const daysRemaining = 8 - gameState.day;
+      const existingChurned = gameState.communeResidents.find(r => r.id === resident.id && r.churned);
+      if (existingChurned) {
+        existingChurned.churned = false;
+        existingChurned.daysThisWeek = daysRemaining;
+        existingChurned.arrivalDay = null;
+      } else {
+        gameState.communeResidents.push({
+          ...resident,
+          daysThisWeek: daysRemaining,
+          arrivalDay: null
+        });
+      }
+    });
+    gameState.pendingArrivals = gameState.pendingArrivals.filter(r => r.arrivalDay !== gameState.day);
+  }
   
   calculatePrimitives();
   calculateHealthMetrics();
   calculateVibes();
   
-  let dailyIncome = 0;
+  const ticksPerDay = 24 / gameConfig.hoursPerTick;
+  const ticksPerWeek = ticksPerDay * 7;
+  
+  let weeklyIncome = 0;
   gameState.communeResidents.filter(r => !r.churned).forEach(resident => {
     const proRataRent = Math.ceil((resident.daysThisWeek / 7) * gameState.currentRent);
-    dailyIncome += proRataRent / resident.daysThisWeek;
+    weeklyIncome += proRataRent;
   });
   
-  const dailyExpenses = (calculateGroundRent() + calculateUtilities()) / 7;
-  gameState.treasury += dailyIncome - dailyExpenses;
-
-  if (gameState.day >= 7) {
-    processWeekEnd();
-  }
+  const weeklyExpenses = calculateGroundRent() + calculateUtilities();
+  const tickIncome = weeklyIncome / ticksPerWeek;
+  const tickExpenses = weeklyExpenses / ticksPerWeek;
+  gameState.treasury += tickIncome - tickExpenses;
 
   if (gameState.treasury <= gameConfig.gameOverLimit) {
     gameState.isGameOver = true;
@@ -615,7 +630,8 @@ function processWeekEnd() {
   gameState.communeResidents.forEach(r => r.daysThisWeek = 7);
   
   gameState.week += 1;
-  gameState.day = 0;
+  gameState.day = 1;
+  gameState.hour = 9;
   gameState.dayName = 'Monday';
   gameState.hasRecruitedThisWeek = false;
   gameState.treasuryAtWeekStart = gameState.treasury;
@@ -631,7 +647,7 @@ function startSimulation() {
   if (gameState.isPausedForWeeklyDecision) return;
   gameState.isRunning = true;
   simulationInterval = setInterval(() => {
-    processDay();
+    processTick();
   }, gameConfig.tickSpeed);
 }
 

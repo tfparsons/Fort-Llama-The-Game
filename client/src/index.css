@@ -90,6 +90,13 @@ body {
   color: #f87171;
 }
 
+.top-stat.clock .top-stat-value {
+  font-family: 'Courier New', monospace;
+  font-size: 1.2rem;
+  color: #fbbf24;
+  letter-spacing: 1px;
+}
+
 .main-content {
   padding: 20px;
 }
