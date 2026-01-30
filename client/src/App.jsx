@@ -371,6 +371,7 @@ function App() {
       {view === 'dashboard' && (
         <div className="main-content">
           <div className="vibes-banner">
+            <button className="btn-reset banner-restart" onClick={handleReset}>Restart</button>
             <div className="vibes-headline">
               <div className="headline-row">
                 <span className="headline-label">Vibe:</span>
@@ -471,7 +472,6 @@ function App() {
                   <span className="stat-value positive">+{gameState.pendingArrivals.length}</span>
                 </div>
               )}
-              <button className="btn-reset" onClick={handleReset}>Restart</button>
             </div>
 
             <div className="card">

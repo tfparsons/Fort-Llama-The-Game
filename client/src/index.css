@@ -1070,11 +1070,20 @@ body {
 }
 
 .vibes-banner {
+  position: relative;
   background: linear-gradient(135deg, #16213e 0%, #1a1a2e 100%);
   border: 1px solid #0f3460;
   border-radius: 8px;
   padding: 16px 20px;
   margin-bottom: 16px;
+}
+
+.banner-restart {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 6px 14px;
+  font-size: 0.8rem;
 }
 
 .vibes-headline {
