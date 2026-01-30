@@ -1254,6 +1254,25 @@ body {
   cursor: pointer;
 }
 
+.alert-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  background: #fbbf24;
+  color: #1a1a2e;
+  border-radius: 50%;
+  font-size: 0.9rem;
+  font-weight: bold;
+  animation: pulse-alert 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-alert {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.15); opacity: 0.85; }
+}
+
 .btn-restart {
   background: transparent;
   border: 1px solid #718096;

@@ -471,7 +471,7 @@ function App() {
           <div className="vibes-banner">
             {showWeeklyPanel && panelMinimized && (
               <div className="minimized-planner" onClick={() => setPanelMinimized(false)}>
-                <span>Week {gameState.week} Planning !</span>
+                <span className="planner-alert"><span className="alert-icon">⚠</span> Week {gameState.week} Planning</span>
                 <button className="panel-btn">+</button>
               </div>
             )}
