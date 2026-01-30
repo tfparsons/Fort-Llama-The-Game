@@ -1,277 +1,48 @@
 # Fort Llama: The Game
 
-A realtime management strategy simulation where players run a commune, trying to advance and expand without tipping the house into dysfunction and bankruptcy.
-
 ## Overview
 
-Players manage a commune with the core loop being:
-- Weekly cycles of income (rent from residents) vs expenditure (ground rent, utilities)
-- Recruit residents to increase income
-- Build bedrooms to increase capacity (but also increases overheads)
-- Balance rent levels vs churn rate
+Fort Llama is a real-time management strategy simulation where players manage a commune. The core objective is to advance and expand the commune without leading it into dysfunction and bankruptcy. Players are responsible for balancing income (rent from residents) against expenditures (ground rent, utilities), recruiting residents, and constructing bedrooms to increase capacity. The game features a dynamic system where decisions impact resident churn rates and overall commune "Vibes". The business vision is to create an engaging simulation game that offers a challenging and rewarding experience in resource and community management, with potential for expansion into broader simulation genres.
 
-## Project Structure
+## User Preferences
 
-```
-/
-├── server/
-│   └── index.js          # Express API server with simulation engine
-├── client/
-│   ├── index.html
-│   └── src/
-│       ├── main.jsx      # React entry point
-│       ├── App.jsx       # Main application component
-│       └── index.css     # Styles
-├── vite.config.js        # Vite configuration with proxy
-└── package.json
-```
+No specific user preferences were provided in the original `replit.md` file. The agent should assume standard development practices and clear communication.
 
-## Running the Project
+## System Architecture
 
-- `npm run dev` - Runs both server (port 5000) and Vite dev server (port 5173) with proxy
+The project follows a client-server architecture:
+-   **Server:** An Express.js API server (`server/index.js`) hosts the core simulation engine and handles game logic.
+-   **Client:** A React application (`client/src/main.jsx`) built with Vite provides the user interface.
+-   **UI/UX:**
+    -   A fixed top bar displays key statistics (Treasury, Residents/Capacity, Week/Day).
+    -   The main content area uses cards for Commune Status, Weekly Projection, and Game Status.
+    -   Weekly actions are managed via a draggable, minimizable floating panel, allowing dashboard visibility during decision-making.
+    -   A continuous, client-side 24-hour clock system uses `requestAnimationFrame` for smooth animation.
+    -   Primitives are visualized with distinct UI elements: circular gauges for "Pressure" (Crowding, Noise), horizontal bars for "Instant Metrics" (Nutrition, Fun, Drive), and vertical tanks for "Stock Levels" (Cleanliness, Maintenance, Fatigue). Tanks visually fill and change color based on debt accumulation.
+-   **Game Mechanics:**
+    -   **Time System:** Daily ticks (7 days per week) with an auto-pause at the end of each week for player decisions. The weekly action modal appears on Monday at 9 am.
+    -   **Primitives System:** Eight core metrics (5 instant, 3 stock) are calculated daily based on buildings and resident stats. These include Crowding, Noise, Nutrition, Fun, Drive (instant), and Cleanliness debt, Maintenance debt, Fatigue debt (stock). An overcrowding penalty curve is applied.
+    -   **Health Metrics:** Three aggregate metrics—Living Standards (LS), Productivity (PR), and Partytime (PT)—are derived from primitives.
+        -   LS affects overall "Vibes".
+        -   PR reduces the churn rate.
+        -   PT increases recruitment slots.
+    -   **Vibes System:** A headline status combining health metrics, calculated as a geometric mean. It features a 10-tier ladder (Omni-shambles to Utopia) with scale gating based on commune size and identity labels for imbalanced communes (e.g., "Party House," "Sweat Shop").
+    -   **Resident System:** Features 20 unique llamas with individual stats (e.g., Sharing Tolerance, Cooking Skill). Residents are tracked individually, and churned residents remain visible but inactive, returning to the recruitable pool.
+    -   **Buildings System:** Different building types (Bedrooms, Kitchen, Bathroom, Living Room, Utility Closet) contribute to capacity and primitive calculations. Each building has quality levels and specific primitive multipliers.
+    -   **Player Actions:** Weekly actions include setting rent, recruiting llamas (one per week from three candidates), and building bedrooms.
+    -   **Recruitment:** Candidates are presented with stats and bios; invited llamas arrive later in the week with pro-rata rent.
+    -   **Game Over:** Occurs when the treasury reaches -£20,000.
+-   **Development Tools:** A comprehensive admin panel (Dev Tools) allows tuning of all game parameters, including starting values, rent settings, overheads, building costs, churn settings, and health/primitive/vibes configurations. All changes trigger a simulation reset.
+-   **Default Configuration:**
+    -   Starting Treasury: £0, Bedrooms: 4, Residents: 2
+    -   Default Rent: £100
+    -   Ground Rent Base: £1,000/week, Utilities Base: £200/week
+    -   Base Churn: 20%
+    -   Bedroom Capacity: 2 residents each, Build Cost: £2,000
 
-## Game Mechanics
+## External Dependencies
 
-### Time System
-- Daily ticks (7 days per week)
-- Auto-pause at end of each week for player decisions
-- Weekly action modal appears on Monday 9am
-- Treasury animates daily (1/7 of weekly change per tick)
-
-### Income
-- Rent from residents: `residents × currentRent`
-
-### Expenditure
-- Ground Rent: `base × (1 + extraBedrooms × modifier)`
-- Utilities: `base × (1 + extraBedrooms × modifier)`
-
-### Churn
-- `churnRate = baseChurn + (rent × churnMultiplier) - (productivity × churnReduction)`
-- Higher rent = more churn, higher Productivity = less churn
-- Churn calculated at end of week
-
-### Primitives System
-8 core metrics calculated daily from buildings + resident stats:
-
-**Instant Primitives** (recalculated each tick):
-- **Crowding** (0-100, lower is better): Overcrowding pressure from all room types
-- **Noise** (0-100, lower is better): Social + ambient noise from Living Room activity
-- **Nutrition** (0-100, higher is better): Food quality from Kitchen throughput × cooking skill
-- **Fun** (0-100, higher is better): Party energy from Living Room × sociability
-- **Drive** (0-100, higher is better): Motivation from workspace quality × work ethic
-
-**Stock Primitives** (accumulate/recover over time):
-- **Cleanliness debt** (0-100, lower is better): Mess accumulates, cleaning removes it
-- **Maintenance debt** (0-100, lower is better): Wear accumulates, repairs remove it
-- **Fatigue debt** (0-100, lower is better): Exertion accumulates, rest removes it
-
-**Overcrowding Penalty**: `penalty = 1 + k × max(0, ratio - 1)^p` (default k=2, p=2)
-
-### Health Metrics
-3 aggregate metrics derived from primitives:
-
-- **Living Standards** (LS): Nutrition baseline × Cleanliness/Crowding/Maintenance dampeners
-  - Effect: Higher LS = better vibes score
-- **Productivity** (PR): Drive baseline × Fatigue/Noise/Crowding dampeners × Nutrition boost
-  - Effect: Higher PR = lower churn rate
-- **Partytime** (PT): Fun baseline × Fatigue/Nutrition dampeners × Noise boost
-  - Effect: Higher PT = more recruitment slots per week
-
-### Vibes System
-Headline status combining health metrics:
-
-**OverallLevel** = (LS × PR × PT)^(1/3) - geometric mean punishes imbalance
-
-**10 Tier Ladder**:
-- Omni-shambles (<0.12) → Mega-shambles → Shambles → Bad → Decent → Good → Great → Superb → Worldclass → Utopia (≥0.93)
-
-**Scale Gating**: Small communes (1-5 residents) capped at Bad-Good tier range; larger communes unlock extremes
-
-**Identity Labels** (when imbalanced):
-- High Partytime: Party House / Party Mansion
-- High Productivity: Grind House / Sweat Shop
-- High Living Standards: Showhome / Luxury Bubble
-- Low Living Standards: Shanty Town / Slum Spiral
-- Low Productivity: Chaos House / Dysfunctional Commune
-- Low Partytime: Dead Vibes / Funeral Parlour
-
-### Resident System
-- 20 unique llamas, each with name, gender, age, bio, and 8 stats
-- Stats: Sharing Tolerance, Cooking Skill, Tidiness, Handiness, Consideration, Sociability, Party Stamina, Work Ethic (1-20 scale)
-- Residents tracked individually in `communeResidents` array
-- Dashboard shows residents with hover tooltips for full bio/stats
-
-### Player Actions (weekly panel)
-1. Set rent (slider + text input, £50-500 with validation)
-2. "Find a Llama" recruitment: view 3 random candidates, invite 1 per week
-3. Build bedroom (instant, fixed cost)
-
-### Recruitment Flow
-- Click "Find a Llama" to see 3 random candidates from available pool
-- Each candidate shows name, age, bio, and full 8-stat radar
-- Invite one or pass to see next candidate
-- Limit: 1 recruitment per week
-- Invited llamas arrive Tuesday-Sunday of next week (random day)
-- Pro-rata rent: `ceil((daysThisWeek / 7) * weeklyRent)`
-
-### Game Over
-Treasury reaches -£20,000
-
-## Dev Tools
-
-Separate admin panel to tune all parameters:
-- Starting values (treasury, bedrooms, residents)
-- Rent settings (min, max, default)
-- Overhead settings (base costs, modifiers)
-- Building costs and capacity
-- Churn settings
-- Game settings (tick speed, game over limit)
-
-All parameter changes trigger simulation reset.
-
-## Default Configuration
-
-- Starting Treasury: £0
-- Starting Bedrooms: 4
-- Starting Residents: 2
-- Default Rent: £100
-- Ground Rent Base: £1,000/week
-- Utilities Base: £200/week
-- Base Churn: 20%
-- Bedroom Capacity: 2 residents each
-- Bedroom Build Cost: £2,000
-
-## Recent Changes
-
-- 2026-01-30: **Simplified Health Metric Formulas**
-  - Removed Nutrition from Productivity formula (was redundant with Living Standards)
-  - Removed Nutrition from Partytime formula (was redundant with Living Standards)
-  - Removed noiseBoostCap from Partytime (noise is already bounded 0-100, cap was unnecessary)
-  - Simplified formulas:
-    - Productivity: `Drive × damp(Fatigue) × damp(Noise) × damp(Crowding)`
-    - Partytime: `Fun × damp(Fatigue) × (1 + noiseBoostScale × noise/100)`
-  - Updated Dev Tools controls and info popups to match
-
-- 2026-01-30: **Health Metric Controls - Full Coverage**
-  - All health config parameters now have editable controls in Dev Tools
-  - Living Standards: nutritionWeight, cleanlinessWeight, crowdingDampen, maintenanceDampen
-  - Productivity: driveWeight, fatigueWeight, noiseWeight, crowdingWeight
-  - Partytime: funWeight, fatigueWeight, noiseBoostScale
-  - Mechanic Effects: churnReductionMult, baseRecruitSlots, ptSlotsThreshold
-  - Fixed editConfig initialization to include health/primitives/vibes when opening Dev Tools
-
-- 2026-01-30: **Health Metric Info Popups**
-  - Added clickable info icons (ℹ️) next to Living Standards, Productivity, and Partytime in Dev Tools
-  - Each popup shows: Formula, Primitives Used (with config weights), Buildings, Resident Stats, and Game Effect
-  - Formulas use baseline/dampener notation matching server calculations
-  - Includes exact config parameter names (e.g., nutritionWeight, fatigueWeight, noiseBoostScale)
-  - Game effects show actual formulas (e.g., churnReductionMult for Productivity, ptSlotsThreshold for Partytime)
-
-- 2026-01-30: **Dynamic Rent Tier Thresholds**
-  - Rent tier labels (Bargain/Cheap/Fair/Pricey/Extortionate) now scale with Living Standards
-  - Formula: `scaledThreshold = baseThreshold × (0.5 + livingStandards)`
-  - Higher LS = more rent tolerance (player can charge more while staying "Fair")
-  - Lower LS = stricter thresholds (same rent feels more "Pricey")
-  - Removed static Rent Tier Thresholds panel from Dev Tools (no longer needed)
-  - Tiers are player feedback only - they don't affect the churn calculation
-
-- 2026-01-30: **Continuous Clock Animation**
-  - Clock runs purely client-side using requestAnimationFrame (no flickering)
-  - Time interpolates based on tick speed - smooth, continuous advancement
-  - Day display derived from clock time, changes exactly at midnight
-  - Only syncs with server on pause/unpause transitions (not every poll)
-  - Clock pauses when game is paused for weekly planning
-  - Added "Time" header label for consistency, white text styling
-
-- 2026-01-30: **24-Hour Clock System**
-  - Added 24-hour clock display in header (top-right, monospace)
-  - Time advances by hoursPerTick (default 4) each tick
-  - Day changes happen at midnight (hour 0)
-  - Weekly Planner pause triggers at midnight Sunday→Monday (start of new week at 09:00)
-
-- 2026-01-30: **UI Layout Improvements**
-  - Restart button moved to header bar (next to Dashboard/Dev Tools) with confirmation dialog
-  - Weekly Planner minimized state now anchors to top-right of vibes banner (not free-floating)
-  - Minimized planner shows "Week N Planning" with expand button
-
-- 2026-01-30: **Primitives UI Redesign**
-  - Split primitives into three visual sections: Pressure, Instant Metrics, Stock Levels
-  - **Pressure** (circular gauges with needle + tier labels):
-    - Crowding (👥): Comfortable → Tight → Crowded → Unliveable
-    - Noise (🔊): Quiet → Buzzing → Loud → Chaos
-  - **Instant Metrics** (horizontal bars): Nutrition (🍽️), Fun (🎉), Drive (💪)
-  - **Stock Levels** (vertical tanks): Cleanliness (🧹), Maintenance (🔧), Fatigue (😴)
-  - Tanks fill from bottom-up as debt accumulates, color shifts green→orange→red
-  - Gauges have animated needles, colored tier labels based on current state
-
-- 2026-01-30: **Churn-Based Rent Tiers**
-  - Rent tier labels now based on actual churn impact (rent × churnMultiplier)
-  - Removed ceiling display from Weekly Planner UI
-  - Tier thresholds (configurable in Dev Tools):
-    - Bargain: ≤2% churn contribution (player could charge more)
-    - Cheap: ≤5% churn contribution (still undercharging)
-    - Fair: ≤8% churn contribution (minimal impact)
-    - Pricey: ≤12% churn contribution (churn becoming noticeable)
-    - Extortionate: >12% churn contribution (severe impact)
-  - Rent slider still uses £10 increments
-
-- 2026-01-30: **Churned Residents Feature**
-  - Churned residents stay on the residents panel with red strikethrough styling
-  - Churned residents return to the recruitable pool (can be re-recruited)
-  - Re-recruited churned residents rejoin with normal UI styling
-  - Only active (non-churned) residents count for rent income, capacity, and stat calculations
-  - All aggregated stats and counts exclude churned residents
-
-- 2026-01-29: **Primitives, Health Metrics & Vibes System**
-  - Full primitives system: 8 metrics (5 instant, 3 stock) calculated from buildings + resident stats
-  - Overcrowding penalty curve with tunable k/p parameters
-  - Health Metrics: Living Standards, Productivity, Partytime - each affects game mechanics
-  - LS affects rent ceiling, PR reduces churn, PT increases recruitment slots
-  - Vibes system: 10-tier ladder from Omni-shambles to Utopia
-  - Scale gating: commune size limits tier extremes
-  - Identity labels for imbalanced houses (Party Mansion, Sweat Shop, etc.)
-  - Dashboard shows Vibes headline, triangle balance glyph, health metric bars, primitive bars
-  - Dev Tools shows all primitive/health/vibes config values
-  - Buildings now have quality (1-3) and per-type multipliers (recoveryMult, foodMult, etc.)
-
-- 2026-01-27: **Buildings System**
-  - Full buildings system with 5 types: Bedrooms (2 cap), Kitchen (20), Bathroom (4), Living Room (20), Utility Closet (40)
-  - Player starts with: 8 Bedrooms, 1 Kitchen, 3 Bathrooms, 1 Living Room, 1 Utility Closet (108 total capacity)
-  - Only Bedrooms (£200) and Bathrooms (£300) are buildable by player
-  - Each building type has its own utilities/ground rent multipliers
-  - "Manage Buildings" button in Dev Tools opens editor for all building properties
-  - Buildings panel in player dashboard shows all buildings with counts and capacity
-  - Build menu now shows only buildable options (Bedrooms, Bathrooms)
-  - Total capacity calculated from sum of all building capacities
-  - Ground rent/utilities increase based on extra buildings beyond starting count
-
-- 2026-01-27: **Llama Pool Editor & UI polish**
-  - "Manage Llamas" button in Dev Tools opens full pool editor table
-  - Edit all 20 llamas: name, gender, age, bio, and all 8 stats
-  - Pool edits persist via "Save as Defaults" in Dev Tools
-  - Recruitment candidates now locked at week start (no re-rolling)
-  - Button labels simplified: Restart, Llama Recruitment, Build
-  - "Llamas in Residence" section with aggregated stats as % (green/red coloring)
-- 2026-01-26: **Individual resident system**
-  - 20 unique llamas loaded from CSV data with names, bios, 8 stats
-  - Recruitment modal with 3 random candidates (locked per week)
-  - Invite/pass mechanic, 1 recruitment per week limit
-  - Daily arrival system with pro-rata rent calculation
-  - Residents section on dashboard with hover tooltips for bio/stats
-  - Dev Tools shows llama pool status
-- 2026-01-23: **Major UI redesign (Option B layout)**
-  - Fixed top bar with key stats (Treasury, Residents/Capacity, Week/Day)
-  - Main content area with cards for Commune Status, Weekly Projection, Game Status
-  - Weekly actions now in draggable/minimizable floating panel (Finder-style)
-  - Panel can be moved anywhere and minimized to title bar
-  - No overlay - dashboard visible while making weekly decisions
-- 2026-01-23: Changed to daily ticks with weekly pause and action modal
-- 2026-01-23: Added rent text input with validation (must be within range)
-- 2026-01-23: Treasury now animates daily (split weekly change by 7)
-- 2026-01-23: Updated defaults (residents=2, rent=100, groundRent=1000, utilities=200, capacity=2)
-- 2026-01-23: Redesigned Dev Tools panel with 4-column grid layout (no scrolling)
-- 2026-01-22: Initial project setup with Express + React/Vite
-- Core simulation engine with weekly ticks
-- Player dashboard with status, actions, finances
-- Dev tools panel with all configurable parameters
-- Building menu modal
+-   **Frontend Framework:** React
+-   **Bundler/Development Server:** Vite
+-   **Backend Framework:** Express.js
+-   **Package Manager:** npm
