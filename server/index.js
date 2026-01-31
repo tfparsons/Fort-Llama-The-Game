@@ -552,14 +552,16 @@ function getTierFromPop(pop) {
 }
 
 function calculateMetricScore(rawValue, metricConfig, pop) {
-  const pop0 = healthConfig.pop0 || 2;
-  const ref0 = metricConfig.ref0 || 0.5;
+  const pop0 = Math.max(1, healthConfig.pop0 || 2);
+  const ref0 = Math.max(0.01, metricConfig.ref0 || 0.5);
   const alpha = metricConfig.alpha || 0.15;
-  const p = metricConfig.p || 2;
+  const p = Math.max(0.1, metricConfig.p || 2);
   const tierMult = metricConfig.tierMult || [1.0, 1.1, 1.2, 1.35, 1.5, 1.7];
+  const brackets = healthConfig.tierBrackets || [6, 12, 20, 50, 100];
   
   const tier = getTierFromPop(pop);
-  const tierMultiplier = tierMult[Math.min(tier, tierMult.length - 1)] || 1.0;
+  const safeTierIndex = Math.min(tier, tierMult.length - 1, brackets.length);
+  const tierMultiplier = tierMult[safeTierIndex] || 1.0;
   
   const mRef = Math.max(0.001, ref0 * Math.pow(pop / pop0, alpha) * tierMultiplier);
   const x = rawValue / mRef;

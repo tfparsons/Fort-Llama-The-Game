@@ -22,10 +22,15 @@ The project follows a client-server architecture:
 -   **Game Mechanics:**
     -   **Time System:** Daily ticks (7 days per week) with an auto-pause at the end of each week for player decisions. The weekly action modal appears on Monday at 9 am.
     -   **Primitives System:** Eight core metrics (6 instant, 2 stock) are calculated daily based on buildings and resident stats. These include Crowding, Noise, Nutrition, Cleanliness, Fun, Drive (instant), and Maintenance debt, Fatigue debt (stock). An overcrowding penalty curve is applied.
-    -   **Health Metrics:** Three aggregate metrics—Living Standards (LS), Productivity (PR), and Partytime (PT)—are derived from primitives. Each has a symmetric mechanic effect:
-        -   LS affects rent tolerance via a diminishing returns curve: `maxTolerantRent = rentMin + (rentMax - rentMin) × LS^(1/rentCurve)`. Higher rentCurve = steeper early gains.
-        -   PR reduces the churn rate (via churnReductionMult).
-        -   PT increases recruitment slots (via ptSlotsThreshold).
+    -   **Health Metrics:** Three aggregate metrics—Living Standards (LS), Productivity (PR), and Partytime (PT)—are derived from primitives. Uses a ratio-based scoring system for consistent 0-100 output across all game stages:
+        -   Raw values are computed from primitives (unchanged formulas)
+        -   Scoring: `M_ref = ref0 × (pop/pop0)^alpha × tierMult[tier]`, then `score = 100 × x^p / (1 + x^p)` where `x = raw/M_ref`
+        -   At x=1 (raw equals reference), score = 50; higher p = steeper curve
+        -   Tier brackets based on population: 1-6, 7-12, 13-20, 21-50, 51-100, 101+
+        -   Each metric has symmetric mechanic effects:
+            -   LS affects rent tolerance via diminishing returns curve
+            -   PR reduces the churn rate (via churnReductionMult)
+            -   PT increases recruitment slots (via ptSlotsThreshold)
     -   **Vibes System:** A headline status combining health metrics, calculated as a geometric mean. It features a 10-tier ladder (Omni-shambles to Utopia) with scale gating based on commune size and identity labels for imbalanced communes (e.g., "Party House," "Sweat Shop").
     -   **Resident System:** Features 20 unique llamas with individual stats (e.g., Sharing Tolerance, Cooking Skill). Residents are tracked individually, and churned residents remain visible but inactive, returning to the recruitable pool.
     -   **Buildings System:** Different building types (Bedrooms, Kitchen, Bathroom, Living Room, Utility Closet) contribute to capacity and primitive calculations. Each building has quality levels and specific primitive multipliers.
