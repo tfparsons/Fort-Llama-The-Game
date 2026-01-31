@@ -461,16 +461,6 @@ function App() {
             >
               Dev Tools
             </button>
-            <button 
-              className="btn-restart"
-              onClick={() => {
-                if (window.confirm('Are you sure you want to restart the game?')) {
-                  handleReset();
-                }
-              }}
-            >
-              Restart
-            </button>
           </div>
         </div>
         <div className="top-bar-stats">
@@ -1618,6 +1608,16 @@ function App() {
 
               <button className="panel-confirm" onClick={handleDismissWeekly}>
                 Start Week
+              </button>
+              <button 
+                className="btn-restart"
+                onClick={() => {
+                  if (window.confirm('Are you sure you want to restart the game?')) {
+                    handleReset();
+                  }
+                }}
+              >
+                Restart Game
               </button>
           </div>
         </div>
