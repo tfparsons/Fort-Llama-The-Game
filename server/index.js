@@ -148,19 +148,33 @@ const DEFAULT_HEALTH_CONFIG = {
     cleanlinessWeight: 0.5,
     crowdingDampen: 0.35,
     maintenanceDampen: 0.35,
-    rentCurve: 2
+    rentCurve: 2,
+    ref0: 0.5,
+    alpha: 0.15,
+    p: 2,
+    tierMult: [1.0, 1.1, 1.2, 1.35, 1.5, 1.7]
   },
   productivity: {
     driveWeight: 1.0,
     fatigueWeight: 0.55,
     noiseWeight: 0.35,
-    crowdingWeight: 0.25
+    crowdingWeight: 0.25,
+    ref0: 0.5,
+    alpha: 0.15,
+    p: 2,
+    tierMult: [1.0, 1.1, 1.2, 1.35, 1.5, 1.7]
   },
   partytime: {
     funWeight: 1.0,
     fatigueWeight: 0.45,
-    noiseBoostScale: 0.08
+    noiseBoostScale: 0.08,
+    ref0: 0.5,
+    alpha: 0.15,
+    p: 2,
+    tierMult: [1.0, 1.1, 1.2, 1.35, 1.5, 1.7]
   },
+  pop0: 2,
+  tierBrackets: [6, 12, 20, 50, 100],
   churnReductionMult: 0.5,
   baseRecruitSlots: 1,
   ptSlotsThreshold: 50
@@ -529,34 +543,67 @@ function baseline(value, weight) {
   return Math.pow(norm, weight);
 }
 
+function getTierFromPop(pop) {
+  const brackets = healthConfig.tierBrackets || [6, 12, 20, 50, 100];
+  for (let i = 0; i < brackets.length; i++) {
+    if (pop <= brackets[i]) return i;
+  }
+  return brackets.length;
+}
+
+function calculateMetricScore(rawValue, metricConfig, pop) {
+  const pop0 = healthConfig.pop0 || 2;
+  const ref0 = metricConfig.ref0 || 0.5;
+  const alpha = metricConfig.alpha || 0.15;
+  const p = metricConfig.p || 2;
+  const tierMult = metricConfig.tierMult || [1.0, 1.1, 1.2, 1.35, 1.5, 1.7];
+  
+  const tier = getTierFromPop(pop);
+  const tierMultiplier = tierMult[Math.min(tier, tierMult.length - 1)] || 1.0;
+  
+  const mRef = Math.max(0.001, ref0 * Math.pow(pop / pop0, alpha) * tierMultiplier);
+  const x = rawValue / mRef;
+  
+  const xp = Math.pow(x, p);
+  const score = 100 * xp / (1 + xp);
+  
+  return Math.max(0, Math.min(100, score));
+}
+
 function calculateHealthMetrics() {
   const p = gameState.primitives;
   const ls = healthConfig.livingStandards;
   const pr = healthConfig.productivity;
   const pt = healthConfig.partytime;
+  const pop = gameState.communeResidents.filter(r => !r.churned).length || 1;
   
-  const livingStandards = Math.max(0.01, Math.min(1,
+  const lsRaw = Math.max(0.001,
     baseline(p.nutrition, ls.nutritionWeight) *
     baseline(p.cleanliness, ls.cleanlinessWeight) *
     dampener(p.crowding, ls.crowdingDampen) *
     dampener(p.maintenance, ls.maintenanceDampen)
-  ));
+  );
   
-  const productivity = Math.max(0.01, Math.min(1,
+  const prRaw = Math.max(0.001,
     baseline(p.drive, pr.driveWeight) *
     dampener(p.fatigue, pr.fatigueWeight) *
     dampener(p.noise, pr.noiseWeight) *
     dampener(p.crowding, pr.crowdingWeight)
-  ));
+  );
   
-  const noiseBonus = pt.noiseBoostScale * p.noise / 100;
-  const partytime = Math.max(0.01, Math.min(1,
+  const noiseBonus = Math.max(-0.5, pt.noiseBoostScale * p.noise / 100);
+  const ptRaw = Math.max(0.001,
     baseline(p.fun, pt.funWeight) *
     dampener(p.fatigue, pt.fatigueWeight) *
     (1 + noiseBonus)
-  ));
+  );
+  
+  const livingStandards = calculateMetricScore(lsRaw, ls, pop) / 100;
+  const productivity = calculateMetricScore(prRaw, pr, pop) / 100;
+  const partytime = calculateMetricScore(ptRaw, pt, pop) / 100;
   
   gameState.healthMetrics = { livingStandards, productivity, partytime };
+  gameState.healthMetricsRaw = { livingStandards: lsRaw, productivity: prRaw, partytime: ptRaw };
 }
 
 function calculateVibes() {
