@@ -914,22 +914,30 @@ function App() {
                   onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, livingStandards: {...editConfig.health?.livingStandards, rentCurve: parseFloat(e.target.value)}}})} />
               </div>
               <div className="section-divider-line"></div>
-              <p className="config-hint">Scaling</p>
               <div className="config-field">
-                <label>ref0</label>
-                <input type="number" step="0.05" value={editConfig?.health?.livingStandards?.ref0 ?? 0.5} 
-                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, livingStandards: {...editConfig.health?.livingStandards, ref0: parseFloat(e.target.value)}}})} />
+                <label>Custom Scaling</label>
+                <input type="checkbox" checked={editConfig?.health?.livingStandards?.useCustomScaling ?? false}
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, livingStandards: {...editConfig.health?.livingStandards, useCustomScaling: e.target.checked}}})} />
               </div>
-              <div className="config-field">
-                <label>alpha</label>
-                <input type="number" step="0.05" value={editConfig?.health?.livingStandards?.alpha ?? 0.15} 
-                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, livingStandards: {...editConfig.health?.livingStandards, alpha: parseFloat(e.target.value)}}})} />
-              </div>
-              <div className="config-field">
-                <label>p (curve)</label>
-                <input type="number" step="0.5" value={editConfig?.health?.livingStandards?.p ?? 2} 
-                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, livingStandards: {...editConfig.health?.livingStandards, p: parseFloat(e.target.value)}}})} />
-              </div>
+              {editConfig?.health?.livingStandards?.useCustomScaling && (
+                <>
+                  <div className="config-field">
+                    <label>ref0</label>
+                    <input type="number" step="0.05" value={editConfig?.health?.livingStandards?.ref0 ?? 0.5} 
+                      onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, livingStandards: {...editConfig.health?.livingStandards, ref0: parseFloat(e.target.value)}}})} />
+                  </div>
+                  <div className="config-field">
+                    <label>alpha</label>
+                    <input type="number" step="0.05" value={editConfig?.health?.livingStandards?.alpha ?? 0.15} 
+                      onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, livingStandards: {...editConfig.health?.livingStandards, alpha: parseFloat(e.target.value)}}})} />
+                  </div>
+                  <div className="config-field">
+                    <label>p (curve)</label>
+                    <input type="number" step="0.5" value={editConfig?.health?.livingStandards?.p ?? 2} 
+                      onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, livingStandards: {...editConfig.health?.livingStandards, p: parseFloat(e.target.value)}}})} />
+                  </div>
+                </>
+              )}
             </div>
 
             <div className="config-section">
@@ -961,22 +969,30 @@ function App() {
                   onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, churnReductionMult: parseFloat(e.target.value)}})} />
               </div>
               <div className="section-divider-line"></div>
-              <p className="config-hint">Scaling</p>
               <div className="config-field">
-                <label>ref0</label>
-                <input type="number" step="0.05" value={editConfig?.health?.productivity?.ref0 ?? 0.5} 
-                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, productivity: {...editConfig.health?.productivity, ref0: parseFloat(e.target.value)}}})} />
+                <label>Custom Scaling</label>
+                <input type="checkbox" checked={editConfig?.health?.productivity?.useCustomScaling ?? false}
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, productivity: {...editConfig.health?.productivity, useCustomScaling: e.target.checked}}})} />
               </div>
-              <div className="config-field">
-                <label>alpha</label>
-                <input type="number" step="0.05" value={editConfig?.health?.productivity?.alpha ?? 0.15} 
-                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, productivity: {...editConfig.health?.productivity, alpha: parseFloat(e.target.value)}}})} />
-              </div>
-              <div className="config-field">
-                <label>p (curve)</label>
-                <input type="number" step="0.5" value={editConfig?.health?.productivity?.p ?? 2} 
-                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, productivity: {...editConfig.health?.productivity, p: parseFloat(e.target.value)}}})} />
-              </div>
+              {editConfig?.health?.productivity?.useCustomScaling && (
+                <>
+                  <div className="config-field">
+                    <label>ref0</label>
+                    <input type="number" step="0.05" value={editConfig?.health?.productivity?.ref0 ?? 0.5} 
+                      onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, productivity: {...editConfig.health?.productivity, ref0: parseFloat(e.target.value)}}})} />
+                  </div>
+                  <div className="config-field">
+                    <label>alpha</label>
+                    <input type="number" step="0.05" value={editConfig?.health?.productivity?.alpha ?? 0.15} 
+                      onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, productivity: {...editConfig.health?.productivity, alpha: parseFloat(e.target.value)}}})} />
+                  </div>
+                  <div className="config-field">
+                    <label>p (curve)</label>
+                    <input type="number" step="0.5" value={editConfig?.health?.productivity?.p ?? 2} 
+                      onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, productivity: {...editConfig.health?.productivity, p: parseFloat(e.target.value)}}})} />
+                  </div>
+                </>
+              )}
             </div>
 
             <div className="config-section">
@@ -1003,32 +1019,56 @@ function App() {
                   onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, ptSlotsThreshold: parseInt(e.target.value)}})} />
               </div>
               <div className="section-divider-line"></div>
-              <p className="config-hint">Scaling</p>
               <div className="config-field">
-                <label>ref0</label>
-                <input type="number" step="0.05" value={editConfig?.health?.partytime?.ref0 ?? 0.5} 
-                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, partytime: {...editConfig.health?.partytime, ref0: parseFloat(e.target.value)}}})} />
+                <label>Custom Scaling</label>
+                <input type="checkbox" checked={editConfig?.health?.partytime?.useCustomScaling ?? false}
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, partytime: {...editConfig.health?.partytime, useCustomScaling: e.target.checked}}})} />
               </div>
-              <div className="config-field">
-                <label>alpha</label>
-                <input type="number" step="0.05" value={editConfig?.health?.partytime?.alpha ?? 0.15} 
-                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, partytime: {...editConfig.health?.partytime, alpha: parseFloat(e.target.value)}}})} />
-              </div>
-              <div className="config-field">
-                <label>p (curve)</label>
-                <input type="number" step="0.5" value={editConfig?.health?.partytime?.p ?? 2} 
-                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, partytime: {...editConfig.health?.partytime, p: parseFloat(e.target.value)}}})} />
-              </div>
+              {editConfig?.health?.partytime?.useCustomScaling && (
+                <>
+                  <div className="config-field">
+                    <label>ref0</label>
+                    <input type="number" step="0.05" value={editConfig?.health?.partytime?.ref0 ?? 0.5} 
+                      onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, partytime: {...editConfig.health?.partytime, ref0: parseFloat(e.target.value)}}})} />
+                  </div>
+                  <div className="config-field">
+                    <label>alpha</label>
+                    <input type="number" step="0.05" value={editConfig?.health?.partytime?.alpha ?? 0.15} 
+                      onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, partytime: {...editConfig.health?.partytime, alpha: parseFloat(e.target.value)}}})} />
+                  </div>
+                  <div className="config-field">
+                    <label>p (curve)</label>
+                    <input type="number" step="0.5" value={editConfig?.health?.partytime?.p ?? 2} 
+                      onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, partytime: {...editConfig.health?.partytime, p: parseFloat(e.target.value)}}})} />
+                  </div>
+                </>
+              )}
             </div>
 
             <div className="config-section">
-              <h3>Scaling (Shared)</h3>
+              <h3>Scaling (Global)</h3>
+              <div className="config-field">
+                <label>ref0</label>
+                <input type="number" step="0.05" value={editConfig?.health?.globalScaling?.ref0 ?? 0.5} 
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, globalScaling: {...editConfig.health?.globalScaling, ref0: parseFloat(e.target.value)}}})} />
+              </div>
+              <div className="config-field">
+                <label>alpha</label>
+                <input type="number" step="0.05" value={editConfig?.health?.globalScaling?.alpha ?? 0.15} 
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, globalScaling: {...editConfig.health?.globalScaling, alpha: parseFloat(e.target.value)}}})} />
+              </div>
+              <div className="config-field">
+                <label>p (curve)</label>
+                <input type="number" step="0.5" value={editConfig?.health?.globalScaling?.p ?? 2} 
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, globalScaling: {...editConfig.health?.globalScaling, p: parseFloat(e.target.value)}}})} />
+              </div>
               <div className="config-field">
                 <label>pop0 (baseline)</label>
                 <input type="number" value={editConfig?.health?.pop0 ?? 2} 
                   onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, pop0: parseInt(e.target.value)}})} />
               </div>
               <p className="config-hint">Tier Brackets: 1-6, 7-12, 13-20, 21-50, 51-100, 101+</p>
+              <p className="config-hint">Enable "Custom Scaling" on individual metrics to override these values.</p>
             </div>
 
             <div className="config-section">

@@ -149,6 +149,7 @@ const DEFAULT_HEALTH_CONFIG = {
     crowdingDampen: 0.35,
     maintenanceDampen: 0.35,
     rentCurve: 2,
+    useCustomScaling: false,
     ref0: 0.5,
     alpha: 0.15,
     p: 2,
@@ -159,6 +160,7 @@ const DEFAULT_HEALTH_CONFIG = {
     fatigueWeight: 0.55,
     noiseWeight: 0.35,
     crowdingWeight: 0.25,
+    useCustomScaling: false,
     ref0: 0.5,
     alpha: 0.15,
     p: 2,
@@ -168,10 +170,16 @@ const DEFAULT_HEALTH_CONFIG = {
     funWeight: 1.0,
     fatigueWeight: 0.45,
     noiseBoostScale: 0.08,
+    useCustomScaling: false,
     ref0: 0.5,
     alpha: 0.15,
     p: 2,
     tierMult: [1.0, 1.1, 1.2, 1.35, 1.5, 1.7]
+  },
+  globalScaling: {
+    ref0: 0.5,
+    alpha: 0.15,
+    p: 2
   },
   pop0: 2,
   tierBrackets: [6, 12, 20, 50, 100],
@@ -553,9 +561,11 @@ function getTierFromPop(pop) {
 
 function calculateMetricScore(rawValue, metricConfig, pop) {
   const pop0 = Math.max(1, healthConfig.pop0 || 2);
-  const ref0 = Math.max(0.01, metricConfig.ref0 || 0.5);
-  const alpha = metricConfig.alpha || 0.15;
-  const p = Math.max(0.1, metricConfig.p || 2);
+  const globalScaling = healthConfig.globalScaling || { ref0: 0.5, alpha: 0.15, p: 2 };
+  const useCustom = metricConfig.useCustomScaling === true;
+  const ref0 = Math.max(0.01, useCustom ? (metricConfig.ref0 || 0.5) : (globalScaling.ref0 || 0.5));
+  const alpha = useCustom ? (metricConfig.alpha || 0.15) : (globalScaling.alpha || 0.15);
+  const p = Math.max(0.1, useCustom ? (metricConfig.p || 2) : (globalScaling.p || 2));
   const tierMult = metricConfig.tierMult || [1.0, 1.1, 1.2, 1.35, 1.5, 1.7];
   const brackets = healthConfig.tierBrackets || [6, 12, 20, 50, 100];
   
