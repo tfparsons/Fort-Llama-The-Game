@@ -913,6 +913,23 @@ function App() {
                 <input type="number" step="0.1" value={editConfig?.health?.livingStandards?.rentCurve ?? 2} 
                   onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, livingStandards: {...editConfig.health?.livingStandards, rentCurve: parseFloat(e.target.value)}}})} />
               </div>
+              <div className="section-divider-line"></div>
+              <p className="config-hint">Scaling</p>
+              <div className="config-field">
+                <label>ref0</label>
+                <input type="number" step="0.05" value={editConfig?.health?.livingStandards?.ref0 ?? 0.5} 
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, livingStandards: {...editConfig.health?.livingStandards, ref0: parseFloat(e.target.value)}}})} />
+              </div>
+              <div className="config-field">
+                <label>alpha</label>
+                <input type="number" step="0.05" value={editConfig?.health?.livingStandards?.alpha ?? 0.15} 
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, livingStandards: {...editConfig.health?.livingStandards, alpha: parseFloat(e.target.value)}}})} />
+              </div>
+              <div className="config-field">
+                <label>p (curve)</label>
+                <input type="number" step="0.5" value={editConfig?.health?.livingStandards?.p ?? 2} 
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, livingStandards: {...editConfig.health?.livingStandards, p: parseFloat(e.target.value)}}})} />
+              </div>
             </div>
 
             <div className="config-section">
@@ -943,6 +960,23 @@ function App() {
                 <input type="number" step="0.1" value={editConfig?.health?.churnReductionMult ?? 0.5} 
                   onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, churnReductionMult: parseFloat(e.target.value)}})} />
               </div>
+              <div className="section-divider-line"></div>
+              <p className="config-hint">Scaling</p>
+              <div className="config-field">
+                <label>ref0</label>
+                <input type="number" step="0.05" value={editConfig?.health?.productivity?.ref0 ?? 0.5} 
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, productivity: {...editConfig.health?.productivity, ref0: parseFloat(e.target.value)}}})} />
+              </div>
+              <div className="config-field">
+                <label>alpha</label>
+                <input type="number" step="0.05" value={editConfig?.health?.productivity?.alpha ?? 0.15} 
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, productivity: {...editConfig.health?.productivity, alpha: parseFloat(e.target.value)}}})} />
+              </div>
+              <div className="config-field">
+                <label>p (curve)</label>
+                <input type="number" step="0.5" value={editConfig?.health?.productivity?.p ?? 2} 
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, productivity: {...editConfig.health?.productivity, p: parseFloat(e.target.value)}}})} />
+              </div>
             </div>
 
             <div className="config-section">
@@ -968,6 +1002,33 @@ function App() {
                 <input type="number" value={editConfig?.health?.ptSlotsThreshold ?? 50} 
                   onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, ptSlotsThreshold: parseInt(e.target.value)}})} />
               </div>
+              <div className="section-divider-line"></div>
+              <p className="config-hint">Scaling</p>
+              <div className="config-field">
+                <label>ref0</label>
+                <input type="number" step="0.05" value={editConfig?.health?.partytime?.ref0 ?? 0.5} 
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, partytime: {...editConfig.health?.partytime, ref0: parseFloat(e.target.value)}}})} />
+              </div>
+              <div className="config-field">
+                <label>alpha</label>
+                <input type="number" step="0.05" value={editConfig?.health?.partytime?.alpha ?? 0.15} 
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, partytime: {...editConfig.health?.partytime, alpha: parseFloat(e.target.value)}}})} />
+              </div>
+              <div className="config-field">
+                <label>p (curve)</label>
+                <input type="number" step="0.5" value={editConfig?.health?.partytime?.p ?? 2} 
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, partytime: {...editConfig.health?.partytime, p: parseFloat(e.target.value)}}})} />
+              </div>
+            </div>
+
+            <div className="config-section">
+              <h3>Scaling (Shared)</h3>
+              <div className="config-field">
+                <label>pop0 (baseline)</label>
+                <input type="number" value={editConfig?.health?.pop0 ?? 2} 
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, pop0: parseInt(e.target.value)}})} />
+              </div>
+              <p className="config-hint">Tier Brackets: 1-6, 7-12, 13-20, 21-50, 51-100, 101+</p>
             </div>
 
             <div className="config-section">
@@ -1530,9 +1591,15 @@ function App() {
               <>
                 <h2>Living Standards</h2>
                 <div className="formula-section">
-                  <h4>Formula</h4>
-                  <code>LS = baseline(Nutrition) × damp(Cleanliness) × damp(Crowding) × damp(Maintenance)</code>
-                  <p>Nutrition provides the baseline (0-100 scaled by weight). Cleanliness, Crowding, and Maintenance are dampeners that reduce LS as debt accumulates.</p>
+                  <h4>Raw Formula</h4>
+                  <code>LS_raw = baseline(Nutrition) × baseline(Cleanliness) × damp(Crowding) × damp(Maintenance)</code>
+                  <p>Nutrition and Cleanliness provide the baseline. Crowding and Maintenance are dampeners.</p>
+                </div>
+                <div className="formula-section">
+                  <h4>Scoring (0-100)</h4>
+                  <code>M_ref = ref0 × (pop/pop0)^alpha × tierMult[tier]</code>
+                  <code>score = 100 × (raw/M_ref)^p / (1 + (raw/M_ref)^p)</code>
+                  <p>Score is normalized against a population-scaled reference. At raw = M_ref, score = 50. Higher p = steeper curve.</p>
                 </div>
                 <div className="formula-section">
                   <h4>Primitives Used</h4>
@@ -1574,9 +1641,15 @@ function App() {
               <>
                 <h2>Productivity</h2>
                 <div className="formula-section">
-                  <h4>Formula</h4>
-                  <code>PR = baseline(Drive) × damp(Fatigue) × damp(Noise) × damp(Crowding)</code>
-                  <p>Drive provides the baseline. Fatigue, Noise, and Crowding are dampeners that reduce productivity.</p>
+                  <h4>Raw Formula</h4>
+                  <code>PR_raw = baseline(Drive) × damp(Fatigue) × damp(Noise) × damp(Crowding)</code>
+                  <p>Drive provides the baseline. Fatigue, Noise, and Crowding are dampeners.</p>
+                </div>
+                <div className="formula-section">
+                  <h4>Scoring (0-100)</h4>
+                  <code>M_ref = ref0 × (pop/pop0)^alpha × tierMult[tier]</code>
+                  <code>score = 100 × (raw/M_ref)^p / (1 + (raw/M_ref)^p)</code>
+                  <p>Score is normalized against a population-scaled reference. At raw = M_ref, score = 50. Higher p = steeper curve.</p>
                 </div>
                 <div className="formula-section">
                   <h4>Primitives Used</h4>
@@ -1613,9 +1686,15 @@ function App() {
               <>
                 <h2>Partytime</h2>
                 <div className="formula-section">
-                  <h4>Formula</h4>
-                  <code>PT = baseline(Fun) × damp(Fatigue) × (1 + NoiseBonus)</code>
+                  <h4>Raw Formula</h4>
+                  <code>PT_raw = baseline(Fun) × damp(Fatigue) × (1 + NoiseBonus)</code>
                   <p>Fun provides the baseline. Fatigue is a dampener. Noise provides a bonus (noiseBoostScale × noise / 100)!</p>
+                </div>
+                <div className="formula-section">
+                  <h4>Scoring (0-100)</h4>
+                  <code>M_ref = ref0 × (pop/pop0)^alpha × tierMult[tier]</code>
+                  <code>score = 100 × (raw/M_ref)^p / (1 + (raw/M_ref)^p)</code>
+                  <p>Score is normalized against a population-scaled reference. At raw = M_ref, score = 50. Higher p = steeper curve.</p>
                 </div>
                 <div className="formula-section">
                   <h4>Primitives Used</h4>
