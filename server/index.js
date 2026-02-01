@@ -880,7 +880,10 @@ app.post('/api/save-defaults', (req, res) => {
     vibes: { ...vibesConfig }
   };
   savedLlamaPool = JSON.parse(JSON.stringify(llamaPool));
-  savedBuildingsConfig = gameState.buildings.map(b => ({ ...b }));
+  // Only update savedBuildingsConfig from gameState if it hasn't been edited separately
+  if (!savedBuildingsConfig) {
+    savedBuildingsConfig = gameState.buildings.map(b => ({ ...b }));
+  }
   
   // Persist to file
   try {
