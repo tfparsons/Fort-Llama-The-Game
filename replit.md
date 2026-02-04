@@ -43,7 +43,10 @@ The project follows a client-server architecture:
             -   LS affects rent tolerance via diminishing returns curve
             -   PR reduces the churn rate (via churnReductionMult)
             -   PT increases recruitment slots (via ptSlotsThreshold)
-    -   **Vibes System:** A headline status combining health metrics, calculated as a geometric mean. It features a 10-tier ladder (Omni-shambles to Utopia) with scale gating based on commune size and identity labels for imbalanced communes (e.g., "Party House," "Sweat Shop").
+    -   **Vibes System:** A headline status combining health metrics, calculated as a geometric mean. It features a 10-tier ladder with scale gating based on commune size and identity labels for imbalanced communes (e.g., "Party House," "Sweat Shop").
+        -   Tier progression: Shambles → Rough → Scrappy → Fine → Good → Lovely → Thriving → Wonderful → Glorious → Utopia
+        -   Thresholds: 0-15, 15-25, 25-35, 35-45, 45-55, 55-65, 65-75, 75-85, 85-95, 95+
+        -   Early game starts at "Fine" (health metrics ~35-45)
     -   **Resident System:** Features 20 unique llamas with individual stats (e.g., Sharing Tolerance, Cooking Skill). Residents are tracked individually, and churned residents remain visible but inactive, returning to the recruitable pool.
     -   **Buildings System:** Different building types (Bedrooms, Kitchen, Bathroom, Living Room, Utility Closet) contribute to capacity and primitive calculations. Each building has quality levels and specific primitive multipliers.
     -   **Player Actions:** Weekly actions include setting rent, recruiting llamas (one per week from three candidates), and building bedrooms.
