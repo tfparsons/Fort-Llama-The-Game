@@ -544,9 +544,6 @@ function App() {
 
           <div className="primitives-section">
             <div className="pressure-column">
-              <div className="section-header">
-                <span className="section-title">Pressure</span>
-              </div>
               <div className="pressure-gauges">
                 {[
                   { key: 'crowding', label: 'Crowding', icon: '👥', tiers: ['Comfortable', 'Tight', 'Crowded', 'Unliveable'] },
@@ -613,9 +610,6 @@ function App() {
               </div>
             </div>
             <div className="instants-column">
-              <div className="section-header">
-                <span className="section-title">Coverage Metrics</span>
-              </div>
               {[
                 { key: 'nutrition', label: 'Nutrition', icon: '🍽️' },
                 { key: 'cleanliness', label: 'Cleanliness', icon: '🧹' },
@@ -644,9 +638,6 @@ function App() {
               })}
             </div>
             <div className="stocks-column">
-              <div className="section-header">
-                <span className="section-title">Stock Levels</span>
-              </div>
               <div className="stocks-tanks">
                 {[
                   { key: 'maintenance', label: 'Maintenance', icon: '🔧' },
