@@ -568,16 +568,24 @@ body {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 12px;
+  align-items: stretch;
+  margin-bottom: 16px;
 }
 
 .dev-tools-grid.three-col {
   grid-template-columns: repeat(3, 1fr);
 }
 
+.dev-tools-grid + .dev-tools-grid {
+  margin-top: 16px;
+}
+
 .config-section {
   padding: 12px;
   background: #16213e;
   border-radius: 4px;
+  height: 100%;
+  box-sizing: border-box;
 }
 
 .config-section h3 {
