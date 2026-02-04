@@ -1091,21 +1091,6 @@ function App() {
             </div>
 
             <div className="config-section">
-              <h3>Global Penalty Curve</h3>
-              <div className="config-field">
-                <label>k (severity)</label>
-                <input type="number" step="0.1" value={editConfig?.primitives?.penaltyK ?? 2} 
-                  onChange={(e) => updatePrimitiveConfig('global', 'penaltyK', parseFloat(e.target.value))} />
-              </div>
-              <div className="config-field">
-                <label>p (steepness)</label>
-                <input type="number" step="0.1" value={editConfig?.primitives?.penaltyP ?? 2} 
-                  onChange={(e) => updatePrimitiveConfig('global', 'penaltyP', parseFloat(e.target.value))} />
-              </div>
-              <p className="config-hint">penalty = 1 + k × (ratio - 1)^p when over capacity</p>
-            </div>
-
-            <div className="config-section">
               <h3>Vibes Thresholds</h3>
               <div className="config-field">
                 <label>Balanced spread</label>
