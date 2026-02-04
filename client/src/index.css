@@ -1307,6 +1307,50 @@ body {
   color: #f59e0b;
 }
 
+.primitive-type.coverage {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+}
+
+.coverage-label {
+  font-size: 0.65rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: #a0aec0;
+  margin-left: auto;
+}
+
+.coverage-stats {
+  display: flex;
+  gap: 16px;
+  padding: 8px 12px;
+  background: rgba(16, 185, 129, 0.1);
+  border-radius: 6px;
+  margin-bottom: 12px;
+  font-size: 0.8rem;
+  color: #a0aec0;
+}
+
+.coverage-stats span {
+  display: flex;
+  gap: 4px;
+}
+
+.tier-info {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, rgba(233, 69, 96, 0.1), rgba(16, 185, 129, 0.1));
+  border-radius: 8px;
+  margin-bottom: 12px;
+  font-weight: bold;
+  color: #e94560;
+}
+
+.tier-info span:last-child {
+  color: #10b981;
+}
+
 .primitive-value {
   font-family: monospace;
   font-size: 0.9rem;
@@ -1699,6 +1743,29 @@ body {
   font-weight: bold;
   width: 28px;
   text-align: right;
+}
+
+.coverage-item {
+  flex-wrap: wrap;
+}
+
+.coverage-tier {
+  font-size: 0.65rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  width: 60px;
+  text-align: right;
+}
+
+.tier-badge {
+  background: linear-gradient(135deg, #0f3460, #16213e);
+  color: #e94560;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  border: 1px solid #e94560;
 }
 
 .stocks-tanks {

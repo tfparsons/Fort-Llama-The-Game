@@ -129,17 +129,24 @@ const DEFAULT_BUILDINGS = [
   }
 ];
 
+const DEFAULT_TIER_CONFIG = {
+  brackets: [6, 12, 20, 50, 100],
+  outputMults: [1.0, 1.15, 1.3, 1.5, 1.75, 2.0],
+  healthMults: [1.0, 1.1, 1.2, 1.35, 1.5, 1.7],
+  qualityCaps: [2, 3, 4, 5, 5, 5]
+};
+
 const DEFAULT_PRIMITIVE_CONFIG = {
   penaltyK: 2,
   penaltyP: 2,
   crowding: { weight: 1.0, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
   noise: { baseSocial: 5, baseAmbient: 10, socioMult: 0.1, considMult: 0.3, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
-  nutrition: { baseThroughput: 50, cookMult: 0.5, dilutionRate: 0.05, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
-  cleanliness: { baseThroughput: 50, tidyMult: 0.5, dilutionRate: 0.05, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
+  nutrition: { outputRate: 10, consumptionRate: 1, skillMult: 0.3, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
+  cleanliness: { outputRate: 3, consumptionRate: 1, skillMult: 0.3, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
   maintenance: { wearPerResident: 1, repairBase: 3, recoveryRate: 0.1, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
   fatigue: { exertBase: 3, recoverBase: 5, workMult: 0.3, socioMult: 0.2 },
-  fun: { funBase: 50, socioMult: 0.4, staminaMult: 0.2, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
-  drive: { driveBase: 50, workMult: 0.5, distractMult: 0.3, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 }
+  fun: { outputRate: 10, consumptionRate: 1, skillMult: 0.3, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
+  drive: { outputRate: 10, slackRate: 1, skillMult: 0.3, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 }
 };
 
 const DEFAULT_HEALTH_CONFIG = {
@@ -242,7 +249,8 @@ const INITIAL_DEFAULTS = {
   ],
   primitives: { ...DEFAULT_PRIMITIVE_CONFIG },
   health: { ...DEFAULT_HEALTH_CONFIG },
-  vibes: { ...DEFAULT_VIBES_CONFIG }
+  vibes: { ...DEFAULT_VIBES_CONFIG },
+  tierConfig: { ...DEFAULT_TIER_CONFIG }
 };
 
 function loadSavedDefaults() {
@@ -270,6 +278,7 @@ let savedDefaults = loadedData.defaults;
 let primitiveConfig = savedDefaults.primitives ? { ...savedDefaults.primitives } : { ...DEFAULT_PRIMITIVE_CONFIG };
 let healthConfig = savedDefaults.health ? { ...savedDefaults.health } : { ...DEFAULT_HEALTH_CONFIG };
 let vibesConfig = savedDefaults.vibes ? { ...savedDefaults.vibes } : { ...DEFAULT_VIBES_CONFIG };
+let tierConfig = savedDefaults.tierConfig ? { ...savedDefaults.tierConfig } : { ...DEFAULT_TIER_CONFIG };
 let savedLlamaPool = loadedData.llamaPool;
 let savedBuildingsConfig = loadedData.buildings;
 
@@ -296,6 +305,7 @@ function initializeGame(config = savedDefaults) {
   primitiveConfig = deepMergePrimitives(DEFAULT_PRIMITIVE_CONFIG, config.primitives);
   healthConfig = deepMergePrimitives(DEFAULT_HEALTH_CONFIG, config.health);
   vibesConfig = config.vibes ? { ...config.vibes } : { ...DEFAULT_VIBES_CONFIG };
+  tierConfig = config.tierConfig ? { ...config.tierConfig } : { ...DEFAULT_TIER_CONFIG };
   
   llamaPool = savedLlamaPool 
     ? JSON.parse(JSON.stringify(savedLlamaPool)) 
@@ -358,6 +368,14 @@ function initializeGame(config = savedDefaults) {
       branchLabel: null,
       isBalanced: true,
       scaleTier: 1
+    },
+    coverageData: {
+      tier: 0,
+      tierOutputMult: 1.0,
+      nutrition: { supply: 0, demand: 0, ratio: 1, label: 'Adequate' },
+      cleanliness: { supply: 0, demand: 0, ratio: 1, label: 'Adequate' },
+      fun: { supply: 0, demand: 0, ratio: 1, label: 'Adequate' },
+      drive: { supply: 0, demand: 0, ratio: 1, label: 'Adequate' }
     }
   };
   calculatePrimitives();
@@ -460,6 +478,39 @@ function overcrowdingPenalty(ratio, primitiveName = null) {
   return 1 + k * Math.pow(over, p);
 }
 
+function getPopulationTier(pop) {
+  const brackets = tierConfig.brackets || [6, 12, 20, 50, 100];
+  for (let i = 0; i < brackets.length; i++) {
+    if (pop <= brackets[i]) return i;
+  }
+  return brackets.length;
+}
+
+function getTierOutputMult(tier) {
+  const mults = tierConfig.outputMults || [1.0, 1.15, 1.3, 1.5, 1.75, 2.0];
+  return mults[Math.min(tier, mults.length - 1)];
+}
+
+function getTierHealthMult(tier) {
+  const mults = tierConfig.healthMults || [1.0, 1.1, 1.2, 1.35, 1.5, 1.7];
+  return mults[Math.min(tier, mults.length - 1)];
+}
+
+function log2CoverageScore(ratio) {
+  if (ratio <= 0) return 0;
+  const log2Ratio = Math.log2(ratio);
+  const score = 25 * (log2Ratio + 2);
+  return Math.max(0, Math.min(100, score));
+}
+
+function getCoverageTierLabel(ratio) {
+  if (ratio < 1) return 'Shortfall';
+  if (ratio < 2) return 'Adequate';
+  if (ratio < 4) return 'Good';
+  if (ratio < 8) return 'Great';
+  return 'Superb';
+}
+
 function calculatePrimitives() {
   const N = gameState.communeResidents.length;
   if (N === 0) {
@@ -501,19 +552,22 @@ function calculatePrimitives() {
   const ambientNoise = cfg.baseAmbient * overcrowdingPenalty(N / capLiv, 'noise');
   const noise = Math.min(100, (socialNoise + ambientNoise) * (1 / lQ));
   
+  const tier = getPopulationTier(N);
+  const tierOutputMult = getTierOutputMult(tier);
+  
   const nCfg = primitiveConfig.nutrition;
-  const throughput = nCfg.baseThroughput * kQ * getBuildingMult('kitchen', 'foodMult');
-  const perRes = throughput / (1 + nCfg.dilutionRate * Math.max(0, N - 1));
-  const cookBonus = 1 + nCfg.cookMult * cookSkill;
-  const nutritionPenalty = overcrowdingPenalty(N / capKitch, 'nutrition');
-  const nutrition = Math.min(100, Math.max(0, perRes * cookBonus / nutritionPenalty));
+  const nutritionServed = Math.min(N, capKitch);
+  const nutritionSupply = nutritionServed * nCfg.outputRate * tierOutputMult * kQ * getBuildingMult('kitchen', 'foodMult') * (1 + nCfg.skillMult * cookSkill);
+  const nutritionDemand = N * nCfg.consumptionRate;
+  const nutritionRatio = nutritionDemand > 0 ? nutritionSupply / nutritionDemand : 1;
+  const nutrition = log2CoverageScore(nutritionRatio);
   
   const cCfg = primitiveConfig.cleanliness;
-  const bathThroughput = cCfg.baseThroughput * bathQ * getBuildingMult('bathroom', 'cleanMult');
-  const perResCleanliness = bathThroughput / (1 + cCfg.dilutionRate * Math.max(0, N - 1));
-  const tidyBonus = 1 + cCfg.tidyMult * tidiness;
-  const cleanlinessPenalty = overcrowdingPenalty(N / capBath, 'cleanliness');
-  const cleanliness = Math.min(100, Math.max(0, perResCleanliness * tidyBonus / cleanlinessPenalty));
+  const cleanServed = Math.min(N, capBath);
+  const cleanSupply = cleanServed * cCfg.outputRate * tierOutputMult * bathQ * getBuildingMult('bathroom', 'cleanMult') * (1 + cCfg.skillMult * tidiness);
+  const cleanDemand = N * cCfg.consumptionRate;
+  const cleanRatio = cleanDemand > 0 ? cleanSupply / cleanDemand : 1;
+  const cleanliness = log2CoverageScore(cleanRatio);
   
   const mCfg = primitiveConfig.maintenance;
   const wearIn = mCfg.wearPerResident * N * overcrowdingPenalty(N / capUtil, 'maintenance');
@@ -530,15 +584,29 @@ function calculatePrimitives() {
   const fatigue = Math.min(100, Math.max(0, oldFatigue + netFatigue * 0.3));
   
   const funCfg = primitiveConfig.fun;
-  const crowdFactor = rLiv < 0.3 ? 0.7 : rLiv < 0.8 ? 1 + 0.3 * (rLiv - 0.3) : 1.15 / overcrowdingPenalty(rLiv, 'fun');
-  const fun = Math.min(100, Math.max(0, funCfg.funBase * lQ * getBuildingMult('living_room', 'funMult') * 
-    (1 + funCfg.socioMult * sociability + funCfg.staminaMult * partyStamina) * crowdFactor));
+  const funServed = Math.min(N, capLiv);
+  const funSupply = funServed * funCfg.outputRate * tierOutputMult * lQ * getBuildingMult('living_room', 'funMult') * (1 + funCfg.skillMult * (sociability + partyStamina) / 2);
+  const funDemand = N * funCfg.consumptionRate;
+  const funRatio = funDemand > 0 ? funSupply / funDemand : 1;
+  const fun = log2CoverageScore(funRatio);
   
   const dCfg = primitiveConfig.drive;
-  const distraction = (1 + 0.5 * sociability) * overcrowdingPenalty(N / capLiv, 'drive') * (1 - 0.3 * consideration);
-  const drive = Math.min(100, Math.max(0, dCfg.driveBase * lQ * (1 + dCfg.workMult * workEthic) / (1 + dCfg.distractMult * distraction)));
+  const driveServed = Math.min(N, capLiv);
+  const driveSupply = driveServed * dCfg.outputRate * tierOutputMult * lQ * (1 + dCfg.skillMult * workEthic);
+  const driveDemand = N * dCfg.slackRate;
+  const driveRatio = driveDemand > 0 ? driveSupply / driveDemand : 1;
+  const drive = log2CoverageScore(driveRatio);
   
   gameState.primitives = { crowding, noise, nutrition, cleanliness, maintenance, fatigue, fun, drive };
+  
+  gameState.coverageData = {
+    tier,
+    tierOutputMult,
+    nutrition: { supply: nutritionSupply, demand: nutritionDemand, ratio: nutritionRatio, label: getCoverageTierLabel(nutritionRatio) },
+    cleanliness: { supply: cleanSupply, demand: cleanDemand, ratio: cleanRatio, label: getCoverageTierLabel(cleanRatio) },
+    fun: { supply: funSupply, demand: funDemand, ratio: funRatio, label: getCoverageTierLabel(funRatio) },
+    drive: { supply: driveSupply, demand: driveDemand, ratio: driveRatio, label: getCoverageTierLabel(driveRatio) }
+  };
 }
 
 function dampener(value, weight) {
@@ -857,7 +925,8 @@ app.get('/api/state', (req, res) => {
     rentTierThresholds: gameConfig.rentTierThresholds,
     primitiveConfig,
     healthConfig,
-    vibesConfig
+    vibesConfig,
+    tierConfig
   });
 });
 
@@ -877,7 +946,8 @@ app.post('/api/save-defaults', (req, res) => {
     ...gameConfig,
     primitives: { ...primitiveConfig },
     health: { ...healthConfig },
-    vibes: { ...vibesConfig }
+    vibes: { ...vibesConfig },
+    tierConfig: { ...tierConfig }
   };
   savedLlamaPool = JSON.parse(JSON.stringify(llamaPool));
   // Only update savedBuildingsConfig from gameState if it hasn't been edited separately
@@ -935,6 +1005,18 @@ app.post('/api/vibes-config', (req, res) => {
   vibesConfig = { ...vibesConfig, ...req.body };
   calculateVibes();
   res.json({ success: true, config: vibesConfig });
+});
+
+app.get('/api/tier-config', (req, res) => {
+  res.json(tierConfig);
+});
+
+app.post('/api/tier-config', (req, res) => {
+  tierConfig = { ...tierConfig, ...req.body };
+  calculatePrimitives();
+  calculateHealthMetrics();
+  calculateVibes();
+  res.json({ success: true, config: tierConfig });
 });
 
 app.get('/api/llama-pool', (req, res) => {

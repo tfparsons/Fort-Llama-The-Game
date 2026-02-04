@@ -21,7 +21,19 @@ The project follows a client-server architecture:
     -   Primitives are visualized with distinct UI elements: circular gauges for "Pressure" (Crowding, Noise), horizontal bars for "Instant Metrics" (Nutrition, Cleanliness, Fun, Drive), and vertical tanks for "Stock Levels" (Maintenance, Fatigue). Tanks visually fill and change color based on debt accumulation.
 -   **Game Mechanics:**
     -   **Time System:** Daily ticks (7 days per week) with an auto-pause at the end of each week for player decisions. The weekly action modal appears on Monday at 9 am.
-    -   **Primitives System:** Eight core metrics (6 instant, 2 stock) are calculated daily based on buildings and resident stats. These include Crowding, Noise, Nutrition, Cleanliness, Fun, Drive (instant), and Maintenance debt, Fatigue debt (stock). An overcrowding penalty curve is applied.
+    -   **Primitives System:** Eight core metrics with three types:
+        -   **Pressure** (Crowding, Noise): Increase with population and decrease quality of life
+        -   **Coverage** (Nutrition, Cleanliness, Fun, Drive): Supply/demand model with log2 scoring
+            -   Supply = min(N, capacity) × outputRate × tierOutputMult × buildingQuality × (1 + skillMult × avgSkill)
+            -   Demand = N × consumptionRate (or slackRate for Drive)
+            -   Score = 25 × (log2(ratio) + 2), clamped 0-100
+            -   Tier labels: Shortfall (<1x), Adequate (1-2x), Good (2-4x), Great (4-8x), Superb (8x+)
+        -   **Stock** (Maintenance, Fatigue): Debt-based accumulation over time
+    -   **Tier Progression System:** Population-based tiers scale the game's progression:
+        -   Brackets: 1-6, 7-12, 13-20, 21-50, 51-100, 101+
+        -   outputMults: [1.0, 1.15, 1.3, 1.5, 1.75, 2.0] - scales supply for coverage primitives
+        -   healthMults: [1.0, 1.1, 1.2, 1.35, 1.5, 1.7] - scales health metric reference values
+        -   qualityCaps: [2, 3, 4, 5, 5, 5] - gates building upgrade levels by tier
     -   **Health Metrics:** Three aggregate metrics—Living Standards (LS), Productivity (PR), and Partytime (PT)—are derived from primitives. Uses a ratio-based scoring system for consistent 0-100 output across all game stages:
         -   Raw values are computed from primitives (unchanged formulas)
         -   Scoring: `M_ref = ref0 × (pop/pop0)^alpha × tierMult[tier]`, then `score = 100 × x^p / (1 + x^p)` where `x = raw/M_ref`

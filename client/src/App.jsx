@@ -611,26 +611,34 @@ function App() {
             </div>
             <div className="instants-column">
               <div className="section-header">
-                <span className="section-title">Instant Metrics</span>
+                <span className="section-title">Coverage Metrics</span>
+                {gameState.coverageData && (
+                  <span className="tier-badge">Tier {(gameState.coverageData.tier || 0) + 1}</span>
+                )}
               </div>
               {[
-                { key: 'nutrition', label: 'Nutrition', icon: '🍽️', inverse: false },
-                { key: 'cleanliness', label: 'Cleanliness', icon: '🧹', inverse: false },
-                { key: 'fun', label: 'Fun', icon: '🎉', inverse: false },
-                { key: 'drive', label: 'Drive', icon: '💪', inverse: false }
+                { key: 'nutrition', label: 'Nutrition', icon: '🍽️' },
+                { key: 'cleanliness', label: 'Cleanliness', icon: '🧹' },
+                { key: 'fun', label: 'Fun', icon: '🎉' },
+                { key: 'drive', label: 'Drive', icon: '💪' }
               ].map(p => {
                 const val = Math.round(gameState.primitives?.[p.key] || 0);
-                const good = p.inverse ? val < 40 : val > 60;
-                const bad = p.inverse ? val > 60 : val < 40;
-                const color = good ? '#48bb78' : bad ? '#f56565' : '#ed8936';
+                const coverage = gameState.coverageData?.[p.key];
+                const ratio = coverage?.ratio || 1;
+                const tierLabel = coverage?.label || 'Adequate';
+                const labelColor = tierLabel === 'Shortfall' ? '#f56565' : 
+                                   tierLabel === 'Adequate' ? '#ed8936' : 
+                                   tierLabel === 'Good' ? '#48bb78' : 
+                                   tierLabel === 'Great' ? '#38b2ac' : '#805ad5';
                 return (
-                  <div key={p.key} className="primitive-item">
+                  <div key={p.key} className="primitive-item coverage-item">
                     <span className="prim-icon">{p.icon}</span>
                     <span className="prim-label">{p.label}</span>
                     <div className="prim-bar-container">
-                      <div className="prim-bar" style={{ width: `${val}%`, backgroundColor: color }}/>
+                      <div className="prim-bar" style={{ width: `${val}%`, backgroundColor: labelColor }}/>
                     </div>
                     <span className="prim-value">{val}</span>
+                    <span className="coverage-tier" style={{ color: labelColor }}>{tierLabel}</span>
                   </div>
                 );
               })}
@@ -1062,6 +1070,27 @@ function App() {
             </div>
 
             <div className="config-section">
+              <h3>Tier Progression</h3>
+              <div className="tier-info">
+                <span>Current Tier: {(gameState?.coverageData?.tier || 0) + 1}</span>
+                <span>Output Mult: {gameState?.coverageData?.tierOutputMult?.toFixed(2) || 1.00}x</span>
+              </div>
+              <div className="config-field">
+                <label>Brackets (pop)</label>
+                <input type="text" value={gameState?.tierConfig?.brackets?.join(', ') || '6, 12, 20, 50, 100'} readOnly />
+              </div>
+              <div className="config-field">
+                <label>Output Mults</label>
+                <input type="text" value={gameState?.tierConfig?.outputMults?.join(', ') || '1.0, 1.15, 1.3, 1.5, 1.75, 2.0'} readOnly />
+              </div>
+              <div className="config-field">
+                <label>Health Mults</label>
+                <input type="text" value={gameState?.tierConfig?.healthMults?.join(', ') || '1.0, 1.1, 1.2, 1.35, 1.5, 1.7'} readOnly />
+              </div>
+              <p className="config-hint">Tier multipliers scale supply & health as population grows. Edit in saved-defaults.json.</p>
+            </div>
+
+            <div className="config-section">
               <h3>Global Penalty Curve</h3>
               <div className="config-field">
                 <label>k (severity)</label>
@@ -1197,52 +1226,37 @@ function App() {
               <div className="primitive-header" onClick={() => togglePrimitiveExpanded('nutrition')}>
                 <span className="expand-icon">{expandedPrimitives.nutrition ? '▼' : '▶'}</span>
                 <span className="primitive-name">Nutrition</span>
-                <span className="primitive-type instant">Instant</span>
+                <span className="primitive-type coverage">Coverage</span>
                 <span className="primitive-value">{gameState?.primitives?.nutrition?.toFixed(1) ?? 0}</span>
+                <span className="coverage-label">{gameState?.coverageData?.nutrition?.label || 'Adequate'}</span>
               </div>
               {expandedPrimitives.nutrition && (
                 <div className="primitive-body">
-                  <div className="formula-display">throughput × quality × cookBonus ÷ penalty</div>
+                  <div className="formula-display">supply = min(N,cap) × outputRate × tierMult × quality × (1 + skillMult × cookSkill)</div>
+                  <div className="coverage-stats">
+                    <span>Supply: {gameState?.coverageData?.nutrition?.supply?.toFixed(1) || 0}</span>
+                    <span>Demand: {gameState?.coverageData?.nutrition?.demand?.toFixed(1) || 0}</span>
+                    <span>Ratio: {gameState?.coverageData?.nutrition?.ratio?.toFixed(2) || 1}x</span>
+                  </div>
                   <div className="primitive-controls">
                     <div className="config-field">
-                      <label>baseThroughput</label>
-                      <input type="number" step="5" value={editConfig?.primitives?.nutrition?.baseThroughput ?? 50}
-                        onChange={(e) => updatePrimitiveConfig('nutrition', 'baseThroughput', parseFloat(e.target.value))} />
+                      <label>outputRate</label>
+                      <input type="number" step="1" value={editConfig?.primitives?.nutrition?.outputRate ?? 10}
+                        onChange={(e) => updatePrimitiveConfig('nutrition', 'outputRate', parseFloat(e.target.value))} />
                     </div>
                     <div className="config-field">
-                      <label>cookMult</label>
-                      <input type="number" step="0.1" value={editConfig?.primitives?.nutrition?.cookMult ?? 0.5}
-                        onChange={(e) => updatePrimitiveConfig('nutrition', 'cookMult', parseFloat(e.target.value))} />
+                      <label>consumptionRate</label>
+                      <input type="number" step="0.1" value={editConfig?.primitives?.nutrition?.consumptionRate ?? 1}
+                        onChange={(e) => updatePrimitiveConfig('nutrition', 'consumptionRate', parseFloat(e.target.value))} />
                     </div>
                     <div className="config-field">
-                      <label>dilutionRate</label>
-                      <input type="number" step="0.01" value={editConfig?.primitives?.nutrition?.dilutionRate ?? 0.05}
-                        onChange={(e) => updatePrimitiveConfig('nutrition', 'dilutionRate', parseFloat(e.target.value))} />
+                      <label>skillMult</label>
+                      <input type="number" step="0.1" value={editConfig?.primitives?.nutrition?.skillMult ?? 0.3}
+                        onChange={(e) => updatePrimitiveConfig('nutrition', 'skillMult', parseFloat(e.target.value))} />
                     </div>
-                  </div>
-                  <div className="penalty-toggle">
-                    <label className="toggle-label">
-                      <input type="checkbox" checked={editConfig?.primitives?.nutrition?.useCustomPenalty ?? false}
-                        onChange={(e) => updatePrimitiveConfig('nutrition', 'useCustomPenalty', e.target.checked)} />
-                      Custom Penalty K/P
-                    </label>
-                    {editConfig?.primitives?.nutrition?.useCustomPenalty && (
-                      <div className="penalty-fields">
-                        <div className="config-field">
-                          <label>k</label>
-                          <input type="number" step="0.1" value={editConfig?.primitives?.nutrition?.penaltyK ?? 2}
-                            onChange={(e) => updatePrimitiveConfig('nutrition', 'penaltyK', parseFloat(e.target.value))} />
-                        </div>
-                        <div className="config-field">
-                          <label>p</label>
-                          <input type="number" step="0.1" value={editConfig?.primitives?.nutrition?.penaltyP ?? 2}
-                            onChange={(e) => updatePrimitiveConfig('nutrition', 'penaltyP', parseFloat(e.target.value))} />
-                        </div>
-                      </div>
-                    )}
                   </div>
                   <div className="linked-buildings">
-                    <span className="info-label">Buildings:</span> Kitchen (foodMult: {gameState?.buildings?.find(b => b.id === 'kitchen')?.foodMult ?? 1.0})
+                    <span className="info-label">Buildings:</span> Kitchen (cap: {gameState?.buildings?.find(b => b.id === 'kitchen')?.capacity ?? 20}, foodMult: {gameState?.buildings?.find(b => b.id === 'kitchen')?.foodMult ?? 1.0})
                   </div>
                 </div>
               )}
@@ -1252,52 +1266,37 @@ function App() {
               <div className="primitive-header" onClick={() => togglePrimitiveExpanded('fun')}>
                 <span className="expand-icon">{expandedPrimitives.fun ? '▼' : '▶'}</span>
                 <span className="primitive-name">Fun</span>
-                <span className="primitive-type instant">Instant</span>
+                <span className="primitive-type coverage">Coverage</span>
                 <span className="primitive-value">{gameState?.primitives?.fun?.toFixed(1) ?? 0}</span>
+                <span className="coverage-label">{gameState?.coverageData?.fun?.label || 'Adequate'}</span>
               </div>
               {expandedPrimitives.fun && (
                 <div className="primitive-body">
-                  <div className="formula-display">funBase × quality × statBonus × crowdFactor</div>
+                  <div className="formula-display">supply = min(N,cap) × outputRate × tierMult × quality × (1 + skillMult × avgSocioStamina)</div>
+                  <div className="coverage-stats">
+                    <span>Supply: {gameState?.coverageData?.fun?.supply?.toFixed(1) || 0}</span>
+                    <span>Demand: {gameState?.coverageData?.fun?.demand?.toFixed(1) || 0}</span>
+                    <span>Ratio: {gameState?.coverageData?.fun?.ratio?.toFixed(2) || 1}x</span>
+                  </div>
                   <div className="primitive-controls">
                     <div className="config-field">
-                      <label>funBase</label>
-                      <input type="number" step="5" value={editConfig?.primitives?.fun?.funBase ?? 50}
-                        onChange={(e) => updatePrimitiveConfig('fun', 'funBase', parseFloat(e.target.value))} />
+                      <label>outputRate</label>
+                      <input type="number" step="1" value={editConfig?.primitives?.fun?.outputRate ?? 10}
+                        onChange={(e) => updatePrimitiveConfig('fun', 'outputRate', parseFloat(e.target.value))} />
                     </div>
                     <div className="config-field">
-                      <label>socioMult</label>
-                      <input type="number" step="0.1" value={editConfig?.primitives?.fun?.socioMult ?? 0.4}
-                        onChange={(e) => updatePrimitiveConfig('fun', 'socioMult', parseFloat(e.target.value))} />
+                      <label>consumptionRate</label>
+                      <input type="number" step="0.1" value={editConfig?.primitives?.fun?.consumptionRate ?? 1}
+                        onChange={(e) => updatePrimitiveConfig('fun', 'consumptionRate', parseFloat(e.target.value))} />
                     </div>
                     <div className="config-field">
-                      <label>staminaMult</label>
-                      <input type="number" step="0.1" value={editConfig?.primitives?.fun?.staminaMult ?? 0.2}
-                        onChange={(e) => updatePrimitiveConfig('fun', 'staminaMult', parseFloat(e.target.value))} />
+                      <label>skillMult</label>
+                      <input type="number" step="0.1" value={editConfig?.primitives?.fun?.skillMult ?? 0.3}
+                        onChange={(e) => updatePrimitiveConfig('fun', 'skillMult', parseFloat(e.target.value))} />
                     </div>
-                  </div>
-                  <div className="penalty-toggle">
-                    <label className="toggle-label">
-                      <input type="checkbox" checked={editConfig?.primitives?.fun?.useCustomPenalty ?? false}
-                        onChange={(e) => updatePrimitiveConfig('fun', 'useCustomPenalty', e.target.checked)} />
-                      Custom Penalty K/P
-                    </label>
-                    {editConfig?.primitives?.fun?.useCustomPenalty && (
-                      <div className="penalty-fields">
-                        <div className="config-field">
-                          <label>k</label>
-                          <input type="number" step="0.1" value={editConfig?.primitives?.fun?.penaltyK ?? 2}
-                            onChange={(e) => updatePrimitiveConfig('fun', 'penaltyK', parseFloat(e.target.value))} />
-                        </div>
-                        <div className="config-field">
-                          <label>p</label>
-                          <input type="number" step="0.1" value={editConfig?.primitives?.fun?.penaltyP ?? 2}
-                            onChange={(e) => updatePrimitiveConfig('fun', 'penaltyP', parseFloat(e.target.value))} />
-                        </div>
-                      </div>
-                    )}
                   </div>
                   <div className="linked-buildings">
-                    <span className="info-label">Buildings:</span> Living Room (funMult: {gameState?.buildings?.find(b => b.id === 'living_room')?.funMult ?? 1.0})
+                    <span className="info-label">Buildings:</span> Living Room (cap: {gameState?.buildings?.find(b => b.id === 'living_room')?.capacity ?? 20}, funMult: {gameState?.buildings?.find(b => b.id === 'living_room')?.funMult ?? 1.0})
                   </div>
                 </div>
               )}
@@ -1307,49 +1306,34 @@ function App() {
               <div className="primitive-header" onClick={() => togglePrimitiveExpanded('drive')}>
                 <span className="expand-icon">{expandedPrimitives.drive ? '▼' : '▶'}</span>
                 <span className="primitive-name">Drive</span>
-                <span className="primitive-type instant">Instant</span>
+                <span className="primitive-type coverage">Coverage</span>
                 <span className="primitive-value">{gameState?.primitives?.drive?.toFixed(1) ?? 0}</span>
+                <span className="coverage-label">{gameState?.coverageData?.drive?.label || 'Adequate'}</span>
               </div>
               {expandedPrimitives.drive && (
                 <div className="primitive-body">
-                  <div className="formula-display">driveBase × quality × workBonus ÷ distraction</div>
+                  <div className="formula-display">supply = min(N,cap) × outputRate × tierMult × quality × (1 + skillMult × workEthic)</div>
+                  <div className="coverage-stats">
+                    <span>Supply: {gameState?.coverageData?.drive?.supply?.toFixed(1) || 0}</span>
+                    <span>Demand: {gameState?.coverageData?.drive?.demand?.toFixed(1) || 0}</span>
+                    <span>Ratio: {gameState?.coverageData?.drive?.ratio?.toFixed(2) || 1}x</span>
+                  </div>
                   <div className="primitive-controls">
                     <div className="config-field">
-                      <label>driveBase</label>
-                      <input type="number" step="5" value={editConfig?.primitives?.drive?.driveBase ?? 50}
-                        onChange={(e) => updatePrimitiveConfig('drive', 'driveBase', parseFloat(e.target.value))} />
+                      <label>outputRate</label>
+                      <input type="number" step="1" value={editConfig?.primitives?.drive?.outputRate ?? 10}
+                        onChange={(e) => updatePrimitiveConfig('drive', 'outputRate', parseFloat(e.target.value))} />
                     </div>
                     <div className="config-field">
-                      <label>workMult</label>
-                      <input type="number" step="0.1" value={editConfig?.primitives?.drive?.workMult ?? 0.5}
-                        onChange={(e) => updatePrimitiveConfig('drive', 'workMult', parseFloat(e.target.value))} />
+                      <label>slackRate</label>
+                      <input type="number" step="0.1" value={editConfig?.primitives?.drive?.slackRate ?? 1}
+                        onChange={(e) => updatePrimitiveConfig('drive', 'slackRate', parseFloat(e.target.value))} />
                     </div>
                     <div className="config-field">
-                      <label>distractMult</label>
-                      <input type="number" step="0.1" value={editConfig?.primitives?.drive?.distractMult ?? 0.3}
-                        onChange={(e) => updatePrimitiveConfig('drive', 'distractMult', parseFloat(e.target.value))} />
+                      <label>skillMult</label>
+                      <input type="number" step="0.1" value={editConfig?.primitives?.drive?.skillMult ?? 0.3}
+                        onChange={(e) => updatePrimitiveConfig('drive', 'skillMult', parseFloat(e.target.value))} />
                     </div>
-                  </div>
-                  <div className="penalty-toggle">
-                    <label className="toggle-label">
-                      <input type="checkbox" checked={editConfig?.primitives?.drive?.useCustomPenalty ?? false}
-                        onChange={(e) => updatePrimitiveConfig('drive', 'useCustomPenalty', e.target.checked)} />
-                      Custom Penalty K/P
-                    </label>
-                    {editConfig?.primitives?.drive?.useCustomPenalty && (
-                      <div className="penalty-fields">
-                        <div className="config-field">
-                          <label>k</label>
-                          <input type="number" step="0.1" value={editConfig?.primitives?.drive?.penaltyK ?? 2}
-                            onChange={(e) => updatePrimitiveConfig('drive', 'penaltyK', parseFloat(e.target.value))} />
-                        </div>
-                        <div className="config-field">
-                          <label>p</label>
-                          <input type="number" step="0.1" value={editConfig?.primitives?.drive?.penaltyP ?? 2}
-                            onChange={(e) => updatePrimitiveConfig('drive', 'penaltyP', parseFloat(e.target.value))} />
-                        </div>
-                      </div>
-                    )}
                   </div>
                   <div className="linked-buildings">
                     <span className="info-label">Buildings:</span> Living Room (quality affects focus)
@@ -1362,52 +1346,37 @@ function App() {
               <div className="primitive-header" onClick={() => togglePrimitiveExpanded('cleanliness')}>
                 <span className="expand-icon">{expandedPrimitives.cleanliness ? '▼' : '▶'}</span>
                 <span className="primitive-name">Cleanliness</span>
-                <span className="primitive-type instant">Instant</span>
+                <span className="primitive-type coverage">Coverage</span>
                 <span className="primitive-value">{gameState?.primitives?.cleanliness?.toFixed(1) ?? 0}</span>
+                <span className="coverage-label">{gameState?.coverageData?.cleanliness?.label || 'Adequate'}</span>
               </div>
               {expandedPrimitives.cleanliness && (
                 <div className="primitive-body">
-                  <div className="formula-display">bathThroughput / dilution × tidyBonus / penalty</div>
+                  <div className="formula-display">supply = min(N,cap) × outputRate × tierMult × quality × (1 + skillMult × tidiness)</div>
+                  <div className="coverage-stats">
+                    <span>Supply: {gameState?.coverageData?.cleanliness?.supply?.toFixed(1) || 0}</span>
+                    <span>Demand: {gameState?.coverageData?.cleanliness?.demand?.toFixed(1) || 0}</span>
+                    <span>Ratio: {gameState?.coverageData?.cleanliness?.ratio?.toFixed(2) || 1}x</span>
+                  </div>
                   <div className="primitive-controls">
                     <div className="config-field">
-                      <label>baseThroughput</label>
-                      <input type="number" step="5" value={editConfig?.primitives?.cleanliness?.baseThroughput ?? 50}
-                        onChange={(e) => updatePrimitiveConfig('cleanliness', 'baseThroughput', parseFloat(e.target.value))} />
+                      <label>outputRate</label>
+                      <input type="number" step="1" value={editConfig?.primitives?.cleanliness?.outputRate ?? 3}
+                        onChange={(e) => updatePrimitiveConfig('cleanliness', 'outputRate', parseFloat(e.target.value))} />
                     </div>
                     <div className="config-field">
-                      <label>tidyMult</label>
-                      <input type="number" step="0.1" value={editConfig?.primitives?.cleanliness?.tidyMult ?? 0.5}
-                        onChange={(e) => updatePrimitiveConfig('cleanliness', 'tidyMult', parseFloat(e.target.value))} />
+                      <label>consumptionRate</label>
+                      <input type="number" step="0.1" value={editConfig?.primitives?.cleanliness?.consumptionRate ?? 1}
+                        onChange={(e) => updatePrimitiveConfig('cleanliness', 'consumptionRate', parseFloat(e.target.value))} />
                     </div>
                     <div className="config-field">
-                      <label>dilutionRate</label>
-                      <input type="number" step="0.01" value={editConfig?.primitives?.cleanliness?.dilutionRate ?? 0.05}
-                        onChange={(e) => updatePrimitiveConfig('cleanliness', 'dilutionRate', parseFloat(e.target.value))} />
+                      <label>skillMult</label>
+                      <input type="number" step="0.1" value={editConfig?.primitives?.cleanliness?.skillMult ?? 0.3}
+                        onChange={(e) => updatePrimitiveConfig('cleanliness', 'skillMult', parseFloat(e.target.value))} />
                     </div>
-                  </div>
-                  <div className="penalty-toggle">
-                    <label className="toggle-label">
-                      <input type="checkbox" checked={editConfig?.primitives?.cleanliness?.useCustomPenalty ?? false}
-                        onChange={(e) => updatePrimitiveConfig('cleanliness', 'useCustomPenalty', e.target.checked)} />
-                      Custom Penalty K/P
-                    </label>
-                    {editConfig?.primitives?.cleanliness?.useCustomPenalty && (
-                      <div className="penalty-fields">
-                        <div className="config-field">
-                          <label>k</label>
-                          <input type="number" step="0.1" value={editConfig?.primitives?.cleanliness?.penaltyK ?? 2}
-                            onChange={(e) => updatePrimitiveConfig('cleanliness', 'penaltyK', parseFloat(e.target.value))} />
-                        </div>
-                        <div className="config-field">
-                          <label>p</label>
-                          <input type="number" step="0.1" value={editConfig?.primitives?.cleanliness?.penaltyP ?? 2}
-                            onChange={(e) => updatePrimitiveConfig('cleanliness', 'penaltyP', parseFloat(e.target.value))} />
-                        </div>
-                      </div>
-                    )}
                   </div>
                   <div className="linked-buildings">
-                    <span className="info-label">Buildings:</span> Bathroom (cleanMult)
+                    <span className="info-label">Buildings:</span> Bathroom (cap: {gameState?.buildings?.find(b => b.id === 'bathroom')?.capacity ?? 4}, cleanMult: {gameState?.buildings?.find(b => b.id === 'bathroom')?.cleanMult ?? 1.0})
                   </div>
                 </div>
               )}
