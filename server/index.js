@@ -199,16 +199,16 @@ const DEFAULT_VIBES_CONFIG = {
   balancedThreshold: 0.18,
   strongImbalanceThreshold: 0.30,
   tierThresholds: [
-    { name: 'Omni-shambles', min: 0, max: 0.12 },
-    { name: 'Mega-shambles', min: 0.12, max: 0.22 },
-    { name: 'Shambles', min: 0.22, max: 0.32 },
-    { name: 'Bad', min: 0.32, max: 0.40 },
-    { name: 'Decent', min: 0.40, max: 0.55 },
-    { name: 'Good', min: 0.55, max: 0.68 },
-    { name: 'Great', min: 0.68, max: 0.78 },
-    { name: 'Superb', min: 0.78, max: 0.87 },
-    { name: 'Worldclass', min: 0.87, max: 0.93 },
-    { name: 'Utopia', min: 0.93, max: 1.01 }
+    { name: 'Shambles', min: 0, max: 0.15 },
+    { name: 'Rough', min: 0.15, max: 0.25 },
+    { name: 'Scrappy', min: 0.25, max: 0.35 },
+    { name: 'Fine', min: 0.35, max: 0.45 },
+    { name: 'Good', min: 0.45, max: 0.55 },
+    { name: 'Lovely', min: 0.55, max: 0.65 },
+    { name: 'Thriving', min: 0.65, max: 0.75 },
+    { name: 'Wonderful', min: 0.75, max: 0.85 },
+    { name: 'Glorious', min: 0.85, max: 0.95 },
+    { name: 'Utopia', min: 0.95, max: 1.01 }
   ],
   scaleBreakpoints: [
     { min: 1, max: 5, tierMin: 3, tierMax: 5 },
