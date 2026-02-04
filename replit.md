@@ -39,10 +39,10 @@ The project follows a client-server architecture:
         -   Scoring: `M_ref = ref0 × (pop/pop0)^alpha × tierMult[tier]`, then `score = 100 × x^p / (1 + x^p)` where `x = raw/M_ref`
         -   At x=1 (raw equals reference), score = 50; higher p = steeper curve
         -   Tier brackets based on population: 1-6, 7-12, 13-20, 21-50, 51-100, 101+
-        -   Each metric has symmetric mechanic effects:
-            -   LS affects rent tolerance via diminishing returns curve
-            -   PR reduces the churn rate (via churnReductionMult)
-            -   PT increases recruitment slots (via ptSlotsThreshold)
+        -   Each metric has symmetric mechanic effects around baseline 35:
+            -   LS affects rent tolerance (£100 = 'Fair' at LS=35, scales to £500 at LS=100)
+            -   PR affects churn (neutral at PR=35, ±1% per point deviation)
+            -   PT affects recruitment slots (base slots at PT=35, +1 slot per +15 PT)
     -   **Vibes System:** A headline status combining health metrics, calculated as a geometric mean. It features a 10-tier ladder with scale gating based on commune size and identity labels for imbalanced communes (e.g., "Party House," "Sweat Shop").
         -   Tier progression: Shambles → Rough → Scrappy → Fine → Good → Lovely → Thriving → Wonderful → Glorious → Utopia
         -   Thresholds: 0-15, 15-25, 25-35, 35-45, 45-55, 55-65, 65-75, 75-85, 85-95, 95+

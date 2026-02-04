@@ -908,9 +908,10 @@ function App() {
               <div className="section-divider-line"></div>
               <div className="config-field">
                 <label>LS Rent Curve</label>
-                <input type="number" step="0.1" value={editConfig?.health?.livingStandards?.rentCurve ?? 2} 
+                <input type="number" step="0.1" value={editConfig?.health?.livingStandards?.rentCurve ?? 0.7} 
                   onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, livingStandards: {...editConfig.health?.livingStandards, rentCurve: parseFloat(e.target.value)}}})} />
               </div>
+              <p className="config-hint">Lower curve = steeper progression. At LS=35, £100 is 'Fair'. At LS=100, max tolerable rent ~£500.</p>
               <div className="section-divider-line"></div>
               <div className="config-field">
                 <label>Custom Scaling</label>
@@ -962,10 +963,16 @@ function App() {
               </div>
               <div className="section-divider-line"></div>
               <div className="config-field">
-                <label>PR churn reduction mult</label>
-                <input type="number" step="0.1" value={editConfig?.health?.churnReductionMult ?? 0.5} 
-                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, churnReductionMult: parseFloat(e.target.value)}})} />
+                <label>Churn Baseline PR</label>
+                <input type="number" value={editConfig?.health?.churnBaselinePR ?? 35} 
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, churnBaselinePR: parseInt(e.target.value)}})} />
               </div>
+              <div className="config-field">
+                <label>Churn Scale Per Point</label>
+                <input type="number" step="0.005" value={editConfig?.health?.churnScalePerPoint ?? 0.01} 
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, churnScalePerPoint: parseFloat(e.target.value)}})} />
+              </div>
+              <p className="config-hint">At PR={editConfig?.health?.churnBaselinePR ?? 35}, churn is neutral. Above reduces, below increases churn by {((editConfig?.health?.churnScalePerPoint ?? 0.01) * 100).toFixed(1)}% per point.</p>
               <div className="section-divider-line"></div>
               <div className="config-field">
                 <label>Custom Scaling</label>
@@ -1012,10 +1019,16 @@ function App() {
               </div>
               <div className="section-divider-line"></div>
               <div className="config-field">
-                <label>PT Extra Resident Threshold</label>
-                <input type="number" value={editConfig?.health?.ptSlotsThreshold ?? 50} 
-                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, ptSlotsThreshold: parseInt(e.target.value)}})} />
+                <label>Recruit Baseline PT</label>
+                <input type="number" value={editConfig?.health?.recruitBaselinePT ?? 35} 
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, recruitBaselinePT: parseInt(e.target.value)}})} />
               </div>
+              <div className="config-field">
+                <label>Recruit Scale Per Slot</label>
+                <input type="number" value={editConfig?.health?.recruitScalePerSlot ?? 15} 
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, recruitScalePerSlot: parseInt(e.target.value)}})} />
+              </div>
+              <p className="config-hint">At PT={editConfig?.health?.recruitBaselinePT ?? 35}, get base slots. Each +{editConfig?.health?.recruitScalePerSlot ?? 15} PT adds +1 slot.</p>
               <div className="section-divider-line"></div>
               <div className="config-field">
                 <label>Custom Scaling</label>
@@ -1648,9 +1661,9 @@ function App() {
                 </div>
                 <div className="formula-section effect">
                   <h4>Game Effect</h4>
-                  <p>Higher Living Standards = higher rent tolerance. Uses a diminishing returns curve:</p>
+                  <p>Higher Living Standards = higher rent tolerance. At LS=35, £100 rent feels 'Fair'. At LS=100, residents tolerate up to £500.</p>
                   <code>maxTolerantRent = rentMin + (rentMax - rentMin) × LS^(1/rentCurve)</code>
-                  <p>Higher rentCurve values mean early LS improvements yield bigger rent gains. Rent tier is based on where current rent falls relative to maxTolerantRent.</p>
+                  <p>Rent tier (Bargain→Cheap→Fair→Pricey→Extortionate) depends on where current rent falls relative to maxTolerantRent.</p>
                 </div>
               </>
             )}
@@ -1695,7 +1708,7 @@ function App() {
                 </div>
                 <div className="formula-section effect">
                   <h4>Game Effect</h4>
-                  <p>Higher Productivity = lower churn rate. Churn is reduced by (Productivity × churnReductionMult). Productive communes keep residents longer even at higher rents.</p>
+                  <p>At PR=35, churn is neutral. Above 35, churn decreases by 1% per point. Below 35, churn increases. Productive communes keep residents longer even at higher rents.</p>
                 </div>
               </>
             )}
@@ -1738,7 +1751,7 @@ function App() {
                 </div>
                 <div className="formula-section effect">
                   <h4>Game Effect</h4>
-                  <p>Higher Partytime = more recruitment slots per week. Formula: baseSlots + floor(Partytime × 100 / ptSlotsThreshold). A fun commune attracts more potential residents.</p>
+                  <p>At PT=35, you get base recruitment slots. Every +15 PT adds +1 extra slot. A fun commune attracts more potential residents.</p>
                 </div>
               </>
             )}

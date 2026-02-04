@@ -145,7 +145,7 @@ const DEFAULT_PRIMITIVE_CONFIG = {
   cleanliness: { outputRate: 3, consumptionRate: 4, skillMult: 0.3, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
   maintenance: { wearPerResident: 1, repairBase: 3, recoveryRate: 0.1, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
   fatigue: { exertBase: 3, recoverBase: 5, workMult: 0.3, socioMult: 0.2 },
-  fun: { outputRate: 10, consumptionRate: 9, skillMult: 0.3, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
+  fun: { outputRate: 10, consumptionRate: 12, skillMult: 0.3, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
   drive: { outputRate: 10, slackRate: 8, skillMult: 0.3, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 }
 };
 
@@ -155,7 +155,7 @@ const DEFAULT_HEALTH_CONFIG = {
     cleanlinessWeight: 0.5,
     crowdingDampen: 0.35,
     maintenanceDampen: 0.35,
-    rentCurve: 2,
+    rentCurve: 0.7,
     useCustomScaling: false,
     ref0: 0.5,
     alpha: 0.15,
@@ -190,9 +190,11 @@ const DEFAULT_HEALTH_CONFIG = {
   },
   pop0: 2,
   tierBrackets: [6, 12, 20, 50, 100],
-  churnReductionMult: 0.5,
-  baseRecruitSlots: 1,
-  ptSlotsThreshold: 50
+  churnBaselinePR: 35,
+  churnScalePerPoint: 0.01,
+  recruitBaselinePT: 35,
+  recruitScalePerSlot: 15,
+  baseRecruitSlots: 1
 };
 
 const DEFAULT_VIBES_CONFIG = {
@@ -432,9 +434,15 @@ function calculateUtilities() {
 }
 
 function calculateWeeklyChurnCount() {
+  const pr = gameState.healthMetrics.productivity * 100;
+  const baseline = healthConfig.churnBaselinePR || 35;
+  const scale = healthConfig.churnScalePerPoint || 0.01;
+  
   const rentFactor = gameState.currentRent * gameConfig.churnRentMultiplier;
-  const prReduction = gameState.healthMetrics.productivity * healthConfig.churnReductionMult;
-  const totalChurnRate = Math.min(1, Math.max(0, gameConfig.baseChurnRate + rentFactor - prReduction));
+  // PR above baseline reduces churn, below baseline increases it
+  const prModifier = (baseline - pr) * scale;
+  const totalChurnRate = Math.min(1, Math.max(0, gameConfig.baseChurnRate + rentFactor + prModifier));
+  
   const activeResidents = gameState.communeResidents.filter(r => !r.churned);
   const residentCount = activeResidents.length;
   const residentsLeaving = Math.floor(residentCount * totalChurnRate);
@@ -752,7 +760,10 @@ function calculateVibes() {
 
 function calculateRecruitmentSlots() {
   const pt = gameState.healthMetrics.partytime * 100;
-  return healthConfig.baseRecruitSlots + Math.floor(pt / healthConfig.ptSlotsThreshold);
+  const baseline = healthConfig.recruitBaselinePT || 35;
+  const scale = healthConfig.recruitScalePerSlot || 15;
+  const extraSlots = Math.max(0, Math.floor((pt - baseline) / scale));
+  return healthConfig.baseRecruitSlots + extraSlots;
 }
 
 function calculateRentTier(rent) {
