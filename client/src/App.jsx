@@ -1115,6 +1115,29 @@ function App() {
                 <label>Strong imbalance</label>
                 <input type="number" step="0.01" value={gameState?.vibesConfig?.strongImbalanceThreshold || 0.30} readOnly />
               </div>
+              <div className="vibes-tier-ladder">
+                <label>Tier Ladder</label>
+                <div className="tier-ladder-list">
+                  {(gameState?.vibesConfig?.tierThresholds || [
+                    { name: 'Shambles', min: 0, max: 0.15 },
+                    { name: 'Rough', min: 0.15, max: 0.25 },
+                    { name: 'Scrappy', min: 0.25, max: 0.35 },
+                    { name: 'Fine', min: 0.35, max: 0.45 },
+                    { name: 'Good', min: 0.45, max: 0.55 },
+                    { name: 'Lovely', min: 0.55, max: 0.65 },
+                    { name: 'Thriving', min: 0.65, max: 0.75 },
+                    { name: 'Wonderful', min: 0.75, max: 0.85 },
+                    { name: 'Glorious', min: 0.85, max: 0.95 },
+                    { name: 'Utopia', min: 0.95, max: 1.01 }
+                  ]).map((tier, idx) => (
+                    <div key={idx} className={`tier-ladder-item ${gameState?.vibes?.tierName === tier.name ? 'current' : ''}`}>
+                      <span className="tier-rank">{idx + 1}.</span>
+                      <span className="tier-name">{tier.name}</span>
+                      <span className="tier-range">{Math.round(tier.min * 100)}-{Math.round(tier.max * 100)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 

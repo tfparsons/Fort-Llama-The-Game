@@ -1351,6 +1351,59 @@ body {
   color: #10b981;
 }
 
+.vibes-tier-ladder {
+  margin-top: 12px;
+}
+
+.vibes-tier-ladder > label {
+  display: block;
+  font-size: 0.85rem;
+  color: #a0aec0;
+  margin-bottom: 8px;
+}
+
+.tier-ladder-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 4px;
+}
+
+.tier-ladder-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.tier-ladder-item.current {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.tier-rank {
+  color: #718096;
+  min-width: 18px;
+}
+
+.tier-name {
+  flex: 1;
+  color: #e2e8f0;
+}
+
+.tier-ladder-item.current .tier-name {
+  color: #10b981;
+  font-weight: bold;
+}
+
+.tier-range {
+  font-family: monospace;
+  font-size: 0.75rem;
+  color: #718096;
+}
+
 .primitive-value {
   font-family: monospace;
   font-size: 0.9rem;
