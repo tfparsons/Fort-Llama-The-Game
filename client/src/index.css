@@ -570,6 +570,10 @@ body {
   gap: 12px;
 }
 
+.dev-tools-grid.three-col {
+  grid-template-columns: repeat(3, 1fr);
+}
+
 .config-section {
   padding: 12px;
   background: #16213e;

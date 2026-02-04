@@ -821,7 +821,7 @@ function App() {
           </div>
 
           <h3 className="section-divider">Basic Settings</h3>
-          <div className="dev-tools-grid">
+          <div className="dev-tools-grid three-col">
             <div className="config-section">
               <h3>Starting Values</h3>
               <div className="config-field">
@@ -843,15 +843,6 @@ function App() {
               <div className="config-field">
                 <label>Game Over (£)</label>
                 <input type="number" value={editConfig.gameOverLimit} onChange={(e) => updateEditConfig('gameOverLimit', e.target.value)} />
-              </div>
-              <div className="config-field">
-                <label>Tick (ms)</label>
-                <input type="number" value={editConfig.tickSpeed} onChange={(e) => updateEditConfig('tickSpeed', e.target.value)} />
-              </div>
-              <div className="config-field">
-                <label>Recruit Slots</label>
-                <input type="number" value={editConfig?.health?.baseRecruitSlots ?? 1} 
-                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, baseRecruitSlots: parseInt(e.target.value)}})} />
               </div>
             </div>
 
@@ -879,10 +870,23 @@ function App() {
               </div>
             </div>
 
+            <div className="config-section">
+              <h3>Timing</h3>
+              <div className="config-field">
+                <label>Tick (ms)</label>
+                <input type="number" value={editConfig.tickSpeed} onChange={(e) => updateEditConfig('tickSpeed', e.target.value)} />
+              </div>
+              <div className="config-field">
+                <label>Base Recruit Slots</label>
+                <input type="number" value={editConfig?.health?.baseRecruitSlots ?? 1} 
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, baseRecruitSlots: parseInt(e.target.value)}})} />
+              </div>
+            </div>
+
           </div>
 
           <h3 className="section-divider">Health Metric Settings</h3>
-          <div className="dev-tools-grid">
+          <div className="dev-tools-grid three-col">
             <div className="config-section">
               <h3>Living Standards <span className="info-icon" onClick={() => setInfoPopup('livingStandards')}>&#9432;</span></h3>
               <div className="config-field">
@@ -1055,7 +1059,9 @@ function App() {
                 </>
               )}
             </div>
+          </div>
 
+          <div className="dev-tools-grid three-col">
             <div className="config-section">
               <h3>Scaling (Global)</h3>
               <div className="config-field">
@@ -1078,8 +1084,7 @@ function App() {
                 <input type="number" value={editConfig?.health?.pop0 ?? 2} 
                   onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, pop0: parseInt(e.target.value)}})} />
               </div>
-              <p className="config-hint">Tier Brackets: 1-6, 7-12, 13-20, 21-50, 51-100, 101+</p>
-              <p className="config-hint">Enable "Custom Scaling" on individual metrics to override these values.</p>
+              <p className="config-hint">Enable "Custom Scaling" on individual metrics to override.</p>
             </div>
 
             <div className="config-section">
