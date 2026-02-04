@@ -1147,7 +1147,6 @@ function App() {
                 <span className="expand-icon">{expandedPrimitives.crowding ? '▼' : '▶'}</span>
                 <span className="primitive-name">Crowding</span>
                 <span className="primitive-type pressure">Pressure</span>
-                <span className="primitive-value">{gameState?.primitives?.crowding?.toFixed(1) ?? 0}</span>
               </div>
               {expandedPrimitives.crowding && (
                 <div className="primitive-body">
@@ -1188,7 +1187,6 @@ function App() {
                 <span className="expand-icon">{expandedPrimitives.noise ? '▼' : '▶'}</span>
                 <span className="primitive-name">Noise</span>
                 <span className="primitive-type pressure">Pressure</span>
-                <span className="primitive-value">{gameState?.primitives?.noise?.toFixed(1) ?? 0}</span>
               </div>
               {expandedPrimitives.noise && (
                 <div className="primitive-body">
@@ -1248,8 +1246,6 @@ function App() {
                 <span className="expand-icon">{expandedPrimitives.nutrition ? '▼' : '▶'}</span>
                 <span className="primitive-name">Nutrition</span>
                 <span className="primitive-type coverage">Coverage</span>
-                <span className="primitive-value">{gameState?.primitives?.nutrition?.toFixed(1) ?? 0}</span>
-                <span className="coverage-label">{gameState?.coverageData?.nutrition?.label || 'Adequate'}</span>
               </div>
               {expandedPrimitives.nutrition && (
                 <div className="primitive-body">
@@ -1288,8 +1284,6 @@ function App() {
                 <span className="expand-icon">{expandedPrimitives.fun ? '▼' : '▶'}</span>
                 <span className="primitive-name">Fun</span>
                 <span className="primitive-type coverage">Coverage</span>
-                <span className="primitive-value">{gameState?.primitives?.fun?.toFixed(1) ?? 0}</span>
-                <span className="coverage-label">{gameState?.coverageData?.fun?.label || 'Adequate'}</span>
               </div>
               {expandedPrimitives.fun && (
                 <div className="primitive-body">
@@ -1328,8 +1322,6 @@ function App() {
                 <span className="expand-icon">{expandedPrimitives.drive ? '▼' : '▶'}</span>
                 <span className="primitive-name">Drive</span>
                 <span className="primitive-type coverage">Coverage</span>
-                <span className="primitive-value">{gameState?.primitives?.drive?.toFixed(1) ?? 0}</span>
-                <span className="coverage-label">{gameState?.coverageData?.drive?.label || 'Adequate'}</span>
               </div>
               {expandedPrimitives.drive && (
                 <div className="primitive-body">
@@ -1368,8 +1360,6 @@ function App() {
                 <span className="expand-icon">{expandedPrimitives.cleanliness ? '▼' : '▶'}</span>
                 <span className="primitive-name">Cleanliness</span>
                 <span className="primitive-type coverage">Coverage</span>
-                <span className="primitive-value">{gameState?.primitives?.cleanliness?.toFixed(1) ?? 0}</span>
-                <span className="coverage-label">{gameState?.coverageData?.cleanliness?.label || 'Adequate'}</span>
               </div>
               {expandedPrimitives.cleanliness && (
                 <div className="primitive-body">
@@ -1408,7 +1398,6 @@ function App() {
                 <span className="expand-icon">{expandedPrimitives.maintenance ? '▼' : '▶'}</span>
                 <span className="primitive-name">Maintenance</span>
                 <span className="primitive-type stock">Stock (Debt)</span>
-                <span className="primitive-value">{gameState?.primitives?.maintenance?.toFixed(1) ?? 0}</span>
               </div>
               {expandedPrimitives.maintenance && (
                 <div className="primitive-body">
@@ -1458,7 +1447,6 @@ function App() {
                 <span className="expand-icon">{expandedPrimitives.fatigue ? '▼' : '▶'}</span>
                 <span className="primitive-name">Fatigue</span>
                 <span className="primitive-type stock">Stock (Debt)</span>
-                <span className="primitive-value">{gameState?.primitives?.fatigue?.toFixed(1) ?? 0}</span>
               </div>
               {expandedPrimitives.fatigue && (
                 <div className="primitive-body">
