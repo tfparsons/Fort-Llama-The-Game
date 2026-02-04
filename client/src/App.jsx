@@ -1084,23 +1084,23 @@ function App() {
 
             <div className="config-section">
               <h3>Tier Progression</h3>
-              <div className="tier-info">
-                <span>Current Tier: {(gameState?.coverageData?.tier || 0) + 1}</span>
-                <span>Output Mult: {gameState?.coverageData?.tierOutputMult?.toFixed(2) || 1.00}x</span>
+              <p className="config-hint">As your commune grows, higher tiers unlock better output from buildings and adjust health metric expectations.</p>
+              <div className="tier-grid">
+                {[0, 1, 2, 3, 4, 5].map(i => {
+                  const brackets = gameState?.tierConfig?.brackets || [6, 12, 20, 50, 100];
+                  const outputMults = gameState?.tierConfig?.outputMults || [1.0, 1.15, 1.3, 1.5, 1.75, 2.0];
+                  const healthMults = gameState?.tierConfig?.healthMults || [1.0, 1.1, 1.2, 1.35, 1.5, 1.7];
+                  const popRange = i === 0 ? `1-${brackets[0]}` : i === 5 ? `${brackets[4]+1}+` : `${brackets[i-1]+1}-${brackets[i]}`;
+                  return (
+                    <div key={i} className="tier-row">
+                      <span className="tier-label">Tier {i + 1}</span>
+                      <span className="tier-pop">{popRange} pop</span>
+                      <span className="tier-mult">Output: {outputMults[i]}x</span>
+                      <span className="tier-mult">Health: {healthMults[i]}x</span>
+                    </div>
+                  );
+                })}
               </div>
-              <div className="config-field">
-                <label>Brackets (pop)</label>
-                <input type="text" value={gameState?.tierConfig?.brackets?.join(', ') || '6, 12, 20, 50, 100'} readOnly />
-              </div>
-              <div className="config-field">
-                <label>Output Mults</label>
-                <input type="text" value={gameState?.tierConfig?.outputMults?.join(', ') || '1.0, 1.15, 1.3, 1.5, 1.75, 2.0'} readOnly />
-              </div>
-              <div className="config-field">
-                <label>Health Mults</label>
-                <input type="text" value={gameState?.tierConfig?.healthMults?.join(', ') || '1.0, 1.1, 1.2, 1.35, 1.5, 1.7'} readOnly />
-              </div>
-              <p className="config-hint">Tier multipliers scale supply & health as population grows. Edit in saved-defaults.json.</p>
             </div>
 
             <div className="config-section">

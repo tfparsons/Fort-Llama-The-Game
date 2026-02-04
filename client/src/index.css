@@ -1351,6 +1351,39 @@ body {
   color: #10b981;
 }
 
+.tier-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.tier-row {
+  display: grid;
+  grid-template-columns: 50px 70px 1fr 1fr;
+  gap: 8px;
+  padding: 6px 10px;
+  background: rgba(15, 52, 96, 0.3);
+  border-radius: 4px;
+  font-size: 0.8rem;
+  align-items: center;
+}
+
+.tier-label {
+  font-weight: bold;
+  color: #e94560;
+}
+
+.tier-pop {
+  color: #888;
+  font-size: 0.75rem;
+}
+
+.tier-mult {
+  color: #10b981;
+  text-align: right;
+}
+
 .vibes-tier-ladder {
   margin-top: 12px;
 }
