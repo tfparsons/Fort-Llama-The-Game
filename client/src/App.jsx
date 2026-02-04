@@ -508,6 +508,9 @@ function App() {
               <div className="headline-row">
                 <span className="headline-label">Vibe:</span>
                 <span className="headline-value">{gameState.vibes?.tierName || 'Decent'}</span>
+                {gameState.coverageData && (
+                  <span className="tier-badge">Tier {(gameState.coverageData.tier || 0) + 1}</span>
+                )}
               </div>
               {gameState.vibes?.branchLabel && (
                 <div className="headline-row">
@@ -612,9 +615,6 @@ function App() {
             <div className="instants-column">
               <div className="section-header">
                 <span className="section-title">Coverage Metrics</span>
-                {gameState.coverageData && (
-                  <span className="tier-badge">Tier {(gameState.coverageData.tier || 0) + 1}</span>
-                )}
               </div>
               {[
                 { key: 'nutrition', label: 'Nutrition', icon: '🍽️' },
