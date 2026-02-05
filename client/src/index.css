@@ -1674,23 +1674,42 @@ body {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  min-width: 250px;
+  width: 50%;
+  min-width: 280px;
+  max-width: 450px;
 }
 
 .health-metric {
-  display: flex;
+  display: grid;
+  grid-template-columns: 120px 1fr 40px;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+}
+
+@media (max-width: 768px) {
+  .health-metrics {
+    width: 70%;
+    max-width: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .health-metrics {
+    width: 100%;
+  }
+  .health-metric {
+    grid-template-columns: 100px 1fr 36px;
+    gap: 8px;
+  }
 }
 
 .hm-label {
-  width: 120px;
   font-size: 0.9rem;
   color: #a0aec0;
+  white-space: nowrap;
 }
 
 .hm-bar-container {
-  flex: 1;
   height: 16px;
   background: #1a1a2e;
   border-radius: 8px;
@@ -1705,7 +1724,6 @@ body {
 }
 
 .hm-value {
-  width: 30px;
   text-align: right;
   font-size: 0.85rem;
   font-weight: bold;
