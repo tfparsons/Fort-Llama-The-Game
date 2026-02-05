@@ -52,13 +52,23 @@ The project follows a client-server architecture:
         -   Early game starts at "Fine" (health metrics ~35-45)
     -   **Resident System:** Features 20 unique llamas with individual stats (e.g., Sharing Tolerance, Cooking Skill). Residents are tracked individually, and churned residents remain visible but inactive, returning to the recruitable pool.
     -   **Buildings System:** Different building types (Bedrooms, Kitchen, Bathroom, Living Room, Utility Closet) contribute to capacity and primitive calculations. Each building has quality levels and specific primitive multipliers.
-    -   **Player Actions:** Weekly actions include setting rent, recruiting llamas (one per week from three candidates), and building bedrooms.
+    -   **Budgets System:** Weekly mechanic allowing players to dedicate money towards "Budget Items" that boost specific primitives. Each item has a configurable efficiency/reductionRate (tunable in Dev Tools):
+        -   **Coverage items** (add to supply): Ingredients→Nutrition, Cleaning materials→Cleanliness, Party supplies→Fun, Internet→Drive
+        -   **Stock items** (reduce debt per tick): Handiman→Maintenance, Wellness→Fatigue
+        -   Coverage formula: `totalSupply = baseSupply + (investment × efficiency)`
+        -   Stock formula: `debtReduction = investment × reductionRate / ticksPerWeek` (applied per tick)
+        -   Budget costs are deducted from treasury as weekly expenses alongside ground rent and utilities
+        -   Default efficiency: 0.5 (coverage), default reductionRate: 0.02 (stock)
+        -   Slider range: £0-£500 per item, step £10
+        -   API: POST `/api/action/set-budget`, GET/POST `/api/budget-config`
+    -   **Player Actions:** Weekly actions include setting rent, setting budgets, recruiting llamas (one per week from three candidates), and building bedrooms.
     -   **Recruitment:** Candidates are presented with stats and bios; invited llamas arrive later in the week with pro-rata rent.
     -   **Game Over:** Occurs when the treasury reaches -£20,000.
--   **Development Tools:** A comprehensive admin panel (Dev Tools) allows tuning of all game parameters, including starting values, rent settings, overheads, building costs, churn settings, and health/primitive/vibes configurations. All changes trigger a simulation reset.
+-   **Development Tools:** A comprehensive admin panel (Dev Tools) allows tuning of all game parameters, including starting values, rent settings, overheads, building costs, churn settings, health/primitive/vibes configurations, and budget efficiency/reductionRate settings. All changes trigger a simulation reset.
     -   **Primitive Calculations Section:** Features collapsible accordion UI for all 8 primitives (color-coded by type: pressure/instant/stock). Each accordion displays formulas, editable base parameters, linked buildings (read-only), and optional per-primitive penalty curve overrides (custom K/P values). Global penalty curve controls (penaltyK/penaltyP) apply to all primitives by default, with per-primitive toggles to use custom curves.
+    -   **Budget Settings Section:** Editable efficiency (coverage) and reductionRate (stock) parameters for each of the 6 budget items.
 -   **Default Configuration:**
-    -   Starting Treasury: £0, Bedrooms: 4, Residents: 2
+    -   Starting Treasury: £0, Bedrooms: 4, Residents: 10
     -   Default Rent: £100
     -   Ground Rent Base: £1,000/week, Utilities Base: £200/week
     -   Base Churn: 20%

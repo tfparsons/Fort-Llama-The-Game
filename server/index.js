@@ -229,6 +229,15 @@ const DEFAULT_VIBES_CONFIG = {
   }
 };
 
+const DEFAULT_BUDGET_CONFIG = {
+  nutrition: { key: 'nutrition', label: 'Ingredients', type: 'coverage', efficiency: 0.5, investment: 0 },
+  cleanliness: { key: 'cleanliness', label: 'Cleaning materials', type: 'coverage', efficiency: 0.5, investment: 0 },
+  maintenance: { key: 'maintenance', label: 'Handiman', type: 'stock', reductionRate: 0.02, investment: 0 },
+  fatigue: { key: 'fatigue', label: 'Wellness', type: 'stock', reductionRate: 0.02, investment: 0 },
+  fun: { key: 'fun', label: 'Party supplies', type: 'coverage', efficiency: 0.5, investment: 0 },
+  drive: { key: 'drive', label: 'Internet', type: 'coverage', efficiency: 0.5, investment: 0 }
+};
+
 const INITIAL_DEFAULTS = {
   startingTreasury: 0,
   startingResidents: 10,
@@ -283,6 +292,7 @@ let vibesConfig = savedDefaults.vibes ? { ...savedDefaults.vibes } : { ...DEFAUL
 let tierConfig = savedDefaults.tierConfig ? { ...savedDefaults.tierConfig } : { ...DEFAULT_TIER_CONFIG };
 let savedLlamaPool = loadedData.llamaPool;
 let savedBuildingsConfig = loadedData.buildings;
+let budgetConfig = savedDefaults.budgetConfig ? JSON.parse(JSON.stringify(savedDefaults.budgetConfig)) : JSON.parse(JSON.stringify(DEFAULT_BUDGET_CONFIG));
 
 function deepMergePrimitives(defaults, overrides) {
   const result = { ...defaults };
@@ -308,6 +318,9 @@ function initializeGame(config = savedDefaults) {
   healthConfig = deepMergePrimitives(DEFAULT_HEALTH_CONFIG, config.health);
   vibesConfig = config.vibes ? { ...config.vibes } : { ...DEFAULT_VIBES_CONFIG };
   tierConfig = config.tierConfig ? { ...config.tierConfig } : { ...DEFAULT_TIER_CONFIG };
+  if (config.budgetConfig) {
+    budgetConfig = JSON.parse(JSON.stringify(config.budgetConfig));
+  }
   
   llamaPool = savedLlamaPool 
     ? JSON.parse(JSON.stringify(savedLlamaPool)) 
@@ -378,6 +391,14 @@ function initializeGame(config = savedDefaults) {
       cleanliness: { supply: 0, demand: 0, ratio: 1, label: 'Adequate' },
       fun: { supply: 0, demand: 0, ratio: 1, label: 'Adequate' },
       drive: { supply: 0, demand: 0, ratio: 1, label: 'Adequate' }
+    },
+    budgets: {
+      nutrition: 0,
+      cleanliness: 0,
+      maintenance: 0,
+      fatigue: 0,
+      fun: 0,
+      drive: 0
     }
   };
   calculatePrimitives();
@@ -398,12 +419,14 @@ function calculateWeeklyProjection() {
   const income = residentCount * gameState.currentRent;
   const groundRent = calculateGroundRent();
   const utilities = calculateUtilities();
-  const weeklyDelta = income - groundRent - utilities;
+  const totalBudget = Object.values(gameState.budgets).reduce((sum, v) => sum + v, 0);
+  const weeklyDelta = income - groundRent - utilities - totalBudget;
   gameState.weeklyDelta = weeklyDelta;
   gameState.dailyDelta = weeklyDelta / 7;
   gameState.projectedIncome = income;
   gameState.projectedGroundRent = groundRent;
   gameState.projectedUtilities = utilities;
+  gameState.projectedBudget = totalBudget;
 }
 
 function calculateTotalCapacity() {
@@ -527,6 +550,9 @@ function calculatePrimitives() {
     return;
   }
   
+  const ticksPerDay = 24 / gameConfig.hoursPerTick;
+  const ticksPerWeek = ticksPerDay * 7;
+  
   const capBed = getBuildingCapacity('bedroom');
   const capBath = getBuildingCapacity('bathroom');
   const capKitch = getBuildingCapacity('kitchen');
@@ -567,15 +593,19 @@ function calculatePrimitives() {
   const nCfg = primitiveConfig.nutrition;
   const nutritionServed = Math.min(N, capKitch);
   const nutritionSupply = nutritionServed * nCfg.outputRate * tierOutputMult * kQ * getBuildingMult('kitchen', 'foodMult') * (1 + nCfg.skillMult * cookSkill);
+  const nutritionBudgetBoost = (gameState.budgets.nutrition || 0) * (budgetConfig.nutrition.efficiency || 0);
+  const totalNutritionSupply = nutritionSupply + nutritionBudgetBoost;
   const nutritionDemand = N * nCfg.consumptionRate;
-  const nutritionRatio = nutritionDemand > 0 ? nutritionSupply / nutritionDemand : 1;
+  const nutritionRatio = nutritionDemand > 0 ? totalNutritionSupply / nutritionDemand : 1;
   const nutrition = log2CoverageScore(nutritionRatio);
   
   const cCfg = primitiveConfig.cleanliness;
   const cleanServed = Math.min(N, capBath);
   const cleanSupply = cleanServed * cCfg.outputRate * tierOutputMult * bathQ * getBuildingMult('bathroom', 'cleanMult') * (1 + cCfg.skillMult * tidiness);
+  const cleanBudgetBoost = (gameState.budgets.cleanliness || 0) * (budgetConfig.cleanliness.efficiency || 0);
+  const totalCleanSupply = cleanSupply + cleanBudgetBoost;
   const cleanDemand = N * cCfg.consumptionRate;
-  const cleanRatio = cleanDemand > 0 ? cleanSupply / cleanDemand : 1;
+  const cleanRatio = cleanDemand > 0 ? totalCleanSupply / cleanDemand : 1;
   const cleanliness = log2CoverageScore(cleanRatio);
   
   const mCfg = primitiveConfig.maintenance;
@@ -583,27 +613,31 @@ function calculatePrimitives() {
   const repairOut = mCfg.repairBase * uQ * getBuildingMult('utility_closet', 'repairMult') * (1 + 0.5 * handiness + 0.2 * tidiness);
   const netWear = wearIn - repairOut;
   const oldMaint = gameState.primitives.maintenance || 0;
-  const maintenance = Math.min(100, Math.max(0, oldMaint + netWear * 0.5));
+  const maintenance = Math.min(100, Math.max(0, oldMaint + netWear * 0.5 - (gameState.budgets.maintenance || 0) * (budgetConfig.maintenance.reductionRate || 0) / ticksPerWeek));
   
   const fCfg = primitiveConfig.fatigue;
   const exertion = N * fCfg.exertBase * (1 + fCfg.workMult * workEthic + fCfg.socioMult * sociability);
   const recovery = N * fCfg.recoverBase * bQ * getBuildingMult('bedroom', 'recoveryMult') * (1 + 0.3 * partyStamina);
   const netFatigue = (exertion - recovery) / N;
   const oldFatigue = gameState.primitives.fatigue || 0;
-  const fatigue = Math.min(100, Math.max(0, oldFatigue + netFatigue * 0.3));
+  const fatigue = Math.min(100, Math.max(0, oldFatigue + netFatigue * 0.3 - (gameState.budgets.fatigue || 0) * (budgetConfig.fatigue.reductionRate || 0) / ticksPerWeek));
   
   const funCfg = primitiveConfig.fun;
   const funServed = Math.min(N, capLiv);
   const funSupply = funServed * funCfg.outputRate * tierOutputMult * lQ * getBuildingMult('living_room', 'funMult') * (1 + funCfg.skillMult * (sociability + partyStamina) / 2);
+  const funBudgetBoost = (gameState.budgets.fun || 0) * (budgetConfig.fun.efficiency || 0);
+  const totalFunSupply = funSupply + funBudgetBoost;
   const funDemand = N * funCfg.consumptionRate;
-  const funRatio = funDemand > 0 ? funSupply / funDemand : 1;
+  const funRatio = funDemand > 0 ? totalFunSupply / funDemand : 1;
   const fun = log2CoverageScore(funRatio);
   
   const dCfg = primitiveConfig.drive;
   const driveServed = Math.min(N, capLiv);
   const driveSupply = driveServed * dCfg.outputRate * tierOutputMult * lQ * (1 + dCfg.skillMult * workEthic);
+  const driveBudgetBoost = (gameState.budgets.drive || 0) * (budgetConfig.drive.efficiency || 0);
+  const totalDriveSupply = driveSupply + driveBudgetBoost;
   const driveDemand = N * dCfg.slackRate;
-  const driveRatio = driveDemand > 0 ? driveSupply / driveDemand : 1;
+  const driveRatio = driveDemand > 0 ? totalDriveSupply / driveDemand : 1;
   const drive = log2CoverageScore(driveRatio);
   
   gameState.primitives = { crowding, noise, nutrition, cleanliness, maintenance, fatigue, fun, drive };
@@ -611,10 +645,10 @@ function calculatePrimitives() {
   gameState.coverageData = {
     tier,
     tierOutputMult,
-    nutrition: { supply: nutritionSupply, demand: nutritionDemand, ratio: nutritionRatio, label: getCoverageTierLabel(nutrition) },
-    cleanliness: { supply: cleanSupply, demand: cleanDemand, ratio: cleanRatio, label: getCoverageTierLabel(cleanliness) },
-    fun: { supply: funSupply, demand: funDemand, ratio: funRatio, label: getCoverageTierLabel(fun) },
-    drive: { supply: driveSupply, demand: driveDemand, ratio: driveRatio, label: getCoverageTierLabel(drive) }
+    nutrition: { supply: totalNutritionSupply, demand: nutritionDemand, ratio: nutritionRatio, label: getCoverageTierLabel(nutrition), budgetBoost: nutritionBudgetBoost },
+    cleanliness: { supply: totalCleanSupply, demand: cleanDemand, ratio: cleanRatio, label: getCoverageTierLabel(cleanliness), budgetBoost: cleanBudgetBoost },
+    fun: { supply: totalFunSupply, demand: funDemand, ratio: funRatio, label: getCoverageTierLabel(fun), budgetBoost: funBudgetBoost },
+    drive: { supply: totalDriveSupply, demand: driveDemand, ratio: driveRatio, label: getCoverageTierLabel(drive), budgetBoost: driveBudgetBoost }
   };
 }
 
@@ -845,7 +879,8 @@ function processTick() {
     weeklyIncome += proRataRent;
   });
   
-  const weeklyExpenses = calculateGroundRent() + calculateUtilities();
+  const totalBudget = Object.values(gameState.budgets).reduce((sum, v) => sum + v, 0);
+  const weeklyExpenses = calculateGroundRent() + calculateUtilities() + totalBudget;
   const tickIncome = weeklyIncome / ticksPerWeek;
   const tickExpenses = weeklyExpenses / ticksPerWeek;
   gameState.treasury += tickIncome - tickExpenses;
@@ -875,7 +910,8 @@ function processWeekEnd() {
     income: gameState.projectedIncome,
     groundRent: gameState.projectedGroundRent,
     utilities: gameState.projectedUtilities,
-    totalExpenses: gameState.projectedGroundRent + gameState.projectedUtilities,
+    budget: gameState.projectedBudget || 0,
+    totalExpenses: gameState.projectedGroundRent + gameState.projectedUtilities + (gameState.projectedBudget || 0),
     profit: actualProfit,
     arrivedResidents: [],
     churnedResidents: churnedResidents.map(r => r.name)
@@ -938,7 +974,8 @@ app.get('/api/state', (req, res) => {
     primitiveConfig,
     healthConfig,
     vibesConfig,
-    tierConfig
+    tierConfig,
+    budgetConfig
   });
 });
 
@@ -959,7 +996,8 @@ app.post('/api/save-defaults', (req, res) => {
     primitives: { ...primitiveConfig },
     health: { ...healthConfig },
     vibes: { ...vibesConfig },
-    tierConfig: { ...tierConfig }
+    tierConfig: { ...tierConfig },
+    budgetConfig: JSON.parse(JSON.stringify(budgetConfig))
   };
   savedLlamaPool = JSON.parse(JSON.stringify(llamaPool));
   // Only update savedBuildingsConfig from gameState if it hasn't been edited separately
@@ -1031,6 +1069,23 @@ app.post('/api/tier-config', (req, res) => {
   res.json({ success: true, config: tierConfig });
 });
 
+app.get('/api/budget-config', (req, res) => {
+  res.json(budgetConfig);
+});
+
+app.post('/api/budget-config', (req, res) => {
+  const updates = req.body;
+  for (const key of Object.keys(budgetConfig)) {
+    if (updates[key]) {
+      budgetConfig[key] = { ...budgetConfig[key], ...updates[key] };
+    }
+  }
+  calculatePrimitives();
+  calculateHealthMetrics();
+  calculateVibes();
+  res.json({ success: true, config: budgetConfig });
+});
+
 app.get('/api/llama-pool', (req, res) => {
   res.json({ llamas: llamaPool });
 });
@@ -1083,6 +1138,25 @@ app.post('/api/action/set-rent', (req, res) => {
     res.json({ success: true, currentRent: gameState.currentRent });
   } else {
     res.status(400).json({ error: `Rent must be between £${gameConfig.rentMin} and £${gameConfig.rentMax}` });
+  }
+});
+
+app.post('/api/action/set-budget', (req, res) => {
+  if (!gameState.isPausedForWeeklyDecision) {
+    res.status(400).json({ error: 'Can only set budgets during weekly planning' });
+    return;
+  }
+  const { budgets } = req.body;
+  if (budgets && typeof budgets === 'object') {
+    for (const key of Object.keys(gameState.budgets)) {
+      if (budgets[key] !== undefined) {
+        gameState.budgets[key] = Math.max(0, Number(budgets[key]) || 0);
+      }
+    }
+    calculateWeeklyProjection();
+    res.json({ success: true, budgets: gameState.budgets });
+  } else {
+    res.status(400).json({ error: 'Invalid budget data' });
   }
 });
 

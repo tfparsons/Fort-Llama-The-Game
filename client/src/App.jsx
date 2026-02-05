@@ -19,6 +19,10 @@ function App() {
   const [hoveredResident, setHoveredResident] = useState(null);
   const [pendingInvite, setPendingInvite] = useState(null);
   const [infoPopup, setInfoPopup] = useState(null);
+  const [budgetInputs, setBudgetInputs] = useState({
+    nutrition: 0, cleanliness: 0, maintenance: 0,
+    fatigue: 0, fun: 0, drive: 0
+  });
   
   const [displayTime, setDisplayTime] = useState({ hour: 9, minute: 0, dayIndex: 0 });
   const clockAnimationRef = useRef(null);
@@ -109,6 +113,16 @@ function App() {
   const configRef = useRef({ tickSpeed: 333, hoursPerTick: 4 });
   const gameStateRef = useRef(null);
   
+  useEffect(() => {
+    if (gameState?.budgets) {
+      setBudgetInputs(prev => {
+        const newBudgets = { ...gameState.budgets };
+        if (JSON.stringify(prev) !== JSON.stringify(newBudgets)) return newBudgets;
+        return prev;
+      });
+    }
+  }, [gameState?.budgets]);
+
   // Keep refs in sync with state
   useEffect(() => {
     if (gameState) {
@@ -246,6 +260,19 @@ function App() {
     handleSetRent(rentInput);
   };
 
+  const handleBudgetChange = (key, value) => {
+    const numValue = Math.max(0, Math.round(Number(value) / 10) * 10);
+    setBudgetInputs(prev => ({ ...prev, [key]: numValue }));
+  };
+
+  const handleBudgetRelease = async () => {
+    await fetch(`${API_BASE}/api/action/set-budget`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ budgets: budgetInputs })
+    });
+    fetchState();
+  };
 
   const handleOpenRecruitment = async () => {
     try {
@@ -344,6 +371,16 @@ function App() {
     });
   };
 
+  const updateBudgetConfig = (itemKey, field, value) => {
+    setEditConfig(prev => ({
+      ...prev,
+      budgetConfig: {
+        ...prev.budgetConfig,
+        [itemKey]: { ...prev.budgetConfig?.[itemKey], [field]: value }
+      }
+    }));
+  };
+
   const togglePrimitiveExpanded = (name) => {
     setExpandedPrimitives(prev => ({ ...prev, [name]: !prev[name] }));
   };
@@ -404,6 +441,13 @@ function App() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(editConfig)
     });
+    if (editConfig.budgetConfig) {
+      await fetch(`${API_BASE}/api/budget-config`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editConfig.budgetConfig)
+      });
+    }
     fetchState();
     setView('dashboard');
   };
@@ -414,6 +458,13 @@ function App() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(editConfig)
     });
+    if (editConfig.budgetConfig) {
+      await fetch(`${API_BASE}/api/budget-config`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editConfig.budgetConfig)
+      });
+    }
     await fetch(`${API_BASE}/api/save-defaults`, { method: 'POST' });
     fetchState();
     alert('Current settings saved as defaults!');
@@ -436,7 +487,8 @@ function App() {
   const projectedIncome = gameState.projectedIncome ?? (gameState.residents * gameState.currentRent);
   const projectedGroundRent = gameState.projectedGroundRent ?? config.groundRentBase;
   const projectedUtilities = gameState.projectedUtilities ?? config.utilitiesBase;
-  const weeklyDelta = gameState.weeklyDelta ?? (projectedIncome - projectedGroundRent - projectedUtilities);
+  const projectedBudget = gameState.projectedBudget ?? Object.values(budgetInputs).reduce((s, v) => s + v, 0);
+  const weeklyDelta = gameState.weeklyDelta ?? (projectedIncome - projectedGroundRent - projectedUtilities - projectedBudget);
 
   return (
     <div className="app">
@@ -456,7 +508,8 @@ function App() {
                 ...config,
                 health: gameState?.healthConfig,
                 primitives: gameState?.primitiveConfig,
-                vibes: gameState?.vibesConfig
+                vibes: gameState?.vibesConfig,
+                budgetConfig: gameState?.budgetConfig
               }); }}
             >
               Dev Tools
@@ -682,7 +735,7 @@ function App() {
               </div>
               <div className="stat has-tooltip">
                 <span className="stat-label">Expenses</span>
-                <span className="stat-value negative">-{formatCurrency(projectedGroundRent + projectedUtilities)}</span>
+                <span className="stat-value negative">-{formatCurrency(projectedGroundRent + projectedUtilities + projectedBudget)}</span>
                 <div className="projection-tooltip">
                   <div className="tooltip-title">Expenses Breakdown</div>
                   <div className="tooltip-row">
@@ -693,9 +746,15 @@ function App() {
                     <span>Utilities</span>
                     <span className="negative">-{formatCurrency(projectedUtilities)}</span>
                   </div>
+                  {projectedBudget > 0 && (
+                    <div className="tooltip-row">
+                      <span>Budgets</span>
+                      <span className="negative">-{formatCurrency(projectedBudget)}</span>
+                    </div>
+                  )}
                   <div className="tooltip-row total">
                     <span>Total</span>
-                    <span className="negative">-{formatCurrency(projectedGroundRent + projectedUtilities)}</span>
+                    <span className="negative">-{formatCurrency(projectedGroundRent + projectedUtilities + projectedBudget)}</span>
                   </div>
                 </div>
               </div>
@@ -1478,6 +1537,36 @@ function App() {
 
           </div>
 
+          <h3 className="section-divider">Budget Settings</h3>
+          <div className="dev-tools-grid three-col">
+            {[
+              { key: 'nutrition', label: 'Ingredients', primitive: 'Nutrition', type: 'coverage' },
+              { key: 'cleanliness', label: 'Cleaning materials', primitive: 'Cleanliness', type: 'coverage' },
+              { key: 'fun', label: 'Party supplies', primitive: 'Fun', type: 'coverage' },
+              { key: 'drive', label: 'Internet', primitive: 'Drive', type: 'coverage' },
+              { key: 'maintenance', label: 'Handiman', primitive: 'Maintenance', type: 'stock' },
+              { key: 'fatigue', label: 'Wellness', primitive: 'Fatigue', type: 'stock' }
+            ].map(item => (
+              <div key={item.key} className="config-section">
+                <h3>{item.label} <span style={{fontSize: '0.75rem', color: '#888'}}>({item.primitive})</span></h3>
+                <div className="config-field">
+                  <label>{item.type === 'coverage' ? 'Efficiency' : 'Reduction Rate'}</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={editConfig?.budgetConfig?.[item.key]?.[item.type === 'coverage' ? 'efficiency' : 'reductionRate'] ?? (item.type === 'coverage' ? 0.5 : 0.02)}
+                    onChange={(e) => updateBudgetConfig(item.key, item.type === 'coverage' ? 'efficiency' : 'reductionRate', parseFloat(e.target.value))}
+                  />
+                </div>
+                <div className="config-field-info" style={{fontSize: '0.75rem', color: '#888', marginTop: '4px'}}>
+                  {item.type === 'coverage'
+                    ? 'Supply boost per £1 invested'
+                    : 'Debt reduced per £1 per tick'}
+                </div>
+              </div>
+            ))}
+          </div>
+
         </div>
       )}
 
@@ -1563,6 +1652,43 @@ function App() {
                 </button>
               </div>
 
+              <div className="panel-section">
+                <label>Budgets</label>
+                <div className="budget-items">
+                  {[
+                    { key: 'nutrition', label: 'Ingredients', icon: '🥕', primitive: 'Nutrition' },
+                    { key: 'cleanliness', label: 'Cleaning materials', icon: '🧹', primitive: 'Cleanliness' },
+                    { key: 'maintenance', label: 'Handiman', icon: '🔧', primitive: 'Maintenance' },
+                    { key: 'fatigue', label: 'Wellness', icon: '💆', primitive: 'Fatigue' },
+                    { key: 'fun', label: 'Party supplies', icon: '🎈', primitive: 'Fun' },
+                    { key: 'drive', label: 'Internet', icon: '📡', primitive: 'Drive' }
+                  ].map(item => (
+                    <div key={item.key} className="budget-item">
+                      <div className="budget-item-header">
+                        <span className="budget-icon">{item.icon}</span>
+                        <span className="budget-label">{item.label}</span>
+                        <span className="budget-value">{formatCurrency(budgetInputs[item.key] || 0)}</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="0"
+                        max="500"
+                        step="10"
+                        value={budgetInputs[item.key] || 0}
+                        onChange={(e) => handleBudgetChange(item.key, e.target.value)}
+                        onMouseUp={handleBudgetRelease}
+                        onTouchEnd={handleBudgetRelease}
+                        className="budget-slider"
+                      />
+                    </div>
+                  ))}
+                  <div className="budget-total">
+                    <span>Total Budget</span>
+                    <span className="negative">-{formatCurrency(Object.values(budgetInputs).reduce((s, v) => s + v, 0))}</span>
+                  </div>
+                </div>
+              </div>
+
               <div className="panel-projection">
                 <div className="proj-row">
                   <span>Income</span>
@@ -1570,7 +1696,7 @@ function App() {
                 </div>
                 <div className="proj-row">
                   <span>Expenses</span>
-                  <span className="negative">-{formatCurrency(projectedGroundRent + projectedUtilities)}</span>
+                  <span className="negative">-{formatCurrency(projectedGroundRent + projectedUtilities + projectedBudget)}</span>
                 </div>
                 <div className="proj-row total">
                   <span>Net</span>

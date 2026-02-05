@@ -2140,3 +2140,68 @@ body {
 .formula-section li strong {
   color: #fff;
 }
+
+.budget-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.budget-item {
+  background: rgba(255,255,255,0.05);
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+
+.budget-item-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+  font-size: 0.85rem;
+}
+
+.budget-icon {
+  font-size: 1rem;
+}
+
+.budget-label {
+  flex: 1;
+  color: #ccc;
+}
+
+.budget-value {
+  color: #e94560;
+  font-weight: bold;
+  min-width: 50px;
+  text-align: right;
+}
+
+.budget-slider {
+  width: 100%;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: #2a3a5e;
+  border-radius: 2px;
+  outline: none;
+}
+
+.budget-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #e94560;
+  cursor: pointer;
+}
+
+.budget-total {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  font-weight: bold;
+  font-size: 0.9rem;
+}
