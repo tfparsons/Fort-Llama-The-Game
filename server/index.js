@@ -141,12 +141,12 @@ const DEFAULT_PRIMITIVE_CONFIG = {
   penaltyP: 2,
   crowding: { weight: 1.0, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
   noise: { baseSocial: 5, baseAmbient: 10, socioMult: 0.1, considMult: 0.3, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
-  nutrition: { outputRate: 6, consumptionRate: 9, skillMult: 0.3, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
-  cleanliness: { outputRate: 2, consumptionRate: 4, skillMult: 0.3, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
+  nutrition: { outputRate: 5, consumptionRate: 9, skillMult: 0.1, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
+  cleanliness: { outputRate: 2, consumptionRate: 4, skillMult: 0.1, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
   maintenance: { wearPerResident: 1, repairBase: 3, recoveryRate: 0.1, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
   fatigue: { exertBase: 3, recoverBase: 5, workMult: 0.3, socioMult: 0.2 },
-  fun: { outputRate: 6, consumptionRate: 12, skillMult: 0.3, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
-  drive: { outputRate: 6, slackRate: 8, skillMult: 0.3, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 }
+  fun: { outputRate: 6, consumptionRate: 12, skillMult: 0.1, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
+  drive: { outputRate: 4, slackRate: 8, skillMult: 0.1, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 }
 };
 
 const DEFAULT_HEALTH_CONFIG = {
@@ -157,7 +157,7 @@ const DEFAULT_HEALTH_CONFIG = {
     maintenanceDampen: 0.35,
     rentCurve: 0.7,
     useCustomScaling: false,
-    ref0: 0.5,
+    ref0: 0.3,
     alpha: 0.15,
     p: 2,
     tierMult: [1.0, 1.1, 1.2, 1.35, 1.5, 1.7]
@@ -168,7 +168,7 @@ const DEFAULT_HEALTH_CONFIG = {
     noiseWeight: 0.35,
     crowdingWeight: 0.25,
     useCustomScaling: false,
-    ref0: 0.5,
+    ref0: 0.3,
     alpha: 0.15,
     p: 2,
     tierMult: [1.0, 1.1, 1.2, 1.35, 1.5, 1.7]
@@ -178,13 +178,13 @@ const DEFAULT_HEALTH_CONFIG = {
     fatigueWeight: 0.45,
     noiseBoostScale: 0.08,
     useCustomScaling: false,
-    ref0: 0.5,
+    ref0: 0.3,
     alpha: 0.15,
     p: 2,
     tierMult: [1.0, 1.1, 1.2, 1.35, 1.5, 1.7]
   },
   globalScaling: {
-    ref0: 0.5,
+    ref0: 0.3,
     alpha: 0.15,
     p: 2
   },
