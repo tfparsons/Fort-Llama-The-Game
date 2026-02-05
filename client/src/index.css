@@ -1812,10 +1812,10 @@ body {
 }
 
 .prim-label {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: #888;
   text-transform: uppercase;
-  width: 70px;
+  min-width: 85px;
   flex-shrink: 0;
 }
 
@@ -1837,12 +1837,12 @@ body {
   font-size: 0.8rem;
   color: #fff;
   font-weight: bold;
-  width: 28px;
+  min-width: 28px;
   text-align: right;
 }
 
 .coverage-item {
-  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .coverage-tier {
@@ -1850,7 +1850,7 @@ body {
   font-weight: bold;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  width: 60px;
+  min-width: 75px;
   text-align: right;
 }
 
