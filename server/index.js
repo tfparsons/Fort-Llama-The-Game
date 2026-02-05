@@ -141,12 +141,12 @@ const DEFAULT_PRIMITIVE_CONFIG = {
   penaltyP: 2,
   crowding: { weight: 1.0, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
   noise: { baseSocial: 5, baseAmbient: 10, socioMult: 0.1, considMult: 0.3, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
-  nutrition: { outputRate: 10, consumptionRate: 9, skillMult: 0.3, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
-  cleanliness: { outputRate: 3, consumptionRate: 4, skillMult: 0.3, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
+  nutrition: { outputRate: 6, consumptionRate: 9, skillMult: 0.3, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
+  cleanliness: { outputRate: 2, consumptionRate: 4, skillMult: 0.3, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
   maintenance: { wearPerResident: 1, repairBase: 3, recoveryRate: 0.1, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
   fatigue: { exertBase: 3, recoverBase: 5, workMult: 0.3, socioMult: 0.2 },
-  fun: { outputRate: 10, consumptionRate: 12, skillMult: 0.3, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
-  drive: { outputRate: 10, slackRate: 8, skillMult: 0.3, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 }
+  fun: { outputRate: 6, consumptionRate: 12, skillMult: 0.3, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
+  drive: { outputRate: 6, slackRate: 8, skillMult: 0.3, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 }
 };
 
 const DEFAULT_HEALTH_CONFIG = {
