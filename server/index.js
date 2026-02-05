@@ -231,7 +231,7 @@ const DEFAULT_VIBES_CONFIG = {
 
 const INITIAL_DEFAULTS = {
   startingTreasury: 0,
-  startingResidents: 2,
+  startingResidents: 10,
   rentMin: 50,
   rentMax: 500,
   defaultRent: 100,
@@ -240,7 +240,7 @@ const INITIAL_DEFAULTS = {
   baseChurnRate: 0.20,
   churnRentMultiplier: 0.0003,
   gameOverLimit: -20000,
-  tickSpeed: 333,
+  tickSpeed: 200,
   hoursPerTick: 4,
   rentTierThresholds: [
     { name: 'Bargain', maxChurn: 0.02 },
