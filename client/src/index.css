@@ -1875,8 +1875,8 @@ body {
 
 .stocks-tanks {
   display: flex;
-  justify-content: space-between;
-  gap: 12px;
+  justify-content: center;
+  gap: 16px;
 }
 
 .stock-tank {
