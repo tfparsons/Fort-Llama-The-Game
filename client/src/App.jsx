@@ -261,17 +261,40 @@ function App() {
   };
 
   const handleBudgetChange = (key, value) => {
-    const numValue = Math.max(0, Math.round(Number(value) / 10) * 10);
+    const numValue = Math.min(500, Math.max(0, Math.round(Number(value) / 10) * 10));
     setBudgetInputs(prev => ({ ...prev, [key]: numValue }));
   };
 
-  const handleBudgetRelease = async () => {
+  const commitBudgets = async (overrideBudgets) => {
+    const toSend = overrideBudgets || budgetInputs;
     await fetch(`${API_BASE}/api/action/set-budget`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ budgets: budgetInputs })
+      body: JSON.stringify({ budgets: toSend })
     });
     fetchState();
+  };
+
+  const handleBudgetStep = (key, delta) => {
+    const current = budgetInputs[key] || 0;
+    const newVal = Math.min(500, Math.max(0, current + delta));
+    const newBudgets = { ...budgetInputs, [key]: newVal };
+    setBudgetInputs(newBudgets);
+    commitBudgets(newBudgets);
+  };
+
+  const handleBudgetInputBlur = (key, rawValue) => {
+    const num = parseInt(rawValue, 10);
+    const snapped = isNaN(num) ? 0 : Math.min(500, Math.max(0, Math.round(num / 10) * 10));
+    const newBudgets = { ...budgetInputs, [key]: snapped };
+    setBudgetInputs(newBudgets);
+    commitBudgets(newBudgets);
+  };
+
+  const handleBudgetInputKey = (key, e) => {
+    if (e.key === 'Enter') {
+      e.target.blur();
+    }
   };
 
   const handleOpenRecruitment = async () => {
@@ -1663,28 +1686,34 @@ function App() {
                     { key: 'fun', label: 'Party supplies', icon: '🎈', primitive: 'Fun' },
                     { key: 'drive', label: 'Internet', icon: '📡', primitive: 'Drive' }
                   ].map(item => (
-                    <div key={item.key} className="budget-item">
-                      <div className="budget-item-header">
-                        <span className="budget-icon">{item.icon}</span>
-                        <span className="budget-label">{item.label}</span>
-                        <span className="budget-value">{formatCurrency(budgetInputs[item.key] || 0)}</span>
+                    <div key={item.key} className="budget-row">
+                      <span className="budget-icon">{item.icon}</span>
+                      <span className="budget-label">{item.label}</span>
+                      <div className="budget-stepper">
+                        <button className="step-btn" onClick={() => handleBudgetStep(item.key, -50)}>--</button>
+                        <button className="step-btn" onClick={() => handleBudgetStep(item.key, -10)}>-</button>
+                        <div className="budget-input-wrap">
+                          <span className="budget-currency">£</span>
+                          <input
+                            type="number"
+                            min="0"
+                            max="500"
+                            step="10"
+                            className="budget-input"
+                            defaultValue={budgetInputs[item.key] || 0}
+                            key={`${item.key}-${budgetInputs[item.key]}`}
+                            onBlur={(e) => handleBudgetInputBlur(item.key, e.target.value)}
+                            onKeyDown={(e) => handleBudgetInputKey(item.key, e)}
+                          />
+                        </div>
+                        <button className="step-btn" onClick={() => handleBudgetStep(item.key, 10)}>+</button>
+                        <button className="step-btn" onClick={() => handleBudgetStep(item.key, 50)}>++</button>
                       </div>
-                      <input
-                        type="range"
-                        min="0"
-                        max="500"
-                        step="10"
-                        value={budgetInputs[item.key] || 0}
-                        onChange={(e) => handleBudgetChange(item.key, e.target.value)}
-                        onMouseUp={handleBudgetRelease}
-                        onTouchEnd={handleBudgetRelease}
-                        className="budget-slider"
-                      />
                     </div>
                   ))}
                   <div className="budget-total">
                     <span>Total Budget</span>
-                    <span className="negative">-{formatCurrency(Object.values(budgetInputs).reduce((s, v) => s + v, 0))}</span>
+                    <span className="negative">-{formatCurrency(Object.values(budgetInputs).reduce((s, v) => s + v, 0))}/wk</span>
                   </div>
                 </div>
               </div>
