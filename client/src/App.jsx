@@ -23,7 +23,7 @@ function App() {
     nutrition: 0, cleanliness: 0, maintenance: 0,
     fatigue: 0, fun: 0, drive: 0
   });
-  const budgetCommitPending = useRef(false);
+  const budgetSyncedWeek = useRef(null);
   
   const [displayTime, setDisplayTime] = useState({ hour: 9, minute: 0, dayIndex: 0 });
   const clockAnimationRef = useRef(null);
@@ -115,14 +115,18 @@ function App() {
   const gameStateRef = useRef(null);
   
   useEffect(() => {
-    if (gameState?.budgets && !budgetCommitPending.current) {
-      setBudgetInputs(prev => {
-        const newBudgets = { ...gameState.budgets };
-        if (JSON.stringify(prev) !== JSON.stringify(newBudgets)) return newBudgets;
-        return prev;
-      });
+    if (gameState?.budgets && gameState?.week !== undefined) {
+      const syncKey = `${gameState.week}-${gameState.day}`;
+      if (budgetSyncedWeek.current !== syncKey && showWeeklyPanel) {
+        budgetSyncedWeek.current = syncKey;
+        setBudgetInputs({ ...gameState.budgets });
+      }
+      if (budgetSyncedWeek.current === null) {
+        budgetSyncedWeek.current = syncKey;
+        setBudgetInputs({ ...gameState.budgets });
+      }
     }
-  }, [gameState?.budgets]);
+  }, [gameState?.week, gameState?.day, showWeeklyPanel]);
 
   // Keep refs in sync with state
   useEffect(() => {
@@ -268,17 +272,11 @@ function App() {
 
   const commitBudgets = async (overrideBudgets) => {
     const toSend = overrideBudgets || budgetInputs;
-    budgetCommitPending.current = true;
-    try {
-      await fetch(`${API_BASE}/api/action/set-budget`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ budgets: toSend })
-      });
-      await fetchState();
-    } finally {
-      budgetCommitPending.current = false;
-    }
+    await fetch(`${API_BASE}/api/action/set-budget`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ budgets: toSend })
+    });
   };
 
   const handleBudgetStep = (key, delta) => {
@@ -477,6 +475,7 @@ function App() {
         body: JSON.stringify(editConfig.budgetConfig)
       });
     }
+    budgetSyncedWeek.current = null;
     fetchState();
     setView('dashboard');
   };
@@ -495,6 +494,7 @@ function App() {
       });
     }
     await fetch(`${API_BASE}/api/save-defaults`, { method: 'POST' });
+    budgetSyncedWeek.current = null;
     fetchState();
     alert('Current settings saved as defaults!');
   };
