@@ -511,11 +511,12 @@ function log2CoverageScore(ratio) {
   return Math.max(0, Math.min(100, score));
 }
 
-function getCoverageTierLabel(ratio) {
-  if (ratio < 1) return 'Shortfall';
-  if (ratio < 2) return 'Adequate';
-  if (ratio < 4) return 'Good';
-  if (ratio < 8) return 'Great';
+function getCoverageTierLabel(score) {
+  if (score < 25) return 'Shortfall';
+  if (score < 45) return 'Tight';
+  if (score < 60) return 'Adequate';
+  if (score < 75) return 'Good';
+  if (score < 90) return 'Great';
   return 'Superb';
 }
 
@@ -610,10 +611,10 @@ function calculatePrimitives() {
   gameState.coverageData = {
     tier,
     tierOutputMult,
-    nutrition: { supply: nutritionSupply, demand: nutritionDemand, ratio: nutritionRatio, label: getCoverageTierLabel(nutritionRatio) },
-    cleanliness: { supply: cleanSupply, demand: cleanDemand, ratio: cleanRatio, label: getCoverageTierLabel(cleanRatio) },
-    fun: { supply: funSupply, demand: funDemand, ratio: funRatio, label: getCoverageTierLabel(funRatio) },
-    drive: { supply: driveSupply, demand: driveDemand, ratio: driveRatio, label: getCoverageTierLabel(driveRatio) }
+    nutrition: { supply: nutritionSupply, demand: nutritionDemand, ratio: nutritionRatio, label: getCoverageTierLabel(nutrition) },
+    cleanliness: { supply: cleanSupply, demand: cleanDemand, ratio: cleanRatio, label: getCoverageTierLabel(cleanliness) },
+    fun: { supply: funSupply, demand: funDemand, ratio: funRatio, label: getCoverageTierLabel(fun) },
+    drive: { supply: driveSupply, demand: driveDemand, ratio: driveRatio, label: getCoverageTierLabel(drive) }
   };
 }
 
