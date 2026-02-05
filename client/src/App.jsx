@@ -23,6 +23,7 @@ function App() {
     nutrition: 0, cleanliness: 0, maintenance: 0,
     fatigue: 0, fun: 0, drive: 0
   });
+  const budgetCommitPending = useRef(false);
   
   const [displayTime, setDisplayTime] = useState({ hour: 9, minute: 0, dayIndex: 0 });
   const clockAnimationRef = useRef(null);
@@ -114,7 +115,7 @@ function App() {
   const gameStateRef = useRef(null);
   
   useEffect(() => {
-    if (gameState?.budgets) {
+    if (gameState?.budgets && !budgetCommitPending.current) {
       setBudgetInputs(prev => {
         const newBudgets = { ...gameState.budgets };
         if (JSON.stringify(prev) !== JSON.stringify(newBudgets)) return newBudgets;
@@ -267,12 +268,17 @@ function App() {
 
   const commitBudgets = async (overrideBudgets) => {
     const toSend = overrideBudgets || budgetInputs;
-    await fetch(`${API_BASE}/api/action/set-budget`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ budgets: toSend })
-    });
-    fetchState();
+    budgetCommitPending.current = true;
+    try {
+      await fetch(`${API_BASE}/api/action/set-budget`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ budgets: toSend })
+      });
+      await fetchState();
+    } finally {
+      budgetCommitPending.current = false;
+    }
   };
 
   const handleBudgetStep = (key, delta) => {
