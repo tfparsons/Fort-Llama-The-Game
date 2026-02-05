@@ -1713,14 +1713,14 @@ body {
 }
 
 .primitives-section {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
   gap: 16px;
   margin-bottom: 16px;
   max-width: 1000px;
 }
 
 .pressure-column {
-  flex: 1;
   background: #16213e;
   border: 1px solid #0f3460;
   border-radius: 8px;
@@ -1769,7 +1769,6 @@ body {
 }
 
 .instants-column {
-  flex: 1;
   background: #16213e;
   border: 1px solid #0f3460;
   border-radius: 8px;
@@ -1777,7 +1776,6 @@ body {
 }
 
 .stocks-column {
-  flex: 1;
   background: #16213e;
   border: 1px solid #0f3460;
   border-radius: 8px;
