@@ -823,33 +823,42 @@ function App() {
               ))}
             </div>
 
-            {(gameState.activePolicies?.length || 0) > 0 && (
-              <div className="card">
-                <h2>Active Policies</h2>
-                {gameState.activePolicies.map(pId => {
-                  const policy = (gameState.policyDefinitions || []).find(p => p.id === pId);
-                  if (!policy) return null;
-                  const pct = Math.round((gameState.policyConfig?.excludePercent || 0.25) * 100);
-                  const desc = policy.description.replace('{pct}', pct);
-                  return (
-                    <div key={pId} className="stat has-tooltip">
-                      <span className="stat-label">{policy.name}</span>
-                      <span className="stat-value" style={{color: '#48bb78', fontSize: '0.8rem'}}>{policy.primitive}</span>
-                      <div className="projection-tooltip">
-                        <div className="tooltip-title">{policy.name}</div>
-                        <div className="tooltip-row"><span>{desc}</span></div>
-                        <div className="tooltip-row"><span>Affects</span><span style={{textTransform: 'capitalize'}}>{policy.primitive}</span></div>
-                      </div>
-                    </div>
-                  );
-                })}
-                {gameState.activePolicies.length > (gameState.policyConfig?.funPenalty?.threshold || 3) && (
-                  <div className="panel-note" style={{color: '#f56565', marginTop: '4px', fontSize: '0.75rem'}}>
-                    Fun penalty active ({gameState.activePolicies.length} policies &gt; {gameState.policyConfig?.funPenalty?.threshold || 3} threshold)
-                  </div>
-                )}
+            <div className="card">
+              <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px'}}>
+                <h2 style={{margin: 0}}>Active Policies</h2>
+                <span style={{background: (gameState.activePolicies?.length || 0) > 3 ? '#e53e3e' : (gameState.activePolicies?.length || 0) > 0 ? '#48bb78' : '#4a5568', color: '#fff', padding: '2px 8px', borderRadius: '10px', fontSize: '0.75rem', fontWeight: 600}}>
+                  {gameState.activePolicies?.length || 0} / 3
+                </span>
               </div>
-            )}
+              {(gameState.activePolicies?.length || 0) > 0 ? (
+                <>
+                  {gameState.activePolicies.map(pId => {
+                    const policy = (gameState.policyDefinitions || []).find(p => p.id === pId);
+                    if (!policy) return null;
+                    const pct = Math.round((gameState.policyConfig?.excludePercent || 0.25) * 100);
+                    const desc = policy.description.replace('{pct}', pct);
+                    return (
+                      <div key={pId} className="stat has-tooltip">
+                        <span className="stat-label">{policy.name}</span>
+                        <span className="stat-value" style={{color: '#48bb78', fontSize: '0.8rem'}}>{policy.primitive}</span>
+                        <div className="projection-tooltip">
+                          <div className="tooltip-title">{policy.name}</div>
+                          <div className="tooltip-row"><span>{desc}</span></div>
+                          <div className="tooltip-row"><span>Affects</span><span style={{textTransform: 'capitalize'}}>{policy.primitive}</span></div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {gameState.activePolicies.length > (gameState.policyConfig?.funPenalty?.threshold || 3) && (
+                    <div className="panel-note" style={{color: '#f56565', marginTop: '4px', fontSize: '0.75rem'}}>
+                      Fun penalty active ({gameState.activePolicies.length} policies &gt; {gameState.policyConfig?.funPenalty?.threshold || 3} threshold)
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div style={{color: '#718096', fontSize: '0.85rem', fontStyle: 'italic', padding: '8px 0'}}>No active policies</div>
+              )}
+            </div>
 
             <div className="card residents-card">
               <h2>Residents ({gameState.communeResidents?.filter(r => !r.churned).length || 0})</h2>
