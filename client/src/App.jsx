@@ -1140,6 +1140,7 @@ function App() {
             </div>
           </div>
 
+          <h3 className="section-divider">Progression</h3>
           <div className="dev-tools-grid three-col">
             <div className="config-section">
               <h3>Scaling (Global)</h3>
@@ -1223,6 +1224,7 @@ function App() {
             </div>
           </div>
 
+          <h3 className="section-divider">Mechanics</h3>
           <div className="dev-tools-grid three-col">
             <div className="config-section">
               <h3>Budget Efficiency</h3>
