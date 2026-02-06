@@ -2012,7 +2012,12 @@ function App() {
       {showPolicyModal && (
         <div className="modal-overlay" onClick={() => setShowPolicyModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>Policies</h2>
+            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+              <h2>Policies</h2>
+              <span style={{background: (gameState.activePolicies?.length || 0) > 3 ? '#e53e3e' : '#4a5568', color: '#fff', padding: '4px 10px', borderRadius: '12px', fontSize: '0.85rem', fontWeight: 600}}>
+                {gameState.activePolicies?.length || 0} / 3
+              </span>
+            </div>
             <p style={{color: '#a0aec0', fontSize: '0.85rem', marginBottom: '12px'}}>
               Toggle policies to improve your commune. More than 3 active policies will reduce Fun.
             </p>
