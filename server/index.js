@@ -136,6 +136,30 @@ const DEFAULT_TIER_CONFIG = {
   qualityCaps: [2, 3, 4, 5, 5, 5]
 };
 
+const DEFAULT_POLICY_CONFIG = {
+  excludePercent: 0.25,
+  funPenalty: { threshold: 3, K: 0.15, P: 1.5 }
+};
+
+const POLICY_DEFINITIONS = [
+  {
+    id: 'cooking_rota',
+    name: 'Cooking Rota',
+    description: 'Remove worst {pct}% of residents\' cooking stats from the house resident multiplier',
+    primitive: 'nutrition',
+    stat: 'cookingSkill',
+    type: 'exclude_worst'
+  },
+  {
+    id: 'cleaning_rota',
+    name: 'Cleaning Rota',
+    description: 'Remove worst {pct}% of residents\' tidiness stats from the house resident multiplier',
+    primitive: 'cleanliness',
+    stat: 'tidiness',
+    type: 'exclude_worst'
+  }
+];
+
 const DEFAULT_PRIMITIVE_CONFIG = {
   penaltyK: 2,
   penaltyP: 2,
@@ -293,6 +317,7 @@ let tierConfig = savedDefaults.tierConfig ? { ...savedDefaults.tierConfig } : { 
 let savedLlamaPool = loadedData.llamaPool;
 let savedBuildingsConfig = loadedData.buildings;
 let budgetConfig = savedDefaults.budgetConfig ? JSON.parse(JSON.stringify(savedDefaults.budgetConfig)) : JSON.parse(JSON.stringify(DEFAULT_BUDGET_CONFIG));
+let policyConfig = savedDefaults.policyConfig ? JSON.parse(JSON.stringify(savedDefaults.policyConfig)) : JSON.parse(JSON.stringify(DEFAULT_POLICY_CONFIG));
 
 function deepMergePrimitives(defaults, overrides) {
   const result = { ...defaults };
@@ -320,6 +345,9 @@ function initializeGame(config = savedDefaults) {
   tierConfig = config.tierConfig ? { ...config.tierConfig } : { ...DEFAULT_TIER_CONFIG };
   if (config.budgetConfig) {
     budgetConfig = JSON.parse(JSON.stringify(config.budgetConfig));
+  }
+  if (config.policyConfig) {
+    policyConfig = JSON.parse(JSON.stringify(config.policyConfig));
   }
   
   llamaPool = savedLlamaPool 
@@ -399,7 +427,8 @@ function initializeGame(config = savedDefaults) {
       fatigue: 0,
       fun: 0,
       drive: 0
-    }
+    },
+    activePolicies: []
   };
   calculatePrimitives();
   calculateHealthMetrics();
@@ -483,6 +512,26 @@ function statTo01(stat) {
   return Math.max(0, Math.min(1, (stat - 1) / 19));
 }
 
+function getPolicyAdjustedAvgStat(statKey) {
+  const residents = gameState.communeResidents.filter(r => !r.churned);
+  if (residents.length === 0) return 10;
+  const policy = POLICY_DEFINITIONS.find(p => p.stat === statKey && gameState.activePolicies.includes(p.id));
+  if (!policy) {
+    const sum = residents.reduce((acc, r) => acc + (r.stats[statKey] || 10), 0);
+    return sum / residents.length;
+  }
+  const excludePct = policyConfig.excludePercent || 0.25;
+  const sorted = [...residents].sort((a, b) => (a.stats[statKey] || 10) - (b.stats[statKey] || 10));
+  const excludeCount = Math.floor(sorted.length * excludePct);
+  if (excludeCount <= 0 || sorted.length <= excludeCount) {
+    const sum = residents.reduce((acc, r) => acc + (r.stats[statKey] || 10), 0);
+    return sum / residents.length;
+  }
+  const included = sorted.slice(excludeCount);
+  const sum = included.reduce((acc, r) => acc + (r.stats[statKey] || 10), 0);
+  return sum / included.length;
+}
+
 function getBuildingCapacity(buildingId) {
   const b = gameState.buildings.find(bld => bld.id === buildingId);
   return b ? b.count * b.capacity : 1;
@@ -560,8 +609,8 @@ function calculatePrimitives() {
   const capUtil = getBuildingCapacity('utility_closet');
   
   const shareTol = statTo01(getAverageResidentStat('sharingTolerance'));
-  const cookSkill = statTo01(getAverageResidentStat('cookingSkill'));
-  const tidiness = statTo01(getAverageResidentStat('tidiness'));
+  const cookSkill = statTo01(getPolicyAdjustedAvgStat('cookingSkill'));
+  const tidiness = statTo01(getPolicyAdjustedAvgStat('tidiness'));
   const handiness = statTo01(getAverageResidentStat('handiness'));
   const consideration = statTo01(getAverageResidentStat('consideration'));
   const sociability = statTo01(getAverageResidentStat('sociability'));
@@ -628,7 +677,17 @@ function calculatePrimitives() {
   const funBudgetBoost = (gameState.budgets.fun || 0) * (budgetConfig.fun.efficiency || 0);
   const totalFunSupply = funSupply + funBudgetBoost;
   const funDemand = N * funCfg.consumptionRate;
-  const funRatio = funDemand > 0 ? totalFunSupply / funDemand : 1;
+  const activePolicyCount = (gameState.activePolicies || []).length;
+  const policyThreshold = policyConfig.funPenalty?.threshold || 3;
+  const policyK = policyConfig.funPenalty?.K || 0.15;
+  const policyP = policyConfig.funPenalty?.P || 1.5;
+  let policyFunMult = 1;
+  if (activePolicyCount > policyThreshold) {
+    const excess = activePolicyCount - policyThreshold;
+    policyFunMult = 1 / (1 + policyK * Math.pow(excess, policyP));
+  }
+  const adjustedFunSupply = totalFunSupply * policyFunMult;
+  const funRatio = funDemand > 0 ? adjustedFunSupply / funDemand : 1;
   const fun = log2CoverageScore(funRatio);
   
   const dCfg = primitiveConfig.drive;
@@ -975,7 +1034,9 @@ app.get('/api/state', (req, res) => {
     healthConfig,
     vibesConfig,
     tierConfig,
-    budgetConfig
+    budgetConfig,
+    policyConfig,
+    policyDefinitions: POLICY_DEFINITIONS
   });
 });
 
@@ -997,7 +1058,8 @@ app.post('/api/save-defaults', (req, res) => {
     health: { ...healthConfig },
     vibes: { ...vibesConfig },
     tierConfig: { ...tierConfig },
-    budgetConfig: JSON.parse(JSON.stringify(budgetConfig))
+    budgetConfig: JSON.parse(JSON.stringify(budgetConfig)),
+    policyConfig: JSON.parse(JSON.stringify(policyConfig))
   };
   savedLlamaPool = JSON.parse(JSON.stringify(llamaPool));
   // Only update savedBuildingsConfig from gameState if it hasn't been edited separately
@@ -1084,6 +1146,45 @@ app.post('/api/budget-config', (req, res) => {
   calculateHealthMetrics();
   calculateVibes();
   res.json({ success: true, config: budgetConfig });
+});
+
+app.post('/api/action/toggle-policy', (req, res) => {
+  if (!gameState.isPausedForWeeklyDecision) {
+    return res.status(400).json({ error: 'Can only change policies during weekly planning' });
+  }
+  const { policyId } = req.body;
+  const policy = POLICY_DEFINITIONS.find(p => p.id === policyId);
+  if (!policy) {
+    return res.status(400).json({ error: 'Unknown policy' });
+  }
+  const idx = gameState.activePolicies.indexOf(policyId);
+  if (idx >= 0) {
+    gameState.activePolicies.splice(idx, 1);
+  } else {
+    gameState.activePolicies.push(policyId);
+  }
+  calculatePrimitives();
+  calculateHealthMetrics();
+  calculateVibes();
+  res.json({ success: true, activePolicies: gameState.activePolicies });
+});
+
+app.get('/api/policy-config', (req, res) => {
+  res.json(policyConfig);
+});
+
+app.post('/api/policy-config', (req, res) => {
+  const updates = req.body;
+  if (updates.excludePercent !== undefined) {
+    policyConfig.excludePercent = Math.max(0, Math.min(1, Number(updates.excludePercent) || 0.25));
+  }
+  if (updates.funPenalty) {
+    policyConfig.funPenalty = { ...policyConfig.funPenalty, ...updates.funPenalty };
+  }
+  calculatePrimitives();
+  calculateHealthMetrics();
+  calculateVibes();
+  res.json({ success: true, config: policyConfig });
 });
 
 app.get('/api/llama-pool', (req, res) => {

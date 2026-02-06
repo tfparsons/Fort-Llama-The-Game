@@ -61,7 +61,14 @@ The project follows a client-server architecture:
         -   Default efficiency: 0.5 (coverage), default reductionRate: 0.02 (stock)
         -   Slider range: £0-£500 per item, step £10
         -   API: POST `/api/action/set-budget`, GET/POST `/api/budget-config`
-    -   **Player Actions:** Weekly actions include setting rent, setting budgets, recruiting llamas (one per week from three candidates), and building bedrooms.
+    -   **Policies System:** Toggleable policies that affect primitives via multiplier modifiers. Players activate/deactivate policies during weekly planning. Designed for extensibility (scrollable list).
+        -   **Starting policies:** Cooking Rota (excludes worst X% cooking stats from Nutrition multiplier), Cleaning Rota (excludes worst X% tidiness stats from Cleanliness multiplier)
+        -   **Mechanism:** `getPolicyAdjustedAvgStat()` sorts residents by stat, removes bottom excludePercent (default 25%), recalculates average from remaining residents
+        -   **Fun penalty:** When active policies exceed threshold (default 3), Fun supply is multiplied by `1 / (1 + K × excess^P)` where K=0.15, P=1.5
+        -   **Dashboard:** Active policies shown in a card with hover tooltips explaining effects
+        -   **Dev Tools:** Policy Settings in Mechanics section - tunable excludePercent, Fun penalty threshold/K/P
+        -   **API:** POST `/api/action/toggle-policy`, GET/POST `/api/policy-config`
+    -   **Player Actions:** Weekly actions include setting rent, setting budgets, managing policies, recruiting llamas (one per week from three candidates), and building bedrooms.
     -   **Recruitment:** Candidates are presented with stats and bios; invited llamas arrive later in the week with pro-rata rent.
     -   **Game Over:** Occurs when the treasury reaches -£20,000.
 -   **Development Tools:** A comprehensive admin panel (Dev Tools) allows tuning of all game parameters, including starting values, rent settings, overheads, building costs, churn settings, health/primitive/vibes configurations, and budget efficiency/reductionRate settings. All changes trigger a simulation reset.

@@ -9,6 +9,7 @@ function App() {
   const [editConfig, setEditConfig] = useState(null);
   const [showBuildModal, setShowBuildModal] = useState(false);
   const [showRecruitModal, setShowRecruitModal] = useState(false);
+  const [showPolicyModal, setShowPolicyModal] = useState(false);
   const [showLlamaPoolEditor, setShowLlamaPoolEditor] = useState(false);
   const [showBuildingsEditor, setShowBuildingsEditor] = useState(false);
   const [editableLlamas, setEditableLlamas] = useState([]);
@@ -462,6 +463,15 @@ function App() {
     setShowBuildModal(false);
   };
 
+  const handleTogglePolicy = async (policyId) => {
+    await fetch(`${API_BASE}/api/action/toggle-policy`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ policyId })
+    });
+    fetchState();
+  };
+
   const handleApplyConfig = async () => {
     await fetch(`${API_BASE}/api/config`, {
       method: 'POST',
@@ -473,6 +483,13 @@ function App() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editConfig.budgetConfig)
+      });
+    }
+    if (editConfig.policyConfig) {
+      await fetch(`${API_BASE}/api/policy-config`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editConfig.policyConfig)
       });
     }
     budgetSyncedWeek.current = null;
@@ -538,7 +555,8 @@ function App() {
                 health: gameState?.healthConfig,
                 primitives: gameState?.primitiveConfig,
                 vibes: gameState?.vibesConfig,
-                budgetConfig: gameState?.budgetConfig
+                budgetConfig: gameState?.budgetConfig,
+                policyConfig: gameState?.policyConfig
               }); }}
             >
               Dev Tools
@@ -804,6 +822,34 @@ function App() {
                 </div>
               ))}
             </div>
+
+            {(gameState.activePolicies?.length || 0) > 0 && (
+              <div className="card">
+                <h2>Active Policies</h2>
+                {gameState.activePolicies.map(pId => {
+                  const policy = (gameState.policyDefinitions || []).find(p => p.id === pId);
+                  if (!policy) return null;
+                  const pct = Math.round((gameState.policyConfig?.excludePercent || 0.25) * 100);
+                  const desc = policy.description.replace('{pct}', pct);
+                  return (
+                    <div key={pId} className="stat has-tooltip">
+                      <span className="stat-label">{policy.name}</span>
+                      <span className="stat-value" style={{color: '#48bb78', fontSize: '0.8rem'}}>{policy.primitive}</span>
+                      <div className="projection-tooltip">
+                        <div className="tooltip-title">{policy.name}</div>
+                        <div className="tooltip-row"><span>{desc}</span></div>
+                        <div className="tooltip-row"><span>Affects</span><span style={{textTransform: 'capitalize'}}>{policy.primitive}</span></div>
+                      </div>
+                    </div>
+                  );
+                })}
+                {gameState.activePolicies.length > (gameState.policyConfig?.funPenalty?.threshold || 3) && (
+                  <div className="panel-note" style={{color: '#f56565', marginTop: '4px', fontSize: '0.75rem'}}>
+                    Fun penalty active ({gameState.activePolicies.length} policies &gt; {gameState.policyConfig?.funPenalty?.threshold || 3} threshold)
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="card residents-card">
               <h2>Residents ({gameState.communeResidents?.filter(r => !r.churned).length || 0})</h2>
@@ -1226,6 +1272,48 @@ function App() {
 
           <h3 className="section-divider">Mechanics</h3>
           <div className="dev-tools-grid three-col">
+            <div className="config-section">
+              <h3>Policy Settings</h3>
+              <div className="config-field">
+                <label title="Percentage of worst-performing residents excluded from stat average">Exclude %</label>
+                <input
+                  type="number"
+                  step="0.05"
+                  min="0"
+                  max="1"
+                  value={editConfig?.policyConfig?.excludePercent ?? 0.25}
+                  onChange={(e) => setEditConfig({...editConfig, policyConfig: {...(editConfig.policyConfig || {}), excludePercent: parseFloat(e.target.value)}})}
+                />
+              </div>
+              <div className="config-field">
+                <label title="Number of active policies before Fun penalty applies">Fun threshold</label>
+                <input
+                  type="number"
+                  step="1"
+                  min="1"
+                  value={editConfig?.policyConfig?.funPenalty?.threshold ?? 3}
+                  onChange={(e) => setEditConfig({...editConfig, policyConfig: {...(editConfig.policyConfig || {}), funPenalty: {...(editConfig.policyConfig?.funPenalty || {}), threshold: parseInt(e.target.value)}}})}
+                />
+              </div>
+              <div className="config-field">
+                <label title="Penalty curve steepness (K) for Fun reduction">Fun K</label>
+                <input
+                  type="number"
+                  step="0.05"
+                  value={editConfig?.policyConfig?.funPenalty?.K ?? 0.15}
+                  onChange={(e) => setEditConfig({...editConfig, policyConfig: {...(editConfig.policyConfig || {}), funPenalty: {...(editConfig.policyConfig?.funPenalty || {}), K: parseFloat(e.target.value)}}})}
+                />
+              </div>
+              <div className="config-field">
+                <label title="Penalty curve exponent (P) for Fun reduction">Fun P</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={editConfig?.policyConfig?.funPenalty?.P ?? 1.5}
+                  onChange={(e) => setEditConfig({...editConfig, policyConfig: {...(editConfig.policyConfig || {}), funPenalty: {...(editConfig.policyConfig?.funPenalty || {}), P: parseFloat(e.target.value)}}})}
+                />
+              </div>
+            </div>
             <div className="config-section">
               <h3>Budget Efficiency</h3>
               {[
@@ -1677,6 +1765,12 @@ function App() {
               </div>
 
               <div className="panel-section">
+                <button className="panel-action" onClick={() => setShowPolicyModal(true)}>
+                  Policies {(gameState.activePolicies?.length || 0) > 0 ? `(${gameState.activePolicies.length} active)` : ''}
+                </button>
+              </div>
+
+              <div className="panel-section">
                 <div className="budget-items">
                   {[
                     { key: 'nutrition', label: 'Ingredients', icon: '🥕', primitive: 'Nutrition' },
@@ -1909,6 +2003,42 @@ function App() {
               </div>
             ))}
             <button className="modal-close" onClick={() => setShowBuildModal(false)}>
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showPolicyModal && (
+        <div className="modal-overlay" onClick={() => setShowPolicyModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <h2>Policies</h2>
+            <p style={{color: '#a0aec0', fontSize: '0.85rem', marginBottom: '12px'}}>
+              Toggle policies to improve your commune. More than 3 active policies will reduce Fun.
+            </p>
+            <div className="policy-list">
+              {(gameState.policyDefinitions || []).map(policy => {
+                const isActive = (gameState.activePolicies || []).includes(policy.id);
+                const pct = Math.round((gameState.policyConfig?.excludePercent || 0.25) * 100);
+                const desc = policy.description.replace('{pct}', pct);
+                return (
+                  <div key={policy.id} className={`policy-card ${isActive ? 'active' : ''}`}>
+                    <div className="policy-header">
+                      <h3>{policy.name}</h3>
+                      <span className="policy-primitive">{policy.primitive}</span>
+                    </div>
+                    <p className="policy-desc">{desc}</p>
+                    <button 
+                      className={`policy-toggle ${isActive ? 'active' : ''}`}
+                      onClick={() => handleTogglePolicy(policy.id)}
+                    >
+                      {isActive ? 'Deactivate' : 'Activate'}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+            <button className="modal-close" onClick={() => setShowPolicyModal(false)}>
               Close
             </button>
           </div>
