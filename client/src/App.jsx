@@ -1223,6 +1223,32 @@ function App() {
             </div>
           </div>
 
+          <div className="dev-tools-grid three-col">
+            <div className="config-section">
+              <h3>Budget Efficiency</h3>
+              {[
+                { key: 'nutrition', label: 'Ingredients', primitive: 'Nutrition', type: 'coverage' },
+                { key: 'cleanliness', label: 'Cleaning materials', primitive: 'Cleanliness', type: 'coverage' },
+                { key: 'fun', label: 'Party supplies', primitive: 'Fun', type: 'coverage' },
+                { key: 'drive', label: 'Internet', primitive: 'Drive', type: 'coverage' },
+                { key: 'maintenance', label: 'Handiman', primitive: 'Maintenance', type: 'stock' },
+                { key: 'fatigue', label: 'Wellness', primitive: 'Fatigue', type: 'stock' }
+              ].map(item => (
+                <div key={item.key} className="config-field">
+                  <label title={item.type === 'coverage' ? 'Supply boost per £1 invested' : 'Debt reduced per £1 per tick'}>
+                    {item.label} <span style={{color: '#888', fontSize: '0.7rem'}}>({item.type === 'coverage' ? 'eff' : 'red'})</span>
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={editConfig?.budgetConfig?.[item.key]?.[item.type === 'coverage' ? 'efficiency' : 'reductionRate'] ?? (item.type === 'coverage' ? 0.5 : 0.02)}
+                    onChange={(e) => updateBudgetConfig(item.key, item.type === 'coverage' ? 'efficiency' : 'reductionRate', parseFloat(e.target.value))}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
           <h3 className="section-divider">Primitive Settings</h3>
           <div className="primitives-accordion">
             
@@ -1564,36 +1590,6 @@ function App() {
               )}
             </div>
 
-          </div>
-
-          <h3 className="section-divider">Budget Settings</h3>
-          <div className="dev-tools-grid three-col">
-            {[
-              { key: 'nutrition', label: 'Ingredients', primitive: 'Nutrition', type: 'coverage' },
-              { key: 'cleanliness', label: 'Cleaning materials', primitive: 'Cleanliness', type: 'coverage' },
-              { key: 'fun', label: 'Party supplies', primitive: 'Fun', type: 'coverage' },
-              { key: 'drive', label: 'Internet', primitive: 'Drive', type: 'coverage' },
-              { key: 'maintenance', label: 'Handiman', primitive: 'Maintenance', type: 'stock' },
-              { key: 'fatigue', label: 'Wellness', primitive: 'Fatigue', type: 'stock' }
-            ].map(item => (
-              <div key={item.key} className="config-section">
-                <h3>{item.label} <span style={{fontSize: '0.75rem', color: '#888'}}>({item.primitive})</span></h3>
-                <div className="config-field">
-                  <label>{item.type === 'coverage' ? 'Efficiency' : 'Reduction Rate'}</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={editConfig?.budgetConfig?.[item.key]?.[item.type === 'coverage' ? 'efficiency' : 'reductionRate'] ?? (item.type === 'coverage' ? 0.5 : 0.02)}
-                    onChange={(e) => updateBudgetConfig(item.key, item.type === 'coverage' ? 'efficiency' : 'reductionRate', parseFloat(e.target.value))}
-                  />
-                </div>
-                <div className="config-field-info" style={{fontSize: '0.75rem', color: '#888', marginTop: '4px'}}>
-                  {item.type === 'coverage'
-                    ? 'Supply boost per £1 invested'
-                    : 'Debt reduced per £1 per tick'}
-                </div>
-              </div>
-            ))}
           </div>
 
         </div>
