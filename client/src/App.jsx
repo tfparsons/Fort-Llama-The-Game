@@ -10,6 +10,7 @@ function App() {
   const [showBuildModal, setShowBuildModal] = useState(false);
   const [showRecruitModal, setShowRecruitModal] = useState(false);
   const [showPolicyModal, setShowPolicyModal] = useState(false);
+  const [budgetOpen, setBudgetOpen] = useState(false);
   const [showLlamaPoolEditor, setShowLlamaPoolEditor] = useState(false);
   const [showBuildingsEditor, setShowBuildingsEditor] = useState(false);
   const [editableLlamas, setEditableLlamas] = useState([]);
@@ -1780,45 +1781,54 @@ function App() {
               </div>
 
               <div className="panel-section">
-                <div className="budget-items">
-                  {[
-                    { key: 'nutrition', label: 'Ingredients', icon: '🥕', primitive: 'Nutrition' },
-                    { key: 'cleanliness', label: 'Cleaning materials', icon: '🧹', primitive: 'Cleanliness' },
-                    { key: 'maintenance', label: 'Handiman', icon: '🔧', primitive: 'Maintenance' },
-                    { key: 'fatigue', label: 'Wellness', icon: '💆', primitive: 'Fatigue' },
-                    { key: 'fun', label: 'Party supplies', icon: '🎈', primitive: 'Fun' },
-                    { key: 'drive', label: 'Internet', icon: '📡', primitive: 'Drive' }
-                  ].map(item => (
-                    <div key={item.key} className="budget-row">
-                      <span className="budget-icon">{item.icon}</span>
-                      <span className="budget-label">{item.label}</span>
-                      <div className="budget-stepper">
-                        <button className="step-btn" onClick={() => handleBudgetStep(item.key, -50)}>--</button>
-                        <button className="step-btn" onClick={() => handleBudgetStep(item.key, -10)}>-</button>
-                        <div className="budget-input-wrap">
-                          <span className="budget-currency">£</span>
-                          <input
-                            type="number"
-                            min="0"
-                            max="500"
-                            step="10"
-                            className="budget-input"
-                            defaultValue={budgetInputs[item.key] || 0}
-                            key={`${item.key}-${budgetInputs[item.key]}`}
-                            onBlur={(e) => handleBudgetInputBlur(item.key, e.target.value)}
-                            onKeyDown={(e) => handleBudgetInputKey(item.key, e)}
-                          />
+                <button className="panel-action" onClick={() => setBudgetOpen(prev => !prev)} style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%'}}>
+                  <span>Budgets</span>
+                  <span style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                    <span style={{fontSize: '0.8rem', opacity: 0.7}}>-{formatCurrency(Object.values(budgetInputs).reduce((s, v) => s + v, 0))}/wk</span>
+                    <span style={{fontSize: '0.7rem'}}>{budgetOpen ? '▲' : '▼'}</span>
+                  </span>
+                </button>
+                {budgetOpen && (
+                  <div className="budget-items" style={{marginTop: '8px'}}>
+                    {[
+                      { key: 'nutrition', label: 'Ingredients', icon: '🥕', primitive: 'Nutrition' },
+                      { key: 'cleanliness', label: 'Cleaning materials', icon: '🧹', primitive: 'Cleanliness' },
+                      { key: 'maintenance', label: 'Handiman', icon: '🔧', primitive: 'Maintenance' },
+                      { key: 'fatigue', label: 'Wellness', icon: '💆', primitive: 'Fatigue' },
+                      { key: 'fun', label: 'Party supplies', icon: '🎈', primitive: 'Fun' },
+                      { key: 'drive', label: 'Internet', icon: '📡', primitive: 'Drive' }
+                    ].map(item => (
+                      <div key={item.key} className="budget-row">
+                        <span className="budget-icon">{item.icon}</span>
+                        <span className="budget-label">{item.label}</span>
+                        <div className="budget-stepper">
+                          <button className="step-btn" onClick={() => handleBudgetStep(item.key, -50)}>--</button>
+                          <button className="step-btn" onClick={() => handleBudgetStep(item.key, -10)}>-</button>
+                          <div className="budget-input-wrap">
+                            <span className="budget-currency">£</span>
+                            <input
+                              type="number"
+                              min="0"
+                              max="500"
+                              step="10"
+                              className="budget-input"
+                              defaultValue={budgetInputs[item.key] || 0}
+                              key={`${item.key}-${budgetInputs[item.key]}`}
+                              onBlur={(e) => handleBudgetInputBlur(item.key, e.target.value)}
+                              onKeyDown={(e) => handleBudgetInputKey(item.key, e)}
+                            />
+                          </div>
+                          <button className="step-btn" onClick={() => handleBudgetStep(item.key, 10)}>+</button>
+                          <button className="step-btn" onClick={() => handleBudgetStep(item.key, 50)}>++</button>
                         </div>
-                        <button className="step-btn" onClick={() => handleBudgetStep(item.key, 10)}>+</button>
-                        <button className="step-btn" onClick={() => handleBudgetStep(item.key, 50)}>++</button>
                       </div>
+                    ))}
+                    <div className="budget-total">
+                      <span>Total Budget</span>
+                      <span className="negative">-{formatCurrency(Object.values(budgetInputs).reduce((s, v) => s + v, 0))}/wk</span>
                     </div>
-                  ))}
-                  <div className="budget-total">
-                    <span>Total Budget</span>
-                    <span className="negative">-{formatCurrency(Object.values(budgetInputs).reduce((s, v) => s + v, 0))}/wk</span>
                   </div>
-                </div>
+                )}
               </div>
 
               <button className="panel-confirm" onClick={handleDismissWeekly}>
