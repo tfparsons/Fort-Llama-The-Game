@@ -354,7 +354,7 @@ body {
 }
 
 .panel-section {
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .panel-section label {
@@ -2144,14 +2144,14 @@ body {
 .budget-items {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 2px;
 }
 
 .budget-row {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 0;
+  gap: 4px;
+  padding: 2px 0;
 }
 
 .budget-icon {
@@ -2177,8 +2177,8 @@ body {
 }
 
 .step-btn {
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 22px;
   border: 1px solid rgba(255,255,255,0.15);
   background: rgba(255,255,255,0.06);
   color: #ccc;
@@ -2210,7 +2210,7 @@ body {
   border: 1px solid rgba(255,255,255,0.15);
   border-radius: 4px;
   padding: 0 4px;
-  height: 26px;
+  height: 22px;
 }
 
 .budget-currency {
@@ -2244,9 +2244,9 @@ body {
 .budget-total {
   display: flex;
   justify-content: space-between;
-  padding-top: 8px;
-  margin-top: 4px;
+  padding-top: 4px;
+  margin-top: 2px;
   border-top: 1px solid rgba(255,255,255,0.1);
   font-weight: bold;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 }

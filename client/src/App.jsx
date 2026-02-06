@@ -1616,7 +1616,6 @@ function App() {
           
           <div className="panel-content">
             <div className="panel-section">
-              <label>Set Rent</label>
                 <div className="rent-row">
                   <input 
                     type="range" 
@@ -1656,7 +1655,6 @@ function App() {
               </div>
 
               <div className="panel-section">
-                <label>Recruit</label>
                 <button 
                   className="panel-action"
                   onClick={handleOpenRecruitment}
@@ -1675,14 +1673,12 @@ function App() {
               </div>
 
               <div className="panel-section">
-                <label>Build</label>
                 <button className="panel-action" onClick={() => setShowBuildModal(true)}>
                   Build
                 </button>
               </div>
 
               <div className="panel-section">
-                <label>Budgets</label>
                 <div className="budget-items">
                   {[
                     { key: 'nutrition', label: 'Ingredients', icon: '🥕', primitive: 'Nutrition' },
@@ -1721,23 +1717,6 @@ function App() {
                     <span>Total Budget</span>
                     <span className="negative">-{formatCurrency(Object.values(budgetInputs).reduce((s, v) => s + v, 0))}/wk</span>
                   </div>
-                </div>
-              </div>
-
-              <div className="panel-projection">
-                <div className="proj-row">
-                  <span>Income</span>
-                  <span className="positive">{formatCurrency(projectedIncome)}</span>
-                </div>
-                <div className="proj-row">
-                  <span>Expenses</span>
-                  <span className="negative">-{formatCurrency(projectedGroundRent + projectedUtilities + projectedBudget)}</span>
-                </div>
-                <div className="proj-row total">
-                  <span>Net</span>
-                  <span className={weeklyDelta >= 0 ? 'positive' : 'negative'}>
-                    {formatCurrency(weeklyDelta)}
-                  </span>
                 </div>
               </div>
 
