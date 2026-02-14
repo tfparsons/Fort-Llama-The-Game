@@ -1,0 +1,21 @@
+Attached a Screenshot of the trees and a table of descriptions for reference.
+Exact bonus/ effect values tbd - ensure they’re configurable in dev tools in anew menu “Technology”.
+Need a new section for “Fixed Costs” - appears under Budget on weekly ticket menu, in a new section (above sliders).
+A technology can unlock new buildings, policies, fixed cost items, culture, or upgrades to the former.
+Fixed costs are a new part of the budget menu that appear with a weekly cost, effects, and a checkbox turning them on or off for the week ahead. An example if the Cleaner tech, which provides a cleanliness bonus at a set weekly rate.
+Culture is researched and automatically applied - it typically just gatekeeps other techs. Each culture tech researched earns a badge for the commune.
+Need a new “Technology” part of the weekly ticker. That lets the user invest in various techs. Modal shows available techs for research in a list (item, metric focus, effect (pop up for details), cost).
+User can research 1 tech/week - it will be available the following week (for now - we may introduction research speed variables later).
+There are 3 tech trees, mapping to the health metrics: living standards, productivity, partytime .
+Each bit of research unlocks 2 more branches of that tree - always 1-2 split. Branches represent a theme (ie. types of fun investment - this is more for flavour than actual mechanics).
+Each piece of tech research has an associated cost (£). Research time is one week. 
+For now we will keep level 1 and 2 only - level 3 will be visible, but marked as unavailable. We won’t develop any of these mechanics for now - just level 1 and 2. 
+There’s a list of tech and effects ahead. These should be in a read-only menu in dev tools, and a new modal. This model should have a flowchart style display expandable modal, showing the various tech trees. We need to think of ways to factor in dev tools tuning controls; suggest some kind of vertical list with variable % effect inputs?
+The player UI should also show the tech tree as an expandable modal, but it should only show discovered techs, the rest remains greyed out.
+We will also need to add a new Policies section to dev tools that lists policies/ effects/ dependencies (ie. “Ocado/ Boosts Nutrition/ Ocado Tech)
+Both heaven and the hottub buildings increase fun production - I think we increase the base level production rather than a multiplier, but open to ideas!
+
+Discounting level 3, here’s what we need to create:
+New Buildings: Heaven, Hot Tub (add to existing menu)
+New Upgrade: Great Hall (living room - automatic) - add as new building, OR add to living room as an “Upgrade” set of fields?
+New Policies: Ocado (locked at start)
