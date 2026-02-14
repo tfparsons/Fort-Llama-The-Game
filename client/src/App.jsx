@@ -2305,20 +2305,10 @@ function App() {
                 if (t.parent && !gameState.researchedTechs?.includes(t.parent)) return false;
                 return true;
               });
-              const researchedInTree = treeTechs.filter(t => gameState.researchedTechs?.includes(t.id));
               
               return (
-                <div key={treeName} style={{marginBottom: '12px'}}>
-                  <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px'}}>
-                    <span style={{background: treeColor, width: '10px', height: '10px', borderRadius: '50%', display: 'inline-block'}}></span>
-                    <span style={{color: treeColor, fontWeight: 600, fontSize: '0.9rem'}}>{treeLabel}</span>
-                    <span style={{color: '#718096', fontSize: '0.75rem'}}>({researchedInTree.length} researched)</span>
-                  </div>
-                  {availableTechs.length === 0 ? (
-                    <div style={{color: '#718096', fontSize: '0.8rem', fontStyle: 'italic', paddingLeft: '18px'}}>
-                      {researchedInTree.length === treeTechs.filter(t => t.available).length ? 'All available techs researched' : 'No techs available yet'}
-                    </div>
-                  ) : (
+                <div key={treeName} style={{marginBottom: '8px'}}>
+                  {availableTechs.length === 0 ? null : (
                     availableTechs.map(tech => {
                       const cfg = gameState.techConfig?.[tech.id] || {};
                       const cost = cfg.cost || 500;
@@ -2332,7 +2322,7 @@ function App() {
                       else if (tech.type === 'culture') effectText = 'Unlocks next tier technologies';
                       
                       return (
-                        <div key={tech.id} style={{background: '#2d3748', borderRadius: '8px', padding: '10px 12px', marginBottom: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                        <div key={tech.id} style={{background: '#2d3748', borderRadius: '8px', padding: '10px 12px', marginBottom: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderLeft: `4px solid ${treeColor}`}}>
                           <div style={{flex: 1}}>
                             <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
                               <span style={{fontWeight: 600, color: '#e2e8f0'}}>{tech.name}</span>
@@ -2393,6 +2383,7 @@ function App() {
                   <div key={tech.id} style={{
                     background: researched ? treeColor + '22' : '#1a202c',
                     border: `2px solid ${researched ? treeColor : discovered ? '#4a5568' : '#4a556844'}`,
+                    borderLeft: `4px solid ${treeColor}${redacted ? '44' : ''}`,
                     borderRadius: '8px',
                     padding: '8px 12px',
                     minWidth: '140px',
@@ -2414,7 +2405,6 @@ function App() {
               
               return (
                 <div key={treeName} style={{marginBottom: '24px'}}>
-                  <h3 style={{color: treeColor, marginBottom: '12px', borderBottom: `2px solid ${treeColor}33`, paddingBottom: '4px'}}>{treeLabel}</h3>
                   <div style={{display: 'flex', gap: '16px', alignItems: 'flex-start', overflowX: 'auto', paddingBottom: '8px'}}>
                     <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px'}}>
                       <div style={{fontSize: '0.65rem', color: '#718096', textTransform: 'uppercase'}}>Level 1</div>
