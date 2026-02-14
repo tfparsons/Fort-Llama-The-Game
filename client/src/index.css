@@ -1868,11 +1868,18 @@ body {
   }
 }
 
-.pressure-column {
-  background: #16213e;
-  border: 1px solid #0f3460;
-  border-radius: 8px;
-  padding: 16px;
+.pressure-card .pressure-gauges {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  align-items: center;
+}
+
+.stocks-card .stocks-tanks {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  align-items: center;
 }
 
 .pressure-gauges {
@@ -1918,18 +1925,10 @@ body {
   font-size: 0.9rem;
 }
 
-.instants-column {
-  background: #16213e;
-  border: 1px solid #0f3460;
-  border-radius: 8px;
-  padding: 16px;
-}
-
-.stocks-column {
-  background: #16213e;
-  border: 1px solid #0f3460;
-  border-radius: 8px;
-  padding: 16px;
+.instants-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .section-header {

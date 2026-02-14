@@ -633,8 +633,7 @@ function App() {
             </div>
           </div>
 
-          <div className="primitives-section wide">
-            <div className="pressure-column">
+          <div className="card pressure-card">
               <div className="pressure-gauges">
                 {[
                   { key: 'crowding', label: 'Crowding', icon: '👥', tiers: ['Comfortable', 'Tight', 'Crowded', 'Unliveable'] },
@@ -699,8 +698,31 @@ function App() {
                   );
                 })}
               </div>
-            </div>
-            <div className="instants-column">
+          </div>
+          <div className="card stocks-card">
+              <div className="stocks-tanks">
+                {[
+                  { key: 'maintenance', label: 'Maintenance', icon: '🔧' },
+                  { key: 'fatigue', label: 'Fatigue', icon: '😴' }
+                ].map(p => {
+                  const val = Math.round(gameState.primitives?.[p.key] || 0);
+                  const fillColor = val < 30 ? '#48bb78' : val < 60 ? '#ed8936' : '#f56565';
+                  return (
+                    <div key={p.key} className="stock-tank">
+                      <div className="tank-container">
+                        <div className="tank-fill" style={{ height: `${val}%`, backgroundColor: fillColor }}/>
+                        <span className="tank-value">{val}</span>
+                      </div>
+                      <div className="tank-label">
+                        <span className="tank-icon">{p.icon}</span>
+                        <span>{p.label}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+          </div>
+          <div className="card instants-card wide">
               {[
                 { key: 'nutrition', label: 'Nutrition', icon: '🍽️' },
                 { key: 'cleanliness', label: 'Cleanliness', icon: '🧹' },
@@ -727,30 +749,6 @@ function App() {
                   </div>
                 );
               })}
-            </div>
-            <div className="stocks-column">
-              <div className="stocks-tanks">
-                {[
-                  { key: 'maintenance', label: 'Maintenance', icon: '🔧' },
-                  { key: 'fatigue', label: 'Fatigue', icon: '😴' }
-                ].map(p => {
-                  const val = Math.round(gameState.primitives?.[p.key] || 0);
-                  const fillColor = val < 30 ? '#48bb78' : val < 60 ? '#ed8936' : '#f56565';
-                  return (
-                    <div key={p.key} className="stock-tank">
-                      <div className="tank-container">
-                        <div className="tank-fill" style={{ height: `${val}%`, backgroundColor: fillColor }}/>
-                        <span className="tank-value">{val}</span>
-                      </div>
-                      <div className="tank-label">
-                        <span className="tank-icon">{p.icon}</span>
-                        <span>{p.label}</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
           </div>
 
             <div className="card">
