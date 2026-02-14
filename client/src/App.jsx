@@ -2295,9 +2295,6 @@ function App() {
                 View Tech Tree
               </button>
             </div>
-            <p style={{color: '#a0aec0', fontSize: '0.85rem', marginBottom: '12px'}}>
-              Research 1 technology per week. Unlocks new buildings, policies, and bonuses.
-            </p>
             {['livingStandards', 'productivity', 'fun'].map(treeName => {
               const treeLabel = treeName === 'livingStandards' ? 'Quality of Life' : treeName === 'productivity' ? 'Productivity' : 'Fun';
               const treeColor = treeName === 'livingStandards' ? '#48bb78' : treeName === 'productivity' ? '#4299e1' : '#ed8936';
@@ -2345,7 +2342,7 @@ function App() {
                           </div>
                           <button
                             className="action-button"
-                            style={{marginLeft: '10px', opacity: (!canAfford || gameState.hasResearchedThisWeek) ? 0.5 : 1}}
+                            style={{marginLeft: '10px', width: '80px', textAlign: 'center', flexShrink: 0, opacity: (!canAfford || gameState.hasResearchedThisWeek) ? 0.5 : 1}}
                             disabled={!canAfford || gameState.hasResearchedThisWeek}
                             onClick={() => handleResearch(tech.id)}
                           >
