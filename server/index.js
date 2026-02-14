@@ -126,6 +126,16 @@ const DEFAULT_BUILDINGS = [
     id: 'utility_closet', name: 'Utility Closet', capacity: 40, atStart: 1, cost: null, 
     utilitiesMultiplier: null, groundRentMultiplier: null, buildable: false,
     quality: 1, repairMult: 1.0
+  },
+  {
+    id: 'heaven', name: 'Heaven', capacity: 15, atStart: 0, cost: 500,
+    utilitiesMultiplier: 0.1, groundRentMultiplier: 0.05, buildable: true,
+    quality: 1, funOutput: 3, techRequired: 'blanket_fort'
+  },
+  {
+    id: 'hot_tub', name: 'Hot Tub', capacity: 8, atStart: 0, cost: 800,
+    utilitiesMultiplier: 0.15, groundRentMultiplier: 0.05, buildable: true,
+    quality: 1, funOutput: 2, techRequired: 'outdoor_plumbing'
   }
 ];
 
@@ -148,7 +158,8 @@ const POLICY_DEFINITIONS = [
     description: 'Remove worst {pct}% of residents\' cooking stats from the house resident multiplier',
     primitive: 'nutrition',
     stat: 'cookingSkill',
-    type: 'exclude_worst'
+    type: 'exclude_worst',
+    techRequired: 'chores_rota'
   },
   {
     id: 'cleaning_rota',
@@ -156,9 +167,67 @@ const POLICY_DEFINITIONS = [
     description: 'Remove worst {pct}% of residents\' tidiness stats from the house resident multiplier',
     primitive: 'cleanliness',
     stat: 'tidiness',
-    type: 'exclude_worst'
+    type: 'exclude_worst',
+    techRequired: 'chores_rota'
+  },
+  {
+    id: 'ocado',
+    name: 'Ocado',
+    description: 'Boost ingredient budget efficiency by {ocadoPct}%',
+    primitive: 'nutrition',
+    stat: null,
+    type: 'boost_efficiency',
+    techRequired: 'ocado'
   }
 ];
+
+const TECH_TREE = [
+  { id: 'chores_rota', name: 'Chores Rota', level: 1, tree: 'livingStandards', type: 'policy', parent: null, description: 'Commune learns how to organise better', available: true },
+  { id: 'cleaner', name: 'Cleaner', level: 2, tree: 'livingStandards', type: 'fixed_expense', parent: 'chores_rota', description: 'Employ some professional help', available: true },
+  { id: 'laundry_room', name: 'Laundry Room', level: 3, tree: 'livingStandards', type: 'building', parent: 'cleaner', description: 'Operationalising', available: false },
+  { id: 'ukrainian_cleaner', name: 'Ukrainian Cleaner (Upgrade)', level: 3, tree: 'livingStandards', type: 'upgrade', parent: 'cleaner', description: 'Cleaner upgrade', available: false },
+  { id: 'ocado', name: 'Ocado', level: 2, tree: 'livingStandards', type: 'policy', parent: 'chores_rota', description: 'More efficient ingredients', available: true },
+  { id: 'competitive_cooking', name: 'Competitive Cooking', level: 3, tree: 'livingStandards', type: 'policy', parent: 'ocado', description: 'Fun culture of cooking to impress emerges', available: false },
+  { id: 'majestic_guvnor', name: "Majestic/Guv'nor", level: 3, tree: 'livingStandards', type: 'culture', parent: 'ocado', description: "House special - don't mind if I do... (wine)", available: false },
+  { id: 'starlink', name: 'Starlink', level: 1, tree: 'productivity', type: 'fixed_expense', parent: null, description: 'Faster internet (thanks Elon)', available: true },
+  { id: 'wellness', name: 'Wellness', level: 2, tree: 'productivity', type: 'culture', parent: 'starlink', description: 'Ways to reduce fatigue', available: true },
+  { id: 'group_yoga', name: 'Group Yoga', level: 3, tree: 'productivity', type: 'culture', parent: 'wellness', description: 'It was the answer all along...', available: false },
+  { id: 'sauna', name: 'Sauna', level: 3, tree: 'productivity', type: 'building', parent: 'wellness', description: 'Skandi style', available: false },
+  { id: 'great_hall', name: 'Great Hall', level: 2, tree: 'productivity', type: 'upgrade', parent: 'starlink', description: 'Living room upgrade', available: true },
+  { id: 'call_rooms', name: 'Bookable Call Rooms', level: 3, tree: 'productivity', type: 'policy', parent: 'great_hall', description: 'Shhhh', available: false },
+  { id: 'adderall', name: 'Adderall', level: 3, tree: 'productivity', type: 'fixed_expense', parent: 'great_hall', description: "LET'S FUCKING GO", available: false },
+  { id: 'blanket_fort', name: 'Blanket Fort Engineering', level: 1, tree: 'fun', type: 'building', parent: null, description: 'Discovering heaven - the pillow fort for grown ups', available: true },
+  { id: 'always_be_escalating', name: 'Always Be Escalating', level: 2, tree: 'fun', type: 'culture', parent: 'blanket_fort', description: 'Unlocks new fun techs', available: true },
+  { id: 'party_planning', name: 'Party Planning', level: 3, tree: 'fun', type: 'culture', parent: 'always_be_escalating', description: "Guys I've had an idea...", available: false },
+  { id: 'psychedelics', name: 'Psychedelics', level: 3, tree: 'fun', type: 'fixed_expense', parent: 'always_be_escalating', description: "Let's expand the discussion", available: false },
+  { id: 'outdoor_plumbing', name: 'Outdoor Plumbing', level: 2, tree: 'fun', type: 'building', parent: 'blanket_fort', description: "Let's figure out how to make a hot tub...", available: true },
+  { id: 'polyamory', name: 'Polyamory', level: 3, tree: 'fun', type: 'policy', parent: 'outdoor_plumbing', description: 'I mean... why not?', available: false },
+  { id: 'advanced_blanket_fort', name: 'Advanced Blanket Fort Engineering', level: 3, tree: 'fun', type: 'building', parent: 'outdoor_plumbing', description: "Let's double down", available: false }
+];
+
+const DEFAULT_TECH_CONFIG = {
+  chores_rota: { cost: 500 },
+  cleaner: { cost: 1000, weeklyCost: 150, effectPercent: 20 },
+  ocado: { cost: 1000, effectPercent: 15 },
+  wellness: { cost: 1000 },
+  great_hall: { cost: 1000, capacityBoost: 10, funMultBoost: 0.3, driveMultBoost: 0.2 },
+  starlink: { cost: 500, weeklyCost: 100, effectPercent: 15 },
+  blanket_fort: { cost: 500 },
+  always_be_escalating: { cost: 1000 },
+  outdoor_plumbing: { cost: 1000 },
+  laundry_room: { cost: 2000 },
+  ukrainian_cleaner: { cost: 2000 },
+  competitive_cooking: { cost: 2000 },
+  majestic_guvnor: { cost: 2000 },
+  group_yoga: { cost: 2000 },
+  sauna: { cost: 2000 },
+  call_rooms: { cost: 2000 },
+  adderall: { cost: 2000, weeklyCost: 200, effectPercent: 25 },
+  party_planning: { cost: 2000 },
+  psychedelics: { cost: 2000, weeklyCost: 200, effectPercent: 20 },
+  polyamory: { cost: 2000 },
+  advanced_blanket_fort: { cost: 2000 }
+};
 
 const DEFAULT_PRIMITIVE_CONFIG = {
   penaltyK: 2,
@@ -318,6 +387,7 @@ let savedLlamaPool = loadedData.llamaPool;
 let savedBuildingsConfig = loadedData.buildings;
 let budgetConfig = savedDefaults.budgetConfig ? JSON.parse(JSON.stringify(savedDefaults.budgetConfig)) : JSON.parse(JSON.stringify(DEFAULT_BUDGET_CONFIG));
 let policyConfig = savedDefaults.policyConfig ? JSON.parse(JSON.stringify(savedDefaults.policyConfig)) : JSON.parse(JSON.stringify(DEFAULT_POLICY_CONFIG));
+let techConfig = savedDefaults.techConfig ? JSON.parse(JSON.stringify(savedDefaults.techConfig)) : JSON.parse(JSON.stringify(DEFAULT_TECH_CONFIG));
 
 function deepMergePrimitives(defaults, overrides) {
   const result = { ...defaults };
@@ -348,6 +418,9 @@ function initializeGame(config = savedDefaults) {
   }
   if (config.policyConfig) {
     policyConfig = JSON.parse(JSON.stringify(config.policyConfig));
+  }
+  if (config.techConfig) {
+    techConfig = JSON.parse(JSON.stringify(config.techConfig));
   }
   
   llamaPool = savedLlamaPool 
@@ -428,7 +501,10 @@ function initializeGame(config = savedDefaults) {
       fun: 0,
       drive: 0
     },
-    activePolicies: []
+    activePolicies: [],
+    researchedTechs: [],
+    activeFixedCosts: [],
+    hasResearchedThisWeek: false
   };
   calculatePrimitives();
   calculateHealthMetrics();
@@ -449,13 +525,21 @@ function calculateWeeklyProjection() {
   const groundRent = calculateGroundRent();
   const utilities = calculateUtilities();
   const totalBudget = Object.values(gameState.budgets).reduce((sum, v) => sum + v, 0);
-  const weeklyDelta = income - groundRent - utilities - totalBudget;
+  let totalFixedCosts = 0;
+  (gameState.activeFixedCosts || []).forEach(fcId => {
+    const cfg = techConfig[fcId];
+    if (cfg && cfg.weeklyCost) {
+      totalFixedCosts += cfg.weeklyCost;
+    }
+  });
+  const weeklyDelta = income - groundRent - utilities - totalBudget - totalFixedCosts;
   gameState.weeklyDelta = weeklyDelta;
   gameState.dailyDelta = weeklyDelta / 7;
   gameState.projectedIncome = income;
   gameState.projectedGroundRent = groundRent;
   gameState.projectedUtilities = utilities;
   gameState.projectedBudget = totalBudget;
+  gameState.projectedFixedCosts = totalFixedCosts;
 }
 
 function calculateTotalCapacity() {
@@ -608,6 +692,16 @@ function calculatePrimitives() {
   const capLiv = getBuildingCapacity('living_room');
   const capUtil = getBuildingCapacity('utility_closet');
   
+  let effectiveCapLiv = capLiv;
+  let greatHallFunBoost = 0;
+  let greatHallDriveBoost = 0;
+  if (gameState.researchedTechs.includes('great_hall')) {
+    const ghCfg = techConfig.great_hall || {};
+    effectiveCapLiv += (ghCfg.capacityBoost || 10);
+    greatHallFunBoost = ghCfg.funMultBoost || 0.3;
+    greatHallDriveBoost = ghCfg.driveMultBoost || 0.2;
+  }
+  
   const shareTol = statTo01(getAverageResidentStat('sharingTolerance'));
   const cookSkill = statTo01(getPolicyAdjustedAvgStat('cookingSkill'));
   const tidiness = statTo01(getPolicyAdjustedAvgStat('tidiness'));
@@ -627,13 +721,13 @@ function calculatePrimitives() {
   const rBed = effectiveN / capBed;
   const rBath = effectiveN / capBath;
   const rKitch = effectiveN / capKitch;
-  const rLiv = effectiveN / capLiv;
+  const rLiv = effectiveN / effectiveCapLiv;
   const maxRatio = Math.max(rBed, rBath, rKitch, rLiv);
   const crowding = Math.min(100, maxRatio * 50 * overcrowdingPenalty(maxRatio, 'crowding'));
   
   const cfg = primitiveConfig.noise;
   const socialNoise = N * cfg.baseSocial * (1 + cfg.socioMult * sociability) * (1 - cfg.considMult * consideration);
-  const ambientNoise = cfg.baseAmbient * overcrowdingPenalty(N / capLiv, 'noise');
+  const ambientNoise = cfg.baseAmbient * overcrowdingPenalty(N / effectiveCapLiv, 'noise');
   const noise = Math.min(100, (socialNoise + ambientNoise) * (1 / lQ));
   
   const tier = getPopulationTier(N);
@@ -642,7 +736,12 @@ function calculatePrimitives() {
   const nCfg = primitiveConfig.nutrition;
   const nutritionServed = Math.min(N, capKitch);
   const nutritionSupply = nutritionServed * nCfg.outputRate * tierOutputMult * kQ * getBuildingMult('kitchen', 'foodMult') * (1 + nCfg.skillMult * cookSkill);
-  const nutritionBudgetBoost = (gameState.budgets.nutrition || 0) * (budgetConfig.nutrition.efficiency || 0);
+  let nutritionEfficiency = budgetConfig.nutrition.efficiency || 0;
+  if (gameState.activePolicies.includes('ocado')) {
+    const ocadoBoost = (techConfig.ocado?.effectPercent || 15) / 100;
+    nutritionEfficiency *= (1 + ocadoBoost);
+  }
+  const nutritionBudgetBoost = (gameState.budgets.nutrition || 0) * nutritionEfficiency;
   const totalNutritionSupply = nutritionSupply + nutritionBudgetBoost;
   const nutritionDemand = N * nCfg.consumptionRate;
   const nutritionRatio = nutritionDemand > 0 ? totalNutritionSupply / nutritionDemand : 1;
@@ -652,7 +751,11 @@ function calculatePrimitives() {
   const cleanServed = Math.min(N, capBath);
   const cleanSupply = cleanServed * cCfg.outputRate * tierOutputMult * bathQ * getBuildingMult('bathroom', 'cleanMult') * (1 + cCfg.skillMult * tidiness);
   const cleanBudgetBoost = (gameState.budgets.cleanliness || 0) * (budgetConfig.cleanliness.efficiency || 0);
-  const totalCleanSupply = cleanSupply + cleanBudgetBoost;
+  let totalCleanSupply = cleanSupply + cleanBudgetBoost;
+  if (gameState.activeFixedCosts.includes('cleaner')) {
+    const cleanerBoost = (techConfig.cleaner?.effectPercent || 20) / 100;
+    totalCleanSupply *= (1 + cleanerBoost);
+  }
   const cleanDemand = N * cCfg.consumptionRate;
   const cleanRatio = cleanDemand > 0 ? totalCleanSupply / cleanDemand : 1;
   const cleanliness = log2CoverageScore(cleanRatio);
@@ -672,10 +775,20 @@ function calculatePrimitives() {
   const fatigue = Math.min(100, Math.max(0, oldFatigue + netFatigue * 0.3 - (gameState.budgets.fatigue || 0) * (budgetConfig.fatigue.reductionRate || 0) / ticksPerWeek));
   
   const funCfg = primitiveConfig.fun;
-  const funServed = Math.min(N, capLiv);
-  const funSupply = funServed * funCfg.outputRate * tierOutputMult * lQ * getBuildingMult('living_room', 'funMult') * (1 + funCfg.skillMult * (sociability + partyStamina) / 2);
+  const funServed = Math.min(N, effectiveCapLiv);
+  const funSupply = funServed * funCfg.outputRate * tierOutputMult * lQ * getBuildingMult('living_room', 'funMult') * (1 + funCfg.skillMult * (sociability + partyStamina) / 2) * (1 + greatHallFunBoost);
   const funBudgetBoost = (gameState.budgets.fun || 0) * (budgetConfig.fun.efficiency || 0);
   const totalFunSupply = funSupply + funBudgetBoost;
+  let extraFunOutput = 0;
+  const heavenBuilding = gameState.buildings.find(b => b.id === 'heaven');
+  if (heavenBuilding && heavenBuilding.count > 0) {
+    extraFunOutput += heavenBuilding.count * (heavenBuilding.funOutput || 3) * tierOutputMult;
+  }
+  const hotTubBuilding = gameState.buildings.find(b => b.id === 'hot_tub');
+  if (hotTubBuilding && hotTubBuilding.count > 0) {
+    extraFunOutput += hotTubBuilding.count * (hotTubBuilding.funOutput || 2) * tierOutputMult;
+  }
+  const totalFunWithBuildings = totalFunSupply + extraFunOutput;
   const funDemand = N * funCfg.consumptionRate;
   const activePolicyCount = (gameState.activePolicies || []).length;
   const policyThreshold = policyConfig.funPenalty?.threshold || 3;
@@ -686,15 +799,19 @@ function calculatePrimitives() {
     const excess = activePolicyCount - policyThreshold;
     policyFunMult = 1 / (1 + policyK * Math.pow(excess, policyP));
   }
-  const adjustedFunSupply = totalFunSupply * policyFunMult;
+  const adjustedFunSupply = totalFunWithBuildings * policyFunMult;
   const funRatio = funDemand > 0 ? adjustedFunSupply / funDemand : 1;
   const fun = log2CoverageScore(funRatio);
   
   const dCfg = primitiveConfig.drive;
-  const driveServed = Math.min(N, capLiv);
-  const driveSupply = driveServed * dCfg.outputRate * tierOutputMult * lQ * (1 + dCfg.skillMult * workEthic);
+  const driveServed = Math.min(N, effectiveCapLiv);
+  const driveSupply = driveServed * dCfg.outputRate * tierOutputMult * lQ * (1 + dCfg.skillMult * workEthic) * (1 + greatHallDriveBoost);
   const driveBudgetBoost = (gameState.budgets.drive || 0) * (budgetConfig.drive.efficiency || 0);
-  const totalDriveSupply = driveSupply + driveBudgetBoost;
+  let totalDriveSupply = driveSupply + driveBudgetBoost;
+  if (gameState.activeFixedCosts.includes('starlink')) {
+    const starlinkBoost = (techConfig.starlink?.effectPercent || 15) / 100;
+    totalDriveSupply *= (1 + starlinkBoost);
+  }
   const driveDemand = N * dCfg.slackRate;
   const driveRatio = driveDemand > 0 ? totalDriveSupply / driveDemand : 1;
   const drive = log2CoverageScore(driveRatio);
@@ -706,7 +823,7 @@ function calculatePrimitives() {
     tierOutputMult,
     nutrition: { supply: totalNutritionSupply, demand: nutritionDemand, ratio: nutritionRatio, label: getCoverageTierLabel(nutrition), budgetBoost: nutritionBudgetBoost },
     cleanliness: { supply: totalCleanSupply, demand: cleanDemand, ratio: cleanRatio, label: getCoverageTierLabel(cleanliness), budgetBoost: cleanBudgetBoost },
-    fun: { supply: totalFunSupply, demand: funDemand, ratio: funRatio, label: getCoverageTierLabel(fun), budgetBoost: funBudgetBoost },
+    fun: { supply: totalFunWithBuildings, demand: funDemand, ratio: funRatio, label: getCoverageTierLabel(fun), budgetBoost: funBudgetBoost },
     drive: { supply: totalDriveSupply, demand: driveDemand, ratio: driveRatio, label: getCoverageTierLabel(drive), budgetBoost: driveBudgetBoost }
   };
 }
@@ -939,7 +1056,11 @@ function processTick() {
   });
   
   const totalBudget = Object.values(gameState.budgets).reduce((sum, v) => sum + v, 0);
-  const weeklyExpenses = calculateGroundRent() + calculateUtilities() + totalBudget;
+  const totalFixedCosts = (gameState.activeFixedCosts || []).reduce((sum, fcId) => {
+    const cfg = techConfig[fcId];
+    return sum + (cfg?.weeklyCost || 0);
+  }, 0);
+  const weeklyExpenses = calculateGroundRent() + calculateUtilities() + totalBudget + totalFixedCosts;
   const tickIncome = weeklyIncome / ticksPerWeek;
   const tickExpenses = weeklyExpenses / ticksPerWeek;
   gameState.treasury += tickIncome - tickExpenses;
@@ -970,7 +1091,8 @@ function processWeekEnd() {
     groundRent: gameState.projectedGroundRent,
     utilities: gameState.projectedUtilities,
     budget: gameState.projectedBudget || 0,
-    totalExpenses: gameState.projectedGroundRent + gameState.projectedUtilities + (gameState.projectedBudget || 0),
+    fixedCosts: gameState.projectedFixedCosts || 0,
+    totalExpenses: gameState.projectedGroundRent + gameState.projectedUtilities + (gameState.projectedBudget || 0) + (gameState.projectedFixedCosts || 0),
     profit: actualProfit,
     arrivedResidents: [],
     churnedResidents: churnedResidents.map(r => r.name)
@@ -983,6 +1105,7 @@ function processWeekEnd() {
   gameState.hour = 9;
   gameState.dayName = 'Monday';
   gameState.hasRecruitedThisWeek = false;
+  gameState.hasResearchedThisWeek = false;
   gameState.treasuryAtWeekStart = gameState.treasury;
   gameState.isPausedForWeeklyDecision = true;
   stopSimulation();
@@ -1036,7 +1159,9 @@ app.get('/api/state', (req, res) => {
     tierConfig,
     budgetConfig,
     policyConfig,
-    policyDefinitions: POLICY_DEFINITIONS
+    policyDefinitions: POLICY_DEFINITIONS,
+    techConfig,
+    techTree: TECH_TREE
   });
 });
 
@@ -1059,7 +1184,8 @@ app.post('/api/save-defaults', (req, res) => {
     vibes: { ...vibesConfig },
     tierConfig: { ...tierConfig },
     budgetConfig: JSON.parse(JSON.stringify(budgetConfig)),
-    policyConfig: JSON.parse(JSON.stringify(policyConfig))
+    policyConfig: JSON.parse(JSON.stringify(policyConfig)),
+    techConfig: JSON.parse(JSON.stringify(techConfig))
   };
   savedLlamaPool = JSON.parse(JSON.stringify(llamaPool));
   // Only update savedBuildingsConfig from gameState if it hasn't been edited separately
@@ -1157,6 +1283,9 @@ app.post('/api/action/toggle-policy', (req, res) => {
   if (!policy) {
     return res.status(400).json({ error: 'Unknown policy' });
   }
+  if (policy.techRequired && !gameState.researchedTechs.includes(policy.techRequired)) {
+    return res.status(400).json({ error: 'Technology not yet researched' });
+  }
   const idx = gameState.activePolicies.indexOf(policyId);
   if (idx >= 0) {
     gameState.activePolicies.splice(idx, 1);
@@ -1185,6 +1314,92 @@ app.post('/api/policy-config', (req, res) => {
   calculateHealthMetrics();
   calculateVibes();
   res.json({ success: true, config: policyConfig });
+});
+
+app.post('/api/action/research', (req, res) => {
+  if (!gameState.isPausedForWeeklyDecision) {
+    return res.status(400).json({ error: 'Can only research during weekly planning' });
+  }
+  if (gameState.hasResearchedThisWeek) {
+    return res.status(400).json({ error: 'Already researched this week' });
+  }
+  const { techId } = req.body;
+  const tech = TECH_TREE.find(t => t.id === techId);
+  if (!tech) {
+    return res.status(400).json({ error: 'Unknown technology' });
+  }
+  if (!tech.available) {
+    return res.status(400).json({ error: 'Technology not yet available' });
+  }
+  if (gameState.researchedTechs.includes(techId)) {
+    return res.status(400).json({ error: 'Already researched' });
+  }
+  if (tech.parent && !gameState.researchedTechs.includes(tech.parent)) {
+    return res.status(400).json({ error: 'Must research prerequisite first' });
+  }
+  const cost = techConfig[techId]?.cost || 500;
+  if (gameState.treasury < cost) {
+    return res.status(400).json({ error: 'Not enough funds' });
+  }
+  
+  gameState.treasury -= cost;
+  gameState.researchedTechs.push(techId);
+  gameState.hasResearchedThisWeek = true;
+  
+  calculatePrimitives();
+  calculateHealthMetrics();
+  calculateVibes();
+  calculateWeeklyProjection();
+  
+  res.json({ 
+    success: true, 
+    researched: techId, 
+    researchedTechs: gameState.researchedTechs,
+    treasury: gameState.treasury
+  });
+});
+
+app.post('/api/action/toggle-fixed-cost', (req, res) => {
+  if (!gameState.isPausedForWeeklyDecision) {
+    return res.status(400).json({ error: 'Can only toggle fixed costs during weekly planning' });
+  }
+  const { fixedCostId } = req.body;
+  if (!gameState.researchedTechs.includes(fixedCostId)) {
+    return res.status(400).json({ error: 'Technology not yet researched' });
+  }
+  const tech = TECH_TREE.find(t => t.id === fixedCostId && t.type === 'fixed_expense');
+  if (!tech) {
+    return res.status(400).json({ error: 'Not a valid fixed cost item' });
+  }
+  const idx = gameState.activeFixedCosts.indexOf(fixedCostId);
+  if (idx >= 0) {
+    gameState.activeFixedCosts.splice(idx, 1);
+  } else {
+    gameState.activeFixedCosts.push(fixedCostId);
+  }
+  calculatePrimitives();
+  calculateHealthMetrics();
+  calculateVibes();
+  calculateWeeklyProjection();
+  res.json({ success: true, activeFixedCosts: gameState.activeFixedCosts });
+});
+
+app.get('/api/tech-config', (req, res) => {
+  res.json(techConfig);
+});
+
+app.post('/api/tech-config', (req, res) => {
+  const updates = req.body;
+  for (const key of Object.keys(updates)) {
+    if (techConfig[key]) {
+      techConfig[key] = { ...techConfig[key], ...updates[key] };
+    }
+  }
+  calculatePrimitives();
+  calculateHealthMetrics();
+  calculateVibes();
+  calculateWeeklyProjection();
+  res.json({ success: true, config: techConfig });
 });
 
 app.get('/api/llama-pool', (req, res) => {
@@ -1343,6 +1558,11 @@ app.post('/api/action/build', (req, res) => {
   
   if (!building.buildable || building.cost === null) {
     res.status(400).json({ error: 'This building type cannot be built' });
+    return;
+  }
+  
+  if (building.techRequired && !gameState.researchedTechs.includes(building.techRequired)) {
+    res.status(400).json({ error: 'Required technology not yet researched' });
     return;
   }
   

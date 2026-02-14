@@ -68,7 +68,15 @@ The project follows a client-server architecture:
         -   **Dashboard:** Active policies shown in a card with hover tooltips explaining effects
         -   **Dev Tools:** Policy Settings in Mechanics section - tunable excludePercent, Fun penalty threshold/K/P
         -   **API:** POST `/api/action/toggle-policy`, GET/POST `/api/policy-config`
-    -   **Player Actions:** Weekly actions include setting rent, setting budgets, managing policies, recruiting llamas (one per week from three candidates), and building bedrooms.
+    -   **Technology System:** Three research trees (Quality of Life, Productivity, Fun) with 21 technologies across 3 levels, 5 tech types. 1 research per week limit.
+        -   **Tech Types:** Policy (unlocks toggleable policies), Fixed Expense (weekly cost for primitive multiplier boost), Building (unlocks new constructible buildings), Culture (unlocks next-tier techs, shown as dashboard badges), Upgrade (modifies existing buildings)
+        -   **Research Trees:** Quality of Life (Chores Rota→Cleaner/Ocado→L3), Productivity (Starlink→Wellness/Great Hall→L3), Fun (Blanket Fort→Always Be Escalating/Outdoor Plumbing→L3)
+        -   **Tech Effects:** Chores Rota unlocks Cooking/Cleaning Rota policies; Cleaner/Starlink are fixed expenses with primitive multiplier boosts; Ocado boosts ingredient budget efficiency; Great Hall upgrades Living Room (capacity +10, fun/drive mult boosts); Blanket Fort unlocks Heaven building; Outdoor Plumbing unlocks Hot Tub building
+        -   **Fixed Costs:** Toggle on/off during weekly planning, deducted as weekly expenses. Cleaner: +20% cleanliness, £150/wk. Starlink: +15% drive, £100/wk
+        -   **Level 3 techs:** Visible but marked "Coming Soon" (available: false), cost £2000 placeholder
+        -   **Dev Tools:** Technology section with configurable cost, effect %, and weekly cost for all 21 techs
+        -   **API:** POST `/api/action/research`, POST `/api/action/toggle-fixed-cost`, GET/POST `/api/tech-config`
+    -   **Player Actions:** Weekly actions include setting rent, setting budgets, managing policies, researching technology, recruiting llamas (one per week from three candidates), and building bedrooms.
     -   **Recruitment:** Candidates are presented with stats and bios; invited llamas arrive later in the week with pro-rata rent.
     -   **Game Over:** Occurs when the treasury reaches -£20,000.
 -   **Development Tools:** A comprehensive admin panel (Dev Tools) allows tuning of all game parameters, including starting values, rent settings, overheads, building costs, churn settings, health/primitive/vibes configurations, and budget efficiency/reductionRate settings. All changes trigger a simulation reset.

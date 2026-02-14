@@ -10,6 +10,8 @@ function App() {
   const [showBuildModal, setShowBuildModal] = useState(false);
   const [showRecruitModal, setShowRecruitModal] = useState(false);
   const [showPolicyModal, setShowPolicyModal] = useState(false);
+  const [showTechModal, setShowTechModal] = useState(false);
+  const [showTechTreeModal, setShowTechTreeModal] = useState(false);
   const [budgetOpen, setBudgetOpen] = useState(false);
   const [showLlamaPoolEditor, setShowLlamaPoolEditor] = useState(false);
   const [showBuildingsEditor, setShowBuildingsEditor] = useState(false);
@@ -473,6 +475,26 @@ function App() {
     fetchState();
   };
 
+  const handleResearch = async (techId) => {
+    const res = await fetch(`${API_BASE}/api/action/research`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ techId })
+    });
+    const data = await res.json();
+    if (!res.ok) alert(data.error);
+  };
+
+  const handleToggleFixedCost = async (fixedCostId) => {
+    const res = await fetch(`${API_BASE}/api/action/toggle-fixed-cost`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fixedCostId })
+    });
+    const data = await res.json();
+    if (!res.ok) alert(data.error);
+  };
+
   const handleApplyConfig = async () => {
     await fetch(`${API_BASE}/api/config`, {
       method: 'POST',
@@ -493,6 +515,13 @@ function App() {
         body: JSON.stringify(editConfig.policyConfig)
       });
     }
+    if (editConfig.techConfig) {
+      await fetch(`${API_BASE}/api/tech-config`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editConfig.techConfig)
+      });
+    }
     budgetSyncedWeek.current = null;
     fetchState();
     setView('dashboard');
@@ -509,6 +538,13 @@ function App() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editConfig.budgetConfig)
+      });
+    }
+    if (editConfig.techConfig) {
+      await fetch(`${API_BASE}/api/tech-config`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editConfig.techConfig)
       });
     }
     await fetch(`${API_BASE}/api/save-defaults`, { method: 'POST' });
@@ -557,7 +593,8 @@ function App() {
                 primitives: gameState?.primitiveConfig,
                 vibes: gameState?.vibesConfig,
                 budgetConfig: gameState?.budgetConfig,
-                policyConfig: gameState?.policyConfig
+                policyConfig: gameState?.policyConfig,
+                techConfig: gameState?.techConfig
               }); }}
             >
               Dev Tools
@@ -806,6 +843,12 @@ function App() {
                   </div>
                 </div>
               </div>
+              {(gameState.projectedFixedCosts || 0) > 0 && (
+                <div className="stat">
+                  <span className="stat-label">Fixed Costs</span>
+                  <span className="stat-value negative">-{formatCurrency(gameState.projectedFixedCosts)}</span>
+                </div>
+              )}
               <div className="stat highlight">
                 <span className="stat-label">Net</span>
                 <span className={`stat-value ${weeklyDelta >= 0 ? 'positive' : 'negative'}`}>
@@ -822,6 +865,12 @@ function App() {
                   <span className="stat-value">{b.count} ({b.count * b.capacity})</span>
                 </div>
               ))}
+              {gameState.researchedTechs?.includes('great_hall') && (
+                <div className="stat" style={{borderTop: '1px solid #4a5568', paddingTop: '4px', marginTop: '4px'}}>
+                  <span className="stat-label" style={{color: '#4299e1'}}>Great Hall (Upgrade)</span>
+                  <span className="stat-value" style={{color: '#4299e1', fontSize: '0.75rem'}}>Active</span>
+                </div>
+              )}
             </div>
 
             <div className="card">
@@ -860,6 +909,26 @@ function App() {
                 <div style={{color: '#718096', fontSize: '0.85rem', fontStyle: 'italic', padding: '8px 0'}}>No active policies</div>
               )}
             </div>
+
+            {(() => {
+              const cultureTechs = (gameState.techTree || []).filter(t => t.type === 'culture' && gameState.researchedTechs?.includes(t.id));
+              if (cultureTechs.length === 0) return null;
+              return (
+                <div className="card">
+                  <h2>Culture Badges</h2>
+                  <div style={{display: 'flex', flexWrap: 'wrap', gap: '6px'}}>
+                    {cultureTechs.map(tech => {
+                      const treeColor = tech.tree === 'livingStandards' ? '#48bb78' : tech.tree === 'productivity' ? '#4299e1' : '#ed8936';
+                      return (
+                        <span key={tech.id} style={{background: treeColor + '22', color: treeColor, border: `1px solid ${treeColor}44`, padding: '3px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600}}>
+                          {tech.name}
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
 
             <div className="card residents-card">
               <h2>Residents ({gameState.communeResidents?.filter(r => !r.churned).length || 0})</h2>
@@ -1349,6 +1418,109 @@ function App() {
             </div>
           </div>
 
+          <h3 className="section-divider">Technology</h3>
+          <div className="dev-tools-grid">
+            <div className="config-section" style={{gridColumn: '1 / -1'}}>
+              <h3>Tech Tree Configuration</h3>
+              <p style={{color: '#a0aec0', fontSize: '0.75rem', marginBottom: '8px'}}>Configure research costs and effects for each technology. Changes apply on Reset.</p>
+              {['livingStandards', 'productivity', 'fun'].map(treeName => {
+                const treeLabel = treeName === 'livingStandards' ? 'Quality of Life' : treeName === 'productivity' ? 'Productivity' : 'Fun';
+                const treeColor = treeName === 'livingStandards' ? '#48bb78' : treeName === 'productivity' ? '#4299e1' : '#ed8936';
+                const treeTechs = (gameState.techTree || []).filter(t => t.tree === treeName);
+                return (
+                  <div key={treeName} style={{marginBottom: '16px'}}>
+                    <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', borderBottom: `2px solid ${treeColor}33`, paddingBottom: '4px'}}>
+                      <span style={{background: treeColor, width: '10px', height: '10px', borderRadius: '50%', display: 'inline-block'}}></span>
+                      <span style={{color: treeColor, fontWeight: 600, fontSize: '0.85rem'}}>{treeLabel}</span>
+                    </div>
+                    <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '8px'}}>
+                      {treeTechs.map(tech => {
+                        const cfg = editConfig?.techConfig?.[tech.id] || {};
+                        const updateTechCfg = (field, value) => {
+                          setEditConfig(prev => ({
+                            ...prev,
+                            techConfig: {
+                              ...prev.techConfig,
+                              [tech.id]: { ...(prev.techConfig?.[tech.id] || {}), [field]: value }
+                            }
+                          }));
+                        };
+                        return (
+                          <div key={tech.id} style={{background: '#2d3748', borderRadius: '6px', padding: '8px 10px', border: `1px solid ${tech.available ? treeColor + '44' : '#4a556833'}`}}>
+                            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px'}}>
+                              <span style={{fontWeight: 600, fontSize: '0.8rem', color: tech.available ? '#e2e8f0' : '#718096'}}>{tech.name}</span>
+                              <span style={{fontSize: '0.6rem', background: treeColor + '22', color: treeColor, padding: '1px 6px', borderRadius: '4px', textTransform: 'capitalize'}}>{tech.type.replace('_', ' ')}</span>
+                            </div>
+                            <div style={{fontSize: '0.65rem', color: '#718096', marginBottom: '6px'}}>L{tech.level} {!tech.available && '(Coming Soon)'}</div>
+                            <div className="config-field" style={{marginBottom: '4px'}}>
+                              <label style={{fontSize: '0.7rem'}}>Cost</label>
+                              <input type="number" step="100" min="0"
+                                value={cfg.cost ?? 500}
+                                onChange={(e) => updateTechCfg('cost', parseInt(e.target.value) || 0)}
+                              />
+                            </div>
+                            {tech.type === 'fixed_expense' && (
+                              <>
+                                <div className="config-field" style={{marginBottom: '4px'}}>
+                                  <label style={{fontSize: '0.7rem'}}>Weekly Cost</label>
+                                  <input type="number" step="10" min="0"
+                                    value={cfg.weeklyCost ?? 0}
+                                    onChange={(e) => updateTechCfg('weeklyCost', parseInt(e.target.value) || 0)}
+                                  />
+                                </div>
+                                <div className="config-field" style={{marginBottom: '0'}}>
+                                  <label style={{fontSize: '0.7rem'}}>Effect %</label>
+                                  <input type="number" step="1" min="0"
+                                    value={cfg.effectPercent ?? 0}
+                                    onChange={(e) => updateTechCfg('effectPercent', parseInt(e.target.value) || 0)}
+                                  />
+                                </div>
+                              </>
+                            )}
+                            {tech.type === 'policy' && tech.id === 'ocado' && (
+                              <div className="config-field" style={{marginBottom: '0'}}>
+                                <label style={{fontSize: '0.7rem'}}>Effect %</label>
+                                <input type="number" step="1" min="0"
+                                  value={cfg.effectPercent ?? 15}
+                                  onChange={(e) => updateTechCfg('effectPercent', parseInt(e.target.value) || 0)}
+                                />
+                              </div>
+                            )}
+                            {tech.type === 'upgrade' && tech.id === 'great_hall' && (
+                              <>
+                                <div className="config-field" style={{marginBottom: '4px'}}>
+                                  <label style={{fontSize: '0.7rem'}}>Cap Boost</label>
+                                  <input type="number" step="1" min="0"
+                                    value={cfg.capacityBoost ?? 10}
+                                    onChange={(e) => updateTechCfg('capacityBoost', parseInt(e.target.value) || 0)}
+                                  />
+                                </div>
+                                <div className="config-field" style={{marginBottom: '4px'}}>
+                                  <label style={{fontSize: '0.7rem'}}>Fun Mult +</label>
+                                  <input type="number" step="0.05" min="0"
+                                    value={cfg.funMultBoost ?? 0.3}
+                                    onChange={(e) => updateTechCfg('funMultBoost', parseFloat(e.target.value) || 0)}
+                                  />
+                                </div>
+                                <div className="config-field" style={{marginBottom: '0'}}>
+                                  <label style={{fontSize: '0.7rem'}}>Drive Mult +</label>
+                                  <input type="number" step="0.05" min="0"
+                                    value={cfg.driveMultBoost ?? 0.2}
+                                    onChange={(e) => updateTechCfg('driveMultBoost', parseFloat(e.target.value) || 0)}
+                                  />
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
           <h3 className="section-divider">Primitive Settings</h3>
           <div className="primitives-accordion">
             
@@ -1781,11 +1953,53 @@ function App() {
               </div>
 
               <div className="panel-section">
+                <button className="panel-action" onClick={() => setShowTechModal(true)}
+                  disabled={gameState.hasResearchedThisWeek}
+                >
+                  {gameState.hasResearchedThisWeek ? `Researched this week` : 'Technology'}
+                </button>
+              </div>
+
+              <div className="panel-section">
                 <button className="panel-action" onClick={() => setBudgetOpen(prev => !prev)}>
                   Budgets {budgetOpen ? '▲' : '▼'}
                 </button>
                 {budgetOpen && (
                   <div className="budget-items" style={{marginTop: '8px'}}>
+                    {(() => {
+                      const fixedCostTechs = (gameState.techTree || []).filter(t => 
+                        t.type === 'fixed_expense' && gameState.researchedTechs?.includes(t.id)
+                      );
+                      if (fixedCostTechs.length === 0) return null;
+                      return (
+                        <div style={{marginBottom: '10px', borderBottom: '1px solid #4a5568', paddingBottom: '8px'}}>
+                          <div style={{fontSize: '0.75rem', color: '#a0aec0', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em'}}>Fixed Costs</div>
+                          {fixedCostTechs.map(tech => {
+                            const cfg = gameState.techConfig?.[tech.id] || {};
+                            const isActive = gameState.activeFixedCosts?.includes(tech.id);
+                            return (
+                              <div key={tech.id} className="budget-row" style={{alignItems: 'center'}}>
+                                <label style={{display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', flex: 1}}>
+                                  <input
+                                    type="checkbox"
+                                    checked={isActive}
+                                    onChange={() => handleToggleFixedCost(tech.id)}
+                                    style={{accentColor: '#48bb78'}}
+                                  />
+                                  <span className="budget-label">{tech.name}</span>
+                                </label>
+                                <span style={{color: isActive ? '#fc8181' : '#718096', fontSize: '0.8rem', fontWeight: 600}}>
+                                  £{cfg.weeklyCost || 0}/wk
+                                </span>
+                                <span style={{color: '#a0aec0', fontSize: '0.7rem', marginLeft: '6px'}}>
+                                  +{cfg.effectPercent || 0}%
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()}
                     {[
                       { key: 'nutrition', label: 'Ingredients', icon: '🥕', primitive: 'Nutrition' },
                       { key: 'cleanliness', label: 'Cleaning materials', icon: '🧹', primitive: 'Cleanliness' },
@@ -1994,7 +2208,7 @@ function App() {
         <div className="modal-overlay" onClick={() => setShowBuildModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h2>Build</h2>
-            {gameState.buildings?.filter(b => b.buildable && b.cost !== null).map(building => (
+            {gameState.buildings?.filter(b => b.buildable && b.cost !== null && (!b.techRequired || gameState.researchedTechs?.includes(b.techRequired))).map(building => (
               <div key={building.id} className="building-card">
                 <h3>{building.name.replace(/s$/, '')}</h3>
                 <div className="building-stats">
@@ -2039,20 +2253,24 @@ function App() {
             <div className="policy-list">
               {(gameState.policyDefinitions || []).map(policy => {
                 const isActive = (gameState.activePolicies || []).includes(policy.id);
+                const isLocked = policy.techRequired && !gameState.researchedTechs?.includes(policy.techRequired);
                 const pct = Math.round((gameState.policyConfig?.excludePercent || 0.25) * 100);
-                const desc = policy.description.replace('{pct}', pct);
+                const ocadoPct = gameState.techConfig?.ocado?.effectPercent || 15;
+                let desc = policy.description.replace('{pct}', pct).replace('{ocadoPct}', ocadoPct);
                 return (
-                  <div key={policy.id} className={`policy-card ${isActive ? 'active' : ''}`}>
+                  <div key={policy.id} className={`policy-card ${isActive ? 'active' : ''} ${isLocked ? 'locked' : ''}`}>
                     <div className="policy-header">
-                      <h3>{policy.name}</h3>
+                      <h3>{policy.name} {isLocked && '🔒'}</h3>
                       <span className="policy-primitive">{policy.primitive}</span>
                     </div>
-                    <p className="policy-desc">{desc}</p>
+                    <p className="policy-desc">{isLocked ? `Requires ${policy.techRequired} tech` : desc}</p>
                     <button 
                       className={`policy-toggle ${isActive ? 'active' : ''}`}
                       onClick={() => handleTogglePolicy(policy.id)}
+                      disabled={isLocked}
+                      style={isLocked ? {opacity: 0.4, cursor: 'not-allowed'} : {}}
                     >
-                      {isActive ? 'Deactivate' : 'Activate'}
+                      {isLocked ? 'Locked' : isActive ? 'Deactivate' : 'Activate'}
                     </button>
                   </div>
                 );
@@ -2061,6 +2279,160 @@ function App() {
             <button className="modal-close" onClick={() => setShowPolicyModal(false)}>
               Close
             </button>
+          </div>
+        </div>
+      )}
+
+      {showTechModal && (
+        <div className="modal-overlay" onClick={() => setShowTechModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()} style={{maxWidth: '600px'}}>
+            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+              <h2>Technology Research</h2>
+              <button 
+                style={{background: '#4a5568', color: '#e2e8f0', border: 'none', padding: '4px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem'}}
+                onClick={(e) => { e.stopPropagation(); setShowTechModal(false); setShowTechTreeModal(true); }}
+              >
+                View Tech Tree
+              </button>
+            </div>
+            <p style={{color: '#a0aec0', fontSize: '0.85rem', marginBottom: '12px'}}>
+              Research 1 technology per week. Unlocks new buildings, policies, and bonuses.
+            </p>
+            {['livingStandards', 'productivity', 'fun'].map(treeName => {
+              const treeLabel = treeName === 'livingStandards' ? 'Quality of Life' : treeName === 'productivity' ? 'Productivity' : 'Fun';
+              const treeColor = treeName === 'livingStandards' ? '#48bb78' : treeName === 'productivity' ? '#4299e1' : '#ed8936';
+              const treeTechs = (gameState.techTree || []).filter(t => t.tree === treeName);
+              const availableTechs = treeTechs.filter(t => {
+                if (gameState.researchedTechs?.includes(t.id)) return false;
+                if (!t.available) return false;
+                if (t.parent && !gameState.researchedTechs?.includes(t.parent)) return false;
+                return true;
+              });
+              const researchedInTree = treeTechs.filter(t => gameState.researchedTechs?.includes(t.id));
+              
+              return (
+                <div key={treeName} style={{marginBottom: '12px'}}>
+                  <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px'}}>
+                    <span style={{background: treeColor, width: '10px', height: '10px', borderRadius: '50%', display: 'inline-block'}}></span>
+                    <span style={{color: treeColor, fontWeight: 600, fontSize: '0.9rem'}}>{treeLabel}</span>
+                    <span style={{color: '#718096', fontSize: '0.75rem'}}>({researchedInTree.length} researched)</span>
+                  </div>
+                  {availableTechs.length === 0 ? (
+                    <div style={{color: '#718096', fontSize: '0.8rem', fontStyle: 'italic', paddingLeft: '18px'}}>
+                      {researchedInTree.length === treeTechs.filter(t => t.available).length ? 'All available techs researched' : 'No techs available yet'}
+                    </div>
+                  ) : (
+                    availableTechs.map(tech => {
+                      const cfg = gameState.techConfig?.[tech.id] || {};
+                      const cost = cfg.cost || 500;
+                      const canAfford = gameState.treasury >= cost;
+                      const typeLabel = tech.type === 'fixed_expense' ? 'Fixed Cost' : tech.type === 'building' ? 'Building' : tech.type === 'culture' ? 'Culture' : tech.type === 'upgrade' ? 'Upgrade' : 'Policy';
+                      let effectText = '';
+                      if (tech.type === 'fixed_expense') effectText = `+${cfg.effectPercent || 0}% boost, £${cfg.weeklyCost || 0}/wk`;
+                      else if (tech.type === 'policy') effectText = tech.id === 'chores_rota' ? 'Unlocks Cooking & Cleaning Rota' : tech.id === 'ocado' ? `+${cfg.effectPercent || 0}% ingredient efficiency` : tech.description;
+                      else if (tech.type === 'building') effectText = tech.id === 'blanket_fort' ? 'Unlocks Heaven building' : tech.id === 'outdoor_plumbing' ? 'Unlocks Hot Tub building' : tech.description;
+                      else if (tech.type === 'upgrade') effectText = `Cap +${cfg.capacityBoost || 0}, Fun +${Math.round((cfg.funMultBoost || 0) * 100)}%, Drive +${Math.round((cfg.driveMultBoost || 0) * 100)}%`;
+                      else if (tech.type === 'culture') effectText = 'Unlocks next tier technologies';
+                      
+                      return (
+                        <div key={tech.id} style={{background: '#2d3748', borderRadius: '8px', padding: '10px 12px', marginBottom: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                          <div style={{flex: 1}}>
+                            <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                              <span style={{fontWeight: 600, color: '#e2e8f0'}}>{tech.name}</span>
+                              <span style={{fontSize: '0.65rem', background: treeColor + '33', color: treeColor, padding: '1px 6px', borderRadius: '4px'}}>{typeLabel}</span>
+                            </div>
+                            <div style={{color: '#a0aec0', fontSize: '0.75rem', marginTop: '2px'}}>{effectText}</div>
+                          </div>
+                          <button
+                            className="action-button"
+                            style={{marginLeft: '10px', opacity: (!canAfford || gameState.hasResearchedThisWeek) ? 0.5 : 1}}
+                            disabled={!canAfford || gameState.hasResearchedThisWeek}
+                            onClick={() => handleResearch(tech.id)}
+                          >
+                            £{cost.toLocaleString()}
+                          </button>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              );
+            })}
+            <button className="modal-close" onClick={() => setShowTechModal(false)}>Close</button>
+          </div>
+        </div>
+      )}
+
+      {showTechTreeModal && (
+        <div className="modal-overlay" onClick={() => setShowTechTreeModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()} style={{maxWidth: '800px', maxHeight: '80vh', overflowY: 'auto'}}>
+            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+              <h2>Tech Tree</h2>
+              <button className="close-button" onClick={() => setShowTechTreeModal(false)}>×</button>
+            </div>
+            {['livingStandards', 'productivity', 'fun'].map(treeName => {
+              const treeLabel = treeName === 'livingStandards' ? 'Quality of Life' : treeName === 'productivity' ? 'Productivity' : 'Fun';
+              const treeColor = treeName === 'livingStandards' ? '#48bb78' : treeName === 'productivity' ? '#4299e1' : '#ed8936';
+              const treeTechs = (gameState.techTree || []).filter(t => t.tree === treeName);
+              const l1 = treeTechs.filter(t => t.level === 1);
+              const l2 = treeTechs.filter(t => t.level === 2);
+              const l3 = treeTechs.filter(t => t.level === 3);
+              
+              const isResearched = (id) => gameState.researchedTechs?.includes(id);
+              const isDiscovered = (tech) => {
+                if (isResearched(tech.id)) return true;
+                if (!tech.parent) return true;
+                return isResearched(tech.parent);
+              };
+              
+              const renderTechNode = (tech) => {
+                const researched = isResearched(tech.id);
+                const discovered = isDiscovered(tech);
+                const unavailable = !tech.available;
+                const cfg = gameState.techConfig?.[tech.id] || {};
+                
+                return (
+                  <div key={tech.id} style={{
+                    background: researched ? treeColor + '22' : unavailable ? '#1a202c' : discovered ? '#2d3748' : '#1a202c',
+                    border: `2px solid ${researched ? treeColor : unavailable ? '#4a556844' : discovered ? '#4a5568' : '#4a556844'}`,
+                    borderRadius: '8px',
+                    padding: '8px 12px',
+                    minWidth: '140px',
+                    textAlign: 'center',
+                    opacity: discovered && !unavailable ? 1 : 0.4,
+                    position: 'relative'
+                  }}>
+                    <div style={{fontWeight: 600, fontSize: '0.8rem', color: researched ? treeColor : '#e2e8f0'}}>{tech.name}</div>
+                    <div style={{fontSize: '0.65rem', color: '#a0aec0', textTransform: 'capitalize'}}>{tech.type.replace('_', ' ')}</div>
+                    {researched && <div style={{fontSize: '0.6rem', color: treeColor, marginTop: '2px'}}>Researched</div>}
+                    {unavailable && <div style={{fontSize: '0.6rem', color: '#e53e3e', marginTop: '2px'}}>Coming Soon</div>}
+                    {!researched && !unavailable && discovered && <div style={{fontSize: '0.6rem', color: '#a0aec0', marginTop: '2px'}}>£{cfg.cost || 500}</div>}
+                  </div>
+                );
+              };
+              
+              return (
+                <div key={treeName} style={{marginBottom: '24px'}}>
+                  <h3 style={{color: treeColor, marginBottom: '12px', borderBottom: `2px solid ${treeColor}33`, paddingBottom: '4px'}}>{treeLabel}</h3>
+                  <div style={{display: 'flex', gap: '16px', alignItems: 'flex-start', overflowX: 'auto', paddingBottom: '8px'}}>
+                    <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px'}}>
+                      <div style={{fontSize: '0.65rem', color: '#718096', textTransform: 'uppercase'}}>Level 1</div>
+                      {l1.map(renderTechNode)}
+                    </div>
+                    <div style={{display: 'flex', alignItems: 'center', color: '#4a5568', fontSize: '1.2rem'}}>→</div>
+                    <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px'}}>
+                      <div style={{fontSize: '0.65rem', color: '#718096', textTransform: 'uppercase'}}>Level 2</div>
+                      {l2.map(renderTechNode)}
+                    </div>
+                    <div style={{display: 'flex', alignItems: 'center', color: '#4a5568', fontSize: '1.2rem'}}>→</div>
+                    <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px'}}>
+                      <div style={{fontSize: '0.65rem', color: '#718096', textTransform: 'uppercase'}}>Level 3</div>
+                      {l3.map(renderTechNode)}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
