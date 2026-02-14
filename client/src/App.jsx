@@ -2387,7 +2387,7 @@ function App() {
                     borderRadius: '8px',
                     padding: '8px 12px',
                     minWidth: '140px',
-                    textAlign: 'center',
+                    textAlign: 'left',
                     position: 'relative',
                     overflow: 'hidden'
                   }}>
@@ -2406,17 +2406,17 @@ function App() {
               return (
                 <div key={treeName} style={{marginBottom: '24px'}}>
                   <div style={{display: 'flex', gap: '16px', alignItems: 'flex-start', overflowX: 'auto', paddingBottom: '8px'}}>
-                    <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px'}}>
+                    <div style={{display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: '4px', minWidth: '140px'}}>
                       <div style={{fontSize: '0.65rem', color: '#718096', textTransform: 'uppercase'}}>Level 1</div>
                       {l1.map(renderTechNode)}
                     </div>
                     <div style={{display: 'flex', alignItems: 'center', color: '#4a5568', fontSize: '1.2rem'}}>→</div>
-                    <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px'}}>
+                    <div style={{display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: '4px', minWidth: '140px'}}>
                       <div style={{fontSize: '0.65rem', color: '#718096', textTransform: 'uppercase'}}>Level 2</div>
                       {l2.map(renderTechNode)}
                     </div>
                     <div style={{display: 'flex', alignItems: 'center', color: '#4a5568', fontSize: '1.2rem'}}>→</div>
-                    <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px'}}>
+                    <div style={{display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: '4px', minWidth: '140px'}}>
                       <div style={{fontSize: '0.65rem', color: '#718096', textTransform: 'uppercase'}}>Level 3</div>
                       {l3.map(renderTechNode)}
                     </div>
