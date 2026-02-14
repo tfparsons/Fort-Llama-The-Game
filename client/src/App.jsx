@@ -36,14 +36,6 @@ function App() {
   
   const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   
-  const [panelMinimized, setPanelMinimized] = useState(true);
-  const [panelPosition, setPanelPosition] = useState({ 
-    x: Math.max(20, (window.innerWidth - 360) / 2), 
-    y: Math.max(80, (window.innerHeight - 450) / 2) 
-  });
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const panelRef = useRef(null);
   const [expandedPrimitives, setExpandedPrimitives] = useState({});
 
   const fetchState = useCallback(async () => {
@@ -85,33 +77,7 @@ function App() {
     return () => clearInterval(interval);
   }, [fetchState]);
 
-  useEffect(() => {
-    const handleMouseMove = (e) => {
-      if (isDragging) {
-        const newX = Math.max(0, Math.min(window.innerWidth - 380, e.clientX - dragOffset.x));
-        const newY = Math.max(0, Math.min(window.innerHeight - 100, e.clientY - dragOffset.y));
-        setPanelPosition({ x: newX, y: newY });
-      }
-    };
-    const handleMouseUp = () => setIsDragging(false);
-    
-    if (isDragging) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-    }
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [isDragging, dragOffset]);
-
   const showWeeklyPanel = gameState?.isPausedForWeeklyDecision && !gameState?.isGameOver;
-  
-  useEffect(() => {
-    if (!showWeeklyPanel) {
-      setIsDragging(false);
-    }
-  }, [showWeeklyPanel]);
 
   // Store current pause state in ref so animation can read fresh value
   const isPausedRef = useRef(true);
@@ -224,15 +190,6 @@ function App() {
       }
     };
   }, []);
-
-  const handlePanelMouseDown = (e) => {
-    if (e.target.closest('.panel-btn')) return;
-    setIsDragging(true);
-    setDragOffset({
-      x: e.clientX - panelPosition.x,
-      y: e.clientY - panelPosition.y
-    });
-  };
 
   const handleReset = async () => {
     await fetch(`${API_BASE}/api/reset`, { method: 'POST' });
@@ -634,14 +591,9 @@ function App() {
       )}
 
       {view === 'dashboard' && (
+        <div className="dashboard-layout">
         <div className="main-content">
           <div className="vibes-banner">
-            {showWeeklyPanel && panelMinimized && (
-              <div className="minimized-planner" onClick={() => setPanelMinimized(false)}>
-                <span className="planner-alert"><span className="alert-icon">⚠</span> Week {gameState.week} Planning</span>
-                <button className="panel-btn">+</button>
-              </div>
-            )}
             <div className="vibes-headline">
               <div className="headline-row">
                 <span className="headline-label">Vibe:</span>
@@ -1001,6 +953,187 @@ function App() {
               })()}
             </div>
           </div>
+        </div>
+        {showWeeklyPanel && (
+          <div className="weekly-sidebar">
+            <div className="sidebar-header">
+              <div className="sidebar-title">Week {gameState.week} Planning</div>
+            </div>
+            <div className="sidebar-content">
+              <div className="panel-section">
+                <div className="rent-row">
+                  <input 
+                    type="range" 
+                    min={config.rentMin} 
+                    max={config.rentMax}
+                    step="10"
+                    value={rentInput}
+                    onChange={handleRentSliderChange}
+                    onMouseUp={handleRentSliderRelease}
+                    onTouchEnd={handleRentSliderRelease}
+                  />
+                  <div className="rent-display">
+                    {formatCurrency(rentInput)}
+                  </div>
+                </div>
+                <div className="rent-info">
+                  <span className="rent-tier">
+                    {(() => {
+                      const rent = Number(rentInput) || gameState.currentRent || 0;
+                      const ls = Math.max(0, Math.min(1, gameState.healthMetrics?.livingStandards || 0.5));
+                      const rentMin = config.rentMin || 50;
+                      const rentMax = config.rentMax || 500;
+                      const rentCurve = Math.max(0.1, gameState.healthConfig?.livingStandards?.rentCurve || 2);
+                      
+                      const curvedLS = Math.pow(ls, 1 / rentCurve);
+                      const maxTolerantRent = rentMin + (rentMax - rentMin) * curvedLS;
+                      const tierRatio = rent / maxTolerantRent;
+                      
+                      if (tierRatio <= 0.3) return 'Bargain';
+                      if (tierRatio <= 0.5) return 'Cheap';
+                      if (tierRatio <= 0.7) return 'Fair';
+                      if (tierRatio <= 0.9) return 'Pricey';
+                      return 'Extortionate';
+                    })()}
+                  </span>
+                </div>
+              </div>
+
+              <div className="panel-section">
+                <button 
+                  className="panel-action"
+                  onClick={handleOpenRecruitment}
+                  disabled={
+                    gameState.hasRecruitedThisWeek ||
+                    gameState.residents + (gameState.pendingArrivals?.length || 0) >= gameState.capacity
+                  }
+                >
+                  {gameState.hasRecruitedThisWeek ? 'Already recruited this week' : 'Llama Recruitment'}
+                </button>
+                {gameState.pendingArrivals && gameState.pendingArrivals.length > 0 && (
+                  <div className="panel-note positive">
+                    {gameState.pendingArrivals.map(r => `${r.name} arriving ${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][r.arrivalDay-1]}`).join(', ')}
+                  </div>
+                )}
+              </div>
+
+              <div className="panel-section">
+                <button className="panel-action" onClick={() => setShowBuildModal(true)}>
+                  Build
+                </button>
+              </div>
+
+              <div className="panel-section">
+                <button className="panel-action" onClick={() => setShowPolicyModal(true)}>
+                  Policies {(gameState.activePolicies?.length || 0) > 0 ? `(${gameState.activePolicies.length} active)` : ''}
+                </button>
+              </div>
+
+              <div className="panel-section">
+                <button className="panel-action" onClick={() => setShowTechModal(true)}
+                  disabled={gameState.hasResearchedThisWeek}
+                >
+                  {gameState.hasResearchedThisWeek ? `Researched this week` : 'Technology'}
+                </button>
+              </div>
+
+              <div className="panel-section">
+                <button className="panel-action" onClick={() => setBudgetOpen(prev => !prev)}>
+                  Budgets {budgetOpen ? '▲' : '▼'}
+                </button>
+                {budgetOpen && (
+                  <div className="budget-items" style={{marginTop: '8px'}}>
+                    {(() => {
+                      const fixedCostTechs = (gameState.techTree || []).filter(t => 
+                        t.type === 'fixed_expense' && gameState.researchedTechs?.includes(t.id)
+                      );
+                      if (fixedCostTechs.length === 0) return null;
+                      return (
+                        <div style={{marginBottom: '10px', borderBottom: '1px solid #4a5568', paddingBottom: '8px'}}>
+                          <div style={{fontSize: '0.75rem', color: '#a0aec0', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em'}}>Fixed Costs</div>
+                          {fixedCostTechs.map(tech => {
+                            const cfg = gameState.techConfig?.[tech.id] || {};
+                            const isActive = gameState.activeFixedCosts?.includes(tech.id);
+                            return (
+                              <div key={tech.id} className="budget-row" style={{alignItems: 'center'}}>
+                                <label style={{display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', flex: 1}}>
+                                  <input
+                                    type="checkbox"
+                                    checked={isActive}
+                                    onChange={() => handleToggleFixedCost(tech.id)}
+                                    style={{accentColor: '#48bb78'}}
+                                  />
+                                  <span className="budget-label">{tech.name}</span>
+                                </label>
+                                <span style={{color: isActive ? '#fc8181' : '#718096', fontSize: '0.8rem', fontWeight: 600}}>
+                                  £{cfg.weeklyCost || 0}/wk
+                                </span>
+                                <span style={{color: '#a0aec0', fontSize: '0.7rem', marginLeft: '6px'}}>
+                                  +{cfg.effectPercent || 0}%
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()}
+                    {[
+                      { key: 'nutrition', label: 'Ingredients', icon: '🥕', primitive: 'Nutrition' },
+                      { key: 'cleanliness', label: 'Cleaning materials', icon: '🧹', primitive: 'Cleanliness' },
+                      { key: 'maintenance', label: 'Handiman', icon: '🔧', primitive: 'Maintenance' },
+                      { key: 'fatigue', label: 'Wellness', icon: '💆', primitive: 'Fatigue' },
+                      { key: 'fun', label: 'Party supplies', icon: '🎈', primitive: 'Fun' },
+                      { key: 'drive', label: 'Internet', icon: '📡', primitive: 'Drive' }
+                    ].map(item => (
+                      <div key={item.key} className="budget-row">
+                        <span className="budget-icon">{item.icon}</span>
+                        <span className="budget-label">{item.label}</span>
+                        <div className="budget-stepper">
+                          <button className="step-btn" onClick={() => handleBudgetStep(item.key, -50)}>--</button>
+                          <button className="step-btn" onClick={() => handleBudgetStep(item.key, -10)}>-</button>
+                          <div className="budget-input-wrap">
+                            <span className="budget-currency">£</span>
+                            <input
+                              type="number"
+                              min="0"
+                              max="500"
+                              step="10"
+                              className="budget-input"
+                              defaultValue={budgetInputs[item.key] || 0}
+                              key={`${item.key}-${budgetInputs[item.key]}`}
+                              onBlur={(e) => handleBudgetInputBlur(item.key, e.target.value)}
+                              onKeyDown={(e) => handleBudgetInputKey(item.key, e)}
+                            />
+                          </div>
+                          <button className="step-btn" onClick={() => handleBudgetStep(item.key, 10)}>+</button>
+                          <button className="step-btn" onClick={() => handleBudgetStep(item.key, 50)}>++</button>
+                        </div>
+                      </div>
+                    ))}
+                    <div className="budget-total">
+                      <span>Total Budget</span>
+                      <span className="negative">-{formatCurrency(Object.values(budgetInputs).reduce((s, v) => s + v, 0))}/wk</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <button className="panel-confirm" onClick={handleDismissWeekly}>
+                Start Week
+              </button>
+              <button 
+                className="btn-restart"
+                onClick={() => {
+                  if (window.confirm('Are you sure you want to restart the game?')) {
+                    handleReset();
+                  }
+                }}
+              >
+                Restart Game
+              </button>
+            </div>
+          </div>
+        )}
         </div>
       )}
 
@@ -1864,197 +1997,6 @@ function App() {
 
           </div>
 
-        </div>
-      )}
-
-      {showWeeklyPanel && !panelMinimized && (
-        <div 
-          className="floating-panel"
-          ref={panelRef}
-          style={{ left: panelPosition.x, top: panelPosition.y }}
-        >
-          <div className="panel-header" onMouseDown={handlePanelMouseDown}>
-            <div className="panel-title">Week {gameState.week} Planning</div>
-            <div className="panel-controls">
-              <button className="panel-btn minimize" onClick={() => setPanelMinimized(true)}>
-                −
-              </button>
-            </div>
-          </div>
-          
-          <div className="panel-content">
-            <div className="panel-section">
-                <div className="rent-row">
-                  <input 
-                    type="range" 
-                    min={config.rentMin} 
-                    max={config.rentMax}
-                    step="10"
-                    value={rentInput}
-                    onChange={handleRentSliderChange}
-                    onMouseUp={handleRentSliderRelease}
-                    onTouchEnd={handleRentSliderRelease}
-                  />
-                  <div className="rent-display">
-                    {formatCurrency(rentInput)}
-                  </div>
-                </div>
-                <div className="rent-info">
-                  <span className="rent-tier">
-                    {(() => {
-                      const rent = Number(rentInput) || gameState.currentRent || 0;
-                      const ls = Math.max(0, Math.min(1, gameState.healthMetrics?.livingStandards || 0.5));
-                      const rentMin = config.rentMin || 50;
-                      const rentMax = config.rentMax || 500;
-                      const rentCurve = Math.max(0.1, gameState.healthConfig?.livingStandards?.rentCurve || 2);
-                      
-                      const curvedLS = Math.pow(ls, 1 / rentCurve);
-                      const maxTolerantRent = rentMin + (rentMax - rentMin) * curvedLS;
-                      const tierRatio = rent / maxTolerantRent;
-                      
-                      if (tierRatio <= 0.3) return 'Bargain';
-                      if (tierRatio <= 0.5) return 'Cheap';
-                      if (tierRatio <= 0.7) return 'Fair';
-                      if (tierRatio <= 0.9) return 'Pricey';
-                      return 'Extortionate';
-                    })()}
-                  </span>
-                </div>
-              </div>
-
-              <div className="panel-section">
-                <button 
-                  className="panel-action"
-                  onClick={handleOpenRecruitment}
-                  disabled={
-                    gameState.hasRecruitedThisWeek ||
-                    gameState.residents + (gameState.pendingArrivals?.length || 0) >= gameState.capacity
-                  }
-                >
-                  {gameState.hasRecruitedThisWeek ? 'Already recruited this week' : 'Llama Recruitment'}
-                </button>
-                {gameState.pendingArrivals && gameState.pendingArrivals.length > 0 && (
-                  <div className="panel-note positive">
-                    {gameState.pendingArrivals.map(r => `${r.name} arriving ${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][r.arrivalDay-1]}`).join(', ')}
-                  </div>
-                )}
-              </div>
-
-              <div className="panel-section">
-                <button className="panel-action" onClick={() => setShowBuildModal(true)}>
-                  Build
-                </button>
-              </div>
-
-              <div className="panel-section">
-                <button className="panel-action" onClick={() => setShowPolicyModal(true)}>
-                  Policies {(gameState.activePolicies?.length || 0) > 0 ? `(${gameState.activePolicies.length} active)` : ''}
-                </button>
-              </div>
-
-              <div className="panel-section">
-                <button className="panel-action" onClick={() => setShowTechModal(true)}
-                  disabled={gameState.hasResearchedThisWeek}
-                >
-                  {gameState.hasResearchedThisWeek ? `Researched this week` : 'Technology'}
-                </button>
-              </div>
-
-              <div className="panel-section">
-                <button className="panel-action" onClick={() => setBudgetOpen(prev => !prev)}>
-                  Budgets {budgetOpen ? '▲' : '▼'}
-                </button>
-                {budgetOpen && (
-                  <div className="budget-items" style={{marginTop: '8px'}}>
-                    {(() => {
-                      const fixedCostTechs = (gameState.techTree || []).filter(t => 
-                        t.type === 'fixed_expense' && gameState.researchedTechs?.includes(t.id)
-                      );
-                      if (fixedCostTechs.length === 0) return null;
-                      return (
-                        <div style={{marginBottom: '10px', borderBottom: '1px solid #4a5568', paddingBottom: '8px'}}>
-                          <div style={{fontSize: '0.75rem', color: '#a0aec0', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em'}}>Fixed Costs</div>
-                          {fixedCostTechs.map(tech => {
-                            const cfg = gameState.techConfig?.[tech.id] || {};
-                            const isActive = gameState.activeFixedCosts?.includes(tech.id);
-                            return (
-                              <div key={tech.id} className="budget-row" style={{alignItems: 'center'}}>
-                                <label style={{display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', flex: 1}}>
-                                  <input
-                                    type="checkbox"
-                                    checked={isActive}
-                                    onChange={() => handleToggleFixedCost(tech.id)}
-                                    style={{accentColor: '#48bb78'}}
-                                  />
-                                  <span className="budget-label">{tech.name}</span>
-                                </label>
-                                <span style={{color: isActive ? '#fc8181' : '#718096', fontSize: '0.8rem', fontWeight: 600}}>
-                                  £{cfg.weeklyCost || 0}/wk
-                                </span>
-                                <span style={{color: '#a0aec0', fontSize: '0.7rem', marginLeft: '6px'}}>
-                                  +{cfg.effectPercent || 0}%
-                                </span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      );
-                    })()}
-                    {[
-                      { key: 'nutrition', label: 'Ingredients', icon: '🥕', primitive: 'Nutrition' },
-                      { key: 'cleanliness', label: 'Cleaning materials', icon: '🧹', primitive: 'Cleanliness' },
-                      { key: 'maintenance', label: 'Handiman', icon: '🔧', primitive: 'Maintenance' },
-                      { key: 'fatigue', label: 'Wellness', icon: '💆', primitive: 'Fatigue' },
-                      { key: 'fun', label: 'Party supplies', icon: '🎈', primitive: 'Fun' },
-                      { key: 'drive', label: 'Internet', icon: '📡', primitive: 'Drive' }
-                    ].map(item => (
-                      <div key={item.key} className="budget-row">
-                        <span className="budget-icon">{item.icon}</span>
-                        <span className="budget-label">{item.label}</span>
-                        <div className="budget-stepper">
-                          <button className="step-btn" onClick={() => handleBudgetStep(item.key, -50)}>--</button>
-                          <button className="step-btn" onClick={() => handleBudgetStep(item.key, -10)}>-</button>
-                          <div className="budget-input-wrap">
-                            <span className="budget-currency">£</span>
-                            <input
-                              type="number"
-                              min="0"
-                              max="500"
-                              step="10"
-                              className="budget-input"
-                              defaultValue={budgetInputs[item.key] || 0}
-                              key={`${item.key}-${budgetInputs[item.key]}`}
-                              onBlur={(e) => handleBudgetInputBlur(item.key, e.target.value)}
-                              onKeyDown={(e) => handleBudgetInputKey(item.key, e)}
-                            />
-                          </div>
-                          <button className="step-btn" onClick={() => handleBudgetStep(item.key, 10)}>+</button>
-                          <button className="step-btn" onClick={() => handleBudgetStep(item.key, 50)}>++</button>
-                        </div>
-                      </div>
-                    ))}
-                    <div className="budget-total">
-                      <span>Total Budget</span>
-                      <span className="negative">-{formatCurrency(Object.values(budgetInputs).reduce((s, v) => s + v, 0))}/wk</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <button className="panel-confirm" onClick={handleDismissWeekly}>
-                Start Week
-              </button>
-              <button 
-                className="btn-restart"
-                onClick={() => {
-                  if (window.confirm('Are you sure you want to restart the game?')) {
-                    handleReset();
-                  }
-                }}
-              >
-                Restart Game
-              </button>
-          </div>
         </div>
       )}
 
