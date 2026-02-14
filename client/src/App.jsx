@@ -1781,12 +1781,8 @@ function App() {
               </div>
 
               <div className="panel-section">
-                <button className="panel-action" onClick={() => setBudgetOpen(prev => !prev)} style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%'}}>
-                  <span>Budgets</span>
-                  <span style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
-                    <span style={{fontSize: '0.8rem', opacity: 0.7}}>-{formatCurrency(Object.values(budgetInputs).reduce((s, v) => s + v, 0))}/wk</span>
-                    <span style={{fontSize: '0.7rem'}}>{budgetOpen ? '▲' : '▼'}</span>
-                  </span>
+                <button className="panel-action" onClick={() => setBudgetOpen(prev => !prev)}>
+                  Budgets {budgetOpen ? '▲' : '▼'}
                 </button>
                 {budgetOpen && (
                   <div className="budget-items" style={{marginTop: '8px'}}>
