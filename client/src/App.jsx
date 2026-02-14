@@ -593,7 +593,8 @@ function App() {
       {view === 'dashboard' && (
         <div className="dashboard-layout">
         <div className="main-content">
-          <div className="vibes-banner">
+          <div className="content-grid">
+          <div className="vibes-banner wide">
             <div className="vibes-headline">
               <div className="headline-row">
                 <span className="headline-label">Vibe:</span>
@@ -632,7 +633,7 @@ function App() {
             </div>
           </div>
 
-          <div className="primitives-section">
+          <div className="primitives-section wide">
             <div className="pressure-column">
               <div className="pressure-gauges">
                 {[
@@ -752,7 +753,6 @@ function App() {
             </div>
           </div>
 
-          <div className="content-grid">
             <div className="card">
               <h2>Weekly Projection</h2>
               <div className="stat has-tooltip">

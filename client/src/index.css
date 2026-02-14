@@ -143,9 +143,12 @@ body {
 
 .content-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
-  max-width: 1000px;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.content-grid > .wide {
+  grid-column: 1 / -1;
 }
 
 .card {
