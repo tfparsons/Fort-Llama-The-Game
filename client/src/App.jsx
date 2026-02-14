@@ -2387,23 +2387,27 @@ function App() {
                 const discovered = isDiscovered(tech);
                 const unavailable = !tech.available;
                 const cfg = gameState.techConfig?.[tech.id] || {};
+                const redacted = !researched && !discovered;
                 
                 return (
                   <div key={tech.id} style={{
-                    background: researched ? treeColor + '22' : unavailable ? '#1a202c' : discovered ? '#2d3748' : '#1a202c',
-                    border: `2px solid ${researched ? treeColor : unavailable ? '#4a556844' : discovered ? '#4a5568' : '#4a556844'}`,
+                    background: researched ? treeColor + '22' : '#1a202c',
+                    border: `2px solid ${researched ? treeColor : discovered ? '#4a5568' : '#4a556844'}`,
                     borderRadius: '8px',
                     padding: '8px 12px',
                     minWidth: '140px',
                     textAlign: 'center',
-                    opacity: discovered && !unavailable ? 1 : 0.4,
-                    position: 'relative'
+                    position: 'relative',
+                    overflow: 'hidden'
                   }}>
-                    <div style={{fontWeight: 600, fontSize: '0.8rem', color: researched ? treeColor : '#e2e8f0'}}>{tech.name}</div>
-                    <div style={{fontSize: '0.65rem', color: '#a0aec0', textTransform: 'capitalize'}}>{tech.type.replace('_', ' ')}</div>
+                    <div style={{filter: redacted ? 'blur(5px)' : 'none', userSelect: redacted ? 'none' : 'auto'}}>
+                      <div style={{fontWeight: 600, fontSize: '0.8rem', color: researched ? treeColor : '#e2e8f0'}}>{tech.name}</div>
+                      <div style={{fontSize: '0.65rem', color: '#a0aec0', textTransform: 'capitalize'}}>{tech.type.replace('_', ' ')}</div>
+                    </div>
                     {researched && <div style={{fontSize: '0.6rem', color: treeColor, marginTop: '2px'}}>Researched</div>}
-                    {unavailable && <div style={{fontSize: '0.6rem', color: '#e53e3e', marginTop: '2px'}}>Coming Soon</div>}
-                    {!researched && !unavailable && discovered && <div style={{fontSize: '0.6rem', color: '#a0aec0', marginTop: '2px'}}>£{cfg.cost || 500}</div>}
+                    {redacted && <div style={{fontSize: '0.6rem', color: '#718096', marginTop: '2px'}}>???</div>}
+                    {!researched && !redacted && unavailable && <div style={{fontSize: '0.6rem', color: '#e53e3e', marginTop: '2px'}}>Coming Soon</div>}
+                    {!researched && !redacted && !unavailable && discovered && <div style={{fontSize: '0.6rem', color: '#a0aec0', marginTop: '2px'}}>£{cfg.cost || 500}</div>}
                   </div>
                 );
               };
