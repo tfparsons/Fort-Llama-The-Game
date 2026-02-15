@@ -354,6 +354,14 @@ const INITIAL_DEFAULTS = {
     { name: 'Pricey', maxChurn: 0.12 },
     { name: 'Extortionate', maxChurn: 1.0 }
   ],
+  startingBudgets: {
+    nutrition: 0,
+    cleanliness: 0,
+    maintenance: 0,
+    fatigue: 0,
+    fun: 0,
+    drive: 0
+  },
   primitives: { ...DEFAULT_PRIMITIVE_CONFIG },
   health: { ...DEFAULT_HEALTH_CONFIG },
   vibes: { ...DEFAULT_VIBES_CONFIG },
@@ -507,12 +515,12 @@ function initializeGame(config = savedDefaults) {
       drive: { supply: 0, demand: 0, ratio: 1, label: 'Adequate' }
     },
     budgets: {
-      nutrition: 0,
-      cleanliness: 0,
-      maintenance: 0,
-      fatigue: 0,
-      fun: 0,
-      drive: 0
+      nutrition: gameConfig.startingBudgets?.nutrition || 0,
+      cleanliness: gameConfig.startingBudgets?.cleanliness || 0,
+      maintenance: gameConfig.startingBudgets?.maintenance || 0,
+      fatigue: gameConfig.startingBudgets?.fatigue || 0,
+      fun: gameConfig.startingBudgets?.fun || 0,
+      drive: gameConfig.startingBudgets?.drive || 0
     },
     activePolicies: [],
     researchedTechs: [],

@@ -1369,6 +1369,29 @@ function App() {
             </div>
 
             <div className="config-section">
+              <h3>Starting Budgets (£/wk)</h3>
+              {[
+                { key: 'nutrition', label: 'Ingredients' },
+                { key: 'cleanliness', label: 'Cleaning' },
+                { key: 'maintenance', label: 'Handiman' },
+                { key: 'fatigue', label: 'Wellness' },
+                { key: 'fun', label: 'Party supplies' },
+                { key: 'drive', label: 'Internet' }
+              ].map(item => (
+                <div className="config-field" key={item.key}>
+                  <label>{item.label}</label>
+                  <input type="number" step="10" min="0" max="500" value={editConfig.startingBudgets?.[item.key] ?? 0} onChange={(e) => {
+                    const val = Math.max(0, Math.min(500, parseInt(e.target.value) || 0));
+                    setEditConfig(prev => ({
+                      ...prev,
+                      startingBudgets: { ...prev.startingBudgets, [item.key]: val }
+                    }));
+                  }} />
+                </div>
+              ))}
+            </div>
+
+            <div className="config-section">
               <h3>Rent & Churn</h3>
               <div className="config-field">
                 <label>Min (£)</label>
