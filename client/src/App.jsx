@@ -8,6 +8,8 @@ function App() {
   const [config, setConfig] = useState(null);
   const [editConfig, setEditConfig] = useState(null);
   const [showBuildModal, setShowBuildModal] = useState(false);
+  const [buildConfirm, setBuildConfirm] = useState(null);
+  const [buildComplete, setBuildComplete] = useState(null);
   const [showRecruitModal, setShowRecruitModal] = useState(false);
   const [showPolicyModal, setShowPolicyModal] = useState(false);
   const [showTechModal, setShowTechModal] = useState(false);
@@ -473,11 +475,22 @@ function App() {
   };
 
   const handleBuild = async (buildingId) => {
-    await fetch(`${API_BASE}/api/action/build`, {
+    const res = await fetch(`${API_BASE}/api/action/build`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ buildingId })
     });
+    const data = await res.json();
+    setBuildConfirm(null);
+    if (data.success) {
+      const building = gameState.buildings?.find(b => b.id === buildingId);
+      setBuildComplete({
+        name: building?.name || data.building,
+        count: data.count,
+        cost: building?.cost,
+        capacity: data.capacity
+      });
+    }
     fetchState();
     fetchBuildings();
   };
@@ -2360,15 +2373,77 @@ function App() {
                 </div>
                 <button 
                   className="action-button"
-                  onClick={() => handleBuild(building.id)}
+                  onClick={() => setBuildConfirm(building)}
                   disabled={gameState.treasury < building.cost || (gameState.buildsThisWeek || 0) >= (gameState.config?.buildsPerWeek ?? 1)}
                 >
                   {(gameState.buildsThisWeek || 0) >= (gameState.config?.buildsPerWeek ?? 1) ? 'Limit reached' : gameState.treasury < building.cost ? 'Not enough funds' : 'Build'}
                 </button>
               </div>
             ))}
-            <button className="modal-close" onClick={() => setShowBuildModal(false)}>
+            <button className="modal-close" onClick={() => { setShowBuildModal(false); setBuildConfirm(null); }}>
               Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      {buildConfirm && (
+        <div className="modal-overlay" onClick={() => setBuildConfirm(null)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()} style={{maxWidth: '360px'}}>
+            <h2>Confirm Build</h2>
+            <p style={{color: '#e2e8f0', fontSize: '0.9rem', margin: '12px 0'}}>
+              Build a new <span style={{color: '#48bb78', fontWeight: 600}}>{buildConfirm.name}</span>?
+            </p>
+            <div style={{background: '#1a202c', borderRadius: '8px', padding: '12px', marginBottom: '16px'}}>
+              <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '6px'}}>
+                <span style={{color: '#a0aec0'}}>Cost</span>
+                <span style={{color: '#e53e3e'}}>-£{buildConfirm.cost?.toLocaleString()}</span>
+              </div>
+              <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '6px'}}>
+                <span style={{color: '#a0aec0'}}>Treasury after</span>
+                <span style={{color: '#e2e8f0'}}>£{(gameState.treasury - (buildConfirm.cost || 0)).toLocaleString()}</span>
+              </div>
+              <div style={{display: 'flex', justifyContent: 'space-between'}}>
+                <span style={{color: '#a0aec0'}}>New count</span>
+                <span style={{color: '#e2e8f0'}}>{(buildConfirm.count || 0) + 1}</span>
+              </div>
+            </div>
+            <div style={{display: 'flex', gap: '8px'}}>
+              <button className="action-button" style={{flex: 1}} onClick={() => handleBuild(buildConfirm.id)}>
+                Confirm
+              </button>
+              <button className="modal-close" style={{flex: 1}} onClick={() => setBuildConfirm(null)}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {buildComplete && (
+        <div className="modal-overlay" onClick={() => setBuildComplete(null)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()} style={{maxWidth: '360px', textAlign: 'center'}}>
+            <div style={{fontSize: '2rem', marginBottom: '8px'}}>&#127959;</div>
+            <h2 style={{color: '#48bb78'}}>Building Complete</h2>
+            <p style={{color: '#e2e8f0', fontSize: '0.9rem', margin: '12px 0'}}>
+              New <span style={{fontWeight: 600}}>{buildComplete.name}</span> built successfully.
+            </p>
+            <div style={{background: '#1a202c', borderRadius: '8px', padding: '12px', marginBottom: '16px'}}>
+              <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '6px'}}>
+                <span style={{color: '#a0aec0'}}>Total {buildComplete.name}</span>
+                <span style={{color: '#e2e8f0'}}>{buildComplete.count}</span>
+              </div>
+              <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '6px'}}>
+                <span style={{color: '#a0aec0'}}>Cost</span>
+                <span style={{color: '#e53e3e'}}>-£{buildComplete.cost?.toLocaleString()}</span>
+              </div>
+              <div style={{display: 'flex', justifyContent: 'space-between'}}>
+                <span style={{color: '#a0aec0'}}>Total Capacity</span>
+                <span style={{color: '#48bb78'}}>{buildComplete.capacity}</span>
+              </div>
+            </div>
+            <button className="action-button" onClick={() => setBuildComplete(null)}>
+              Done
             </button>
           </div>
         </div>
