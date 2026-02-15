@@ -1505,8 +1505,8 @@ function App() {
                 <div className="tier-ladder-list">
                   {[
                     { name: 'Obscure', min: 0, max: 20 },
-                    { name: 'Known', min: 20, max: 40 },
-                    { name: 'Reputable', min: 40, max: 60 },
+                    { name: 'Reputable', min: 20, max: 40 },
+                    { name: 'Aspirational', min: 40, max: 60 },
                     { name: 'Famous', min: 60, max: 80 },
                     { name: 'Mythical', min: 80, max: 100 }
                   ].map((f, idx) => (

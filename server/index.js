@@ -955,8 +955,8 @@ function calculateVibes() {
   const vibesScore = overallLevel * 100;
   const fameThresholds = [
     { min: 0, max: 20, name: 'Obscure' },
-    { min: 20, max: 40, name: 'Known' },
-    { min: 40, max: 60, name: 'Reputable' },
+    { min: 20, max: 40, name: 'Reputable' },
+    { min: 40, max: 60, name: 'Aspirational' },
     { min: 60, max: 80, name: 'Famous' },
     { min: 80, max: 101, name: 'Mythical' }
   ];
