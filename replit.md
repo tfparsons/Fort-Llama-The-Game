@@ -24,35 +24,35 @@ The project follows a client-server architecture:
     -   **Primitives System:** Eight core metrics with three types:
         -   **Pressure** (Crowding, Noise): Increase with population and decrease quality of life
         -   **Coverage** (Nutrition, Cleanliness, Fun, Drive): Supply/demand model with log2 scoring
-            -   Supply = min(N, capacity) × outputRate × tierOutputMult × buildingQuality × (1 + skillMult × avgSkill)
+            -   Supply = min(N, capacity) × outputRate × levelOutputMult × buildingQuality × (1 + skillMult × avgSkill)
             -   Demand = N × consumptionRate (or slackRate for Drive)
             -   Score = 25 × (log2(ratio) + 2), clamped 0-100
-            -   Tier labels (score-based): Shortfall (0-24), Tight (25-44), Adequate (45-59), Good (60-74), Great (75-89), Superb (90-100)
+            -   Coverage labels (score-based): Shortfall (0-24), Tight (25-44), Adequate (45-59), Good (60-74), Great (75-89), Superb (90-100)
             -   Default rates tuned for ~35 score at game start: Nutrition 5/9, Cleanliness 2/4, Fun 6/12, Drive 4/8
             -   skillMult: 0.1 (reduced to limit resident modifier impact)
         -   **Stock** (Maintenance, Fatigue): Debt-based accumulation over time
-    -   **Tier Progression System:** Population-based tiers scale the game's progression:
+    -   **Level Progression System:** Population-based levels scale the game's progression:
         -   Brackets: 1-6, 7-12, 13-20, 21-50, 51-100, 101+
         -   outputMults: [1.0, 1.15, 1.3, 1.5, 1.75, 2.0] - scales supply for coverage primitives
         -   healthMults: [1.0, 1.1, 1.2, 1.35, 1.5, 1.7] - scales health metric reference values
-        -   qualityCaps: [2, 3, 4, 5, 5, 5] - gates building upgrade levels by tier
+        -   qualityCaps: [2, 3, 4, 5, 5, 5] - gates building upgrade levels by level
     -   **Health Metrics:** Three aggregate metrics—Living Standards (LS), Productivity (PR), and Partytime (PT)—are derived from primitives. Uses a ratio-based scoring system for consistent 0-100 output across all game stages:
         -   Raw values are computed from primitives (unchanged formulas)
-        -   Scoring: `M_ref = ref0 × (pop/pop0)^alpha × tierMult[tier]`, then `score = 100 × x^p / (1 + x^p)` where `x = raw/M_ref`
+        -   Scoring: `M_ref = ref0 × (pop/pop0)^alpha × levelMult[level]`, then `score = 100 × x^p / (1 + x^p)` where `x = raw/M_ref`
         -   ref0: 0.3 (tuned to produce ~35 scores at game start)
         -   At x=1 (raw equals reference), score = 50; higher p = steeper curve
-        -   Tier brackets based on population: 1-6, 7-12, 13-20, 21-50, 51-100, 101+
+        -   Level brackets based on population: 1-6, 7-12, 13-20, 21-50, 51-100, 101+
         -   Each metric has symmetric mechanic effects around baseline 35:
             -   LS affects rent tolerance (£100 = 'Fair' at LS=35, scales to £500 at LS=100)
             -   PR affects churn (neutral at PR=35, ±1% per point deviation)
             -   PT affects recruitment slots (base slots at PT=35, +1 slot per +15 PT)
-    -   **Vibes System:** A headline status combining health metrics, calculated as a geometric mean. It features a 10-tier ladder with scale gating based on commune size and identity labels for imbalanced communes (e.g., "Party House," "Sweat Shop").
-        -   Tier progression: Shambles → Rough → Scrappy → Fine → Good → Lovely → Thriving → Wonderful → Glorious → Utopia
+    -   **Vibes System:** A headline status combining health metrics, calculated as a geometric mean. It features a 10-level ladder with scale gating based on commune size and identity labels for imbalanced communes (e.g., "Party House," "Sweat Shop").
+        -   Level progression: Shambles → Rough → Scrappy → Fine → Good → Lovely → Thriving → Wonderful → Glorious → Utopia
         -   Thresholds: 0-15, 15-25, 25-35, 35-45, 45-55, 55-65, 65-75, 75-85, 85-95, 95+
         -   Early game starts at "Fine" (health metrics ~35-45)
-        -   **Reputation System:** 5-level fame scale always displayed in Vibes banner. Based on both Vibes score AND population tier:
-            -   Obscure (0-20, any tier), Reputable (20-40, Tier 2+), Aspirational (40-60, Tier 3+), Famous (60-80, Tier 4+), Mythical (80-100, Tier 5+)
-            -   Fame is capped by population tier — high vibes alone won't make a small commune famous
+        -   **Reputation System:** 5-level fame scale always displayed in Vibes banner. Based on both Vibes score AND population level:
+            -   Obscure (0-20, any level), Reputable (20-40, Level 2+), Aspirational (40-60, Level 3+), Famous (60-80, Level 4+), Mythical (80-100, Level 5+)
+            -   Fame is capped by population level — high vibes alone won't make a small commune famous
             -   When commune is imbalanced, special identity labels (e.g. "Party House") override the fame label
     -   **Resident System:** Features 20 unique llamas with individual stats (e.g., Sharing Tolerance, Cooking Skill). Residents are tracked individually, and churned residents remain visible but inactive, returning to the recruitable pool.
     -   **Buildings System:** Different building types (Bedrooms, Kitchen, Bathroom, Living Room, Utility Closet) contribute to capacity and primitive calculations. Each building has quality levels and specific primitive multipliers.
@@ -73,7 +73,7 @@ The project follows a client-server architecture:
         -   **Dev Tools:** Policy Settings in Mechanics section - tunable excludePercent, Fun penalty threshold/K/P
         -   **API:** POST `/api/action/toggle-policy`, GET/POST `/api/policy-config`
     -   **Technology System:** Three research trees (Quality of Life, Productivity, Fun) with 21 technologies across 3 levels, 5 tech types. 1 research per week limit.
-        -   **Tech Types:** Policy (unlocks toggleable policies), Fixed Expense (weekly cost for primitive multiplier boost), Building (unlocks new constructible buildings), Culture (unlocks next-tier techs, shown as dashboard badges), Upgrade (modifies existing buildings)
+        -   **Tech Types:** Policy (unlocks toggleable policies), Fixed Expense (weekly cost for primitive multiplier boost), Building (unlocks new constructible buildings), Culture (unlocks next-level techs, shown as dashboard badges), Upgrade (modifies existing buildings)
         -   **Research Trees:** Quality of Life (Chores Rota→Cleaner/Ocado→L3), Productivity (Starlink→Wellness/Great Hall→L3), Fun (Blanket Fort→Always Be Escalating/Outdoor Plumbing→L3)
         -   **Tech Effects:** Chores Rota unlocks Cooking/Cleaning Rota policies; Cleaner/Starlink are fixed expenses with primitive multiplier boosts; Ocado boosts ingredient budget efficiency; Great Hall upgrades Living Room (capacity +10, fun/drive mult boosts); Blanket Fort unlocks Heaven building; Outdoor Plumbing unlocks Hot Tub building
         -   **Fixed Costs:** Toggle on/off during weekly planning, deducted as weekly expenses. Cleaner: +20% cleanliness, £150/wk. Starlink: +15% drive, £100/wk

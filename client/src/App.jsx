@@ -1436,8 +1436,8 @@ function App() {
             </div>
 
             <div className="config-section">
-              <h3>Tier Progression</h3>
-              <p className="config-hint">As your commune grows, higher tiers unlock better output from buildings and adjust health metric expectations.</p>
+              <h3>Level Progression</h3>
+              <p className="config-hint">As your commune grows, higher levels unlock better output from buildings and adjust health metric expectations.</p>
               <div className="tier-grid">
                 {[0, 1, 2, 3, 4, 5].map(i => {
                   const brackets = gameState?.tierConfig?.brackets || [6, 12, 20, 50, 100];
@@ -1446,7 +1446,7 @@ function App() {
                   const popRange = i === 0 ? `1-${brackets[0]}` : i === 5 ? `${brackets[4]+1}+` : `${brackets[i-1]+1}-${brackets[i]}`;
                   return (
                     <div key={i} className="tier-row">
-                      <span className="tier-label">Tier {i + 1}</span>
+                      <span className="tier-label">Level {i + 1}</span>
                       <span className="tier-pop">{popRange} pop</span>
                       <span className="tier-mult">Output: {outputMults[i]}x</span>
                       <span className="tier-mult">Health: {healthMults[i]}x</span>
@@ -1470,7 +1470,7 @@ function App() {
               </div>
               <div style={{display: 'flex', gap: '16px'}}>
                 <div style={{flex: 1}}>
-                  <label style={{fontSize: '0.75rem', color: '#a0aec0', display: 'block', marginBottom: '4px'}}>Vibes Tier Ladder</label>
+                  <label style={{fontSize: '0.75rem', color: '#a0aec0', display: 'block', marginBottom: '4px'}}>Vibes Level Ladder</label>
                   <div className="tier-ladder-list">
                     {(gameState?.vibesConfig?.tierThresholds || [
                       { name: 'Shambles', min: 0, max: 0.15 },
@@ -1493,14 +1493,14 @@ function App() {
                   </div>
                 </div>
                 <div style={{flex: 1}}>
-                  <label style={{fontSize: '0.75rem', color: '#a0aec0', display: 'block', marginBottom: '4px'}}>Fame Levels (Vibes + pop tier)</label>
+                  <label style={{fontSize: '0.75rem', color: '#a0aec0', display: 'block', marginBottom: '4px'}}>Fame Levels (Vibes + pop level)</label>
                   <div className="tier-ladder-list">
                     {[
                       { name: 'Obscure', min: 0, max: 20, tierLabel: 'Any' },
-                      { name: 'Reputable', min: 20, max: 40, tierLabel: 'Tier 2+' },
-                      { name: 'Aspirational', min: 40, max: 60, tierLabel: 'Tier 3+' },
-                      { name: 'Famous', min: 60, max: 80, tierLabel: 'Tier 4+' },
-                      { name: 'Mythical', min: 80, max: 100, tierLabel: 'Tier 5+' }
+                      { name: 'Reputable', min: 20, max: 40, tierLabel: 'Level 2+' },
+                      { name: 'Aspirational', min: 40, max: 60, tierLabel: 'Level 3+' },
+                      { name: 'Famous', min: 60, max: 80, tierLabel: 'Level 4+' },
+                      { name: 'Mythical', min: 80, max: 100, tierLabel: 'Level 5+' }
                     ].map((f, idx) => (
                       <div key={idx} className="tier-ladder-item">
                         <span className="tier-rank">{idx + 1}.</span>
@@ -1840,7 +1840,7 @@ function App() {
               </div>
               {expandedPrimitives.nutrition && (
                 <div className="primitive-body">
-                  <div className="formula-display">supply = min(N,cap) × outputRate × tierMult × quality × (1 + skillMult × cookSkill)</div>
+                  <div className="formula-display">supply = min(N,cap) × outputRate × levelMult × quality × (1 + skillMult × cookSkill)</div>
                   <div className="coverage-stats">
                     <span>Supply: {gameState?.coverageData?.nutrition?.supply?.toFixed(1) || 0}</span>
                     <span>Demand: {gameState?.coverageData?.nutrition?.demand?.toFixed(1) || 0}</span>
@@ -1878,7 +1878,7 @@ function App() {
               </div>
               {expandedPrimitives.fun && (
                 <div className="primitive-body">
-                  <div className="formula-display">supply = min(N,cap) × outputRate × tierMult × quality × (1 + skillMult × avgSocioStamina)</div>
+                  <div className="formula-display">supply = min(N,cap) × outputRate × levelMult × quality × (1 + skillMult × avgSocioStamina)</div>
                   <div className="coverage-stats">
                     <span>Supply: {gameState?.coverageData?.fun?.supply?.toFixed(1) || 0}</span>
                     <span>Demand: {gameState?.coverageData?.fun?.demand?.toFixed(1) || 0}</span>
@@ -1916,7 +1916,7 @@ function App() {
               </div>
               {expandedPrimitives.drive && (
                 <div className="primitive-body">
-                  <div className="formula-display">supply = min(N,cap) × outputRate × tierMult × quality × (1 + skillMult × workEthic)</div>
+                  <div className="formula-display">supply = min(N,cap) × outputRate × levelMult × quality × (1 + skillMult × workEthic)</div>
                   <div className="coverage-stats">
                     <span>Supply: {gameState?.coverageData?.drive?.supply?.toFixed(1) || 0}</span>
                     <span>Demand: {gameState?.coverageData?.drive?.demand?.toFixed(1) || 0}</span>
@@ -1954,7 +1954,7 @@ function App() {
               </div>
               {expandedPrimitives.cleanliness && (
                 <div className="primitive-body">
-                  <div className="formula-display">supply = min(N,cap) × outputRate × tierMult × quality × (1 + skillMult × tidiness)</div>
+                  <div className="formula-display">supply = min(N,cap) × outputRate × levelMult × quality × (1 + skillMult × tidiness)</div>
                   <div className="coverage-stats">
                     <span>Supply: {gameState?.coverageData?.cleanliness?.supply?.toFixed(1) || 0}</span>
                     <span>Demand: {gameState?.coverageData?.cleanliness?.demand?.toFixed(1) || 0}</span>
@@ -2315,7 +2315,7 @@ function App() {
                 </div>
                 <div className="formula-section">
                   <h4>Scoring (0-100)</h4>
-                  <code>M_ref = ref0 × (pop/pop0)^alpha × tierMult[tier]</code>
+                  <code>M_ref = ref0 × (pop/pop0)^alpha × levelMult[level]</code>
                   <code>score = 100 × (raw/M_ref)^p / (1 + (raw/M_ref)^p)</code>
                   <p>Score is normalized against a population-scaled reference. At raw = M_ref, score = 50. Higher p = steeper curve.</p>
                 </div>
@@ -2351,7 +2351,7 @@ function App() {
                   <h4>Game Effect</h4>
                   <p>Higher Living Standards = higher rent tolerance. At LS=35, £100 rent feels 'Fair'. At LS=100, residents tolerate up to £500.</p>
                   <code>maxTolerantRent = rentMin + (rentMax - rentMin) × LS^(1/rentCurve)</code>
-                  <p>Rent tier (Bargain→Cheap→Fair→Pricey→Extortionate) depends on where current rent falls relative to maxTolerantRent.</p>
+                  <p>Rent level (Bargain→Cheap→Fair→Pricey→Extortionate) depends on where current rent falls relative to maxTolerantRent.</p>
                 </div>
               </>
             )}
@@ -2365,7 +2365,7 @@ function App() {
                 </div>
                 <div className="formula-section">
                   <h4>Scoring (0-100)</h4>
-                  <code>M_ref = ref0 × (pop/pop0)^alpha × tierMult[tier]</code>
+                  <code>M_ref = ref0 × (pop/pop0)^alpha × levelMult[level]</code>
                   <code>score = 100 × (raw/M_ref)^p / (1 + (raw/M_ref)^p)</code>
                   <p>Score is normalized against a population-scaled reference. At raw = M_ref, score = 50. Higher p = steeper curve.</p>
                 </div>
@@ -2410,7 +2410,7 @@ function App() {
                 </div>
                 <div className="formula-section">
                   <h4>Scoring (0-100)</h4>
-                  <code>M_ref = ref0 × (pop/pop0)^alpha × tierMult[tier]</code>
+                  <code>M_ref = ref0 × (pop/pop0)^alpha × levelMult[level]</code>
                   <code>score = 100 × (raw/M_ref)^p / (1 + (raw/M_ref)^p)</code>
                   <p>Score is normalized against a population-scaled reference. At raw = M_ref, score = 50. Higher p = steeper curve.</p>
                 </div>
@@ -2730,7 +2730,7 @@ function App() {
                       else if (tech.type === 'policy') effectText = tech.id === 'chores_rota' ? 'Unlocks Cooking & Cleaning Rota' : tech.id === 'ocado' ? `+${cfg.effectPercent || 0}% ingredient efficiency` : tech.description;
                       else if (tech.type === 'building') effectText = tech.id === 'blanket_fort' ? 'Unlocks Heaven building' : tech.id === 'outdoor_plumbing' ? 'Unlocks Hot Tub building' : tech.description;
                       else if (tech.type === 'upgrade') effectText = `Cap +${cfg.capacityBoost || 0}, Fun +${Math.round((cfg.funMultBoost || 0) * 100)}%, Drive +${Math.round((cfg.driveMultBoost || 0) * 100)}%`;
-                      else if (tech.type === 'culture') effectText = 'Unlocks next tier technologies';
+                      else if (tech.type === 'culture') effectText = 'Unlocks next level technologies';
                       
                       if (isThisResearching) return null;
                       
