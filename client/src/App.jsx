@@ -2246,13 +2246,15 @@ function App() {
       {showTechModal && (
         <div className="modal-overlay" onClick={() => setShowTechModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()} style={{maxWidth: '600px'}}>
-            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-              <h2>Technology Research</h2>
+            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px'}}>
+              <h2 style={{margin: 0}}>Technology Research</h2>
               <button 
-                className="btn-tech-tree"
+                className="sidebar-btn"
                 onClick={(e) => { e.stopPropagation(); setShowTechModal(false); setShowTechTreeModal(true); }}
+                style={{margin: 0, minWidth: 'auto', padding: '8px 16px'}}
               >
-                View Tech Tree
+                <span className="sidebar-icon">🌳</span>
+                <span>Tech Tree</span>
               </button>
             </div>
             {['livingStandards', 'productivity', 'fun'].map(treeName => {
