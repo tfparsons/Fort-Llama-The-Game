@@ -959,6 +959,44 @@ function App() {
                 <span>Week {gameState.week}</span>
               </div>
               <div className="panel-section">
+                <button 
+                  className="panel-action"
+                  onClick={handleOpenRecruitment}
+                  disabled={
+                    gameState.hasRecruitedThisWeek ||
+                    gameState.residents + (gameState.pendingArrivals?.length || 0) >= gameState.capacity
+                  }
+                >
+                  {gameState.hasRecruitedThisWeek ? 'Already recruited this week' : 'Recruitment'}
+                </button>
+                {gameState.pendingArrivals && gameState.pendingArrivals.length > 0 && (
+                  <div className="panel-note positive">
+                    {gameState.pendingArrivals.map(r => `${r.name} arriving ${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][r.arrivalDay-1]}`).join(', ')}
+                  </div>
+                )}
+              </div>
+
+              <div className="panel-section">
+                <button className="panel-action" onClick={() => setShowBuildModal(true)}>
+                  Build
+                </button>
+              </div>
+
+              <div className="panel-section">
+                <button className="panel-action" onClick={() => setShowPolicyModal(true)}>
+                  Policies {(gameState.activePolicies?.length || 0) > 0 ? `(${gameState.activePolicies.length} active)` : ''}
+                </button>
+              </div>
+
+              <div className="panel-section">
+                <button className="panel-action" onClick={() => setShowTechModal(true)}
+                  disabled={gameState.hasResearchedThisWeek}
+                >
+                  {gameState.hasResearchedThisWeek ? `Researched this week` : 'Technology'}
+                </button>
+              </div>
+
+              <div className="panel-section">
                 <label>Rent</label>
                 <div className="rent-row">
                   <input 
@@ -996,44 +1034,6 @@ function App() {
                     })()}
                   </span>
                 </div>
-              </div>
-
-              <div className="panel-section">
-                <button 
-                  className="panel-action"
-                  onClick={handleOpenRecruitment}
-                  disabled={
-                    gameState.hasRecruitedThisWeek ||
-                    gameState.residents + (gameState.pendingArrivals?.length || 0) >= gameState.capacity
-                  }
-                >
-                  {gameState.hasRecruitedThisWeek ? 'Already recruited this week' : 'Recruitment'}
-                </button>
-                {gameState.pendingArrivals && gameState.pendingArrivals.length > 0 && (
-                  <div className="panel-note positive">
-                    {gameState.pendingArrivals.map(r => `${r.name} arriving ${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][r.arrivalDay-1]}`).join(', ')}
-                  </div>
-                )}
-              </div>
-
-              <div className="panel-section">
-                <button className="panel-action" onClick={() => setShowBuildModal(true)}>
-                  Build
-                </button>
-              </div>
-
-              <div className="panel-section">
-                <button className="panel-action" onClick={() => setShowPolicyModal(true)}>
-                  Policies {(gameState.activePolicies?.length || 0) > 0 ? `(${gameState.activePolicies.length} active)` : ''}
-                </button>
-              </div>
-
-              <div className="panel-section">
-                <button className="panel-action" onClick={() => setShowTechModal(true)}
-                  disabled={gameState.hasResearchedThisWeek}
-                >
-                  {gameState.hasResearchedThisWeek ? `Researched this week` : 'Technology'}
-                </button>
               </div>
 
               <div className="panel-section">
