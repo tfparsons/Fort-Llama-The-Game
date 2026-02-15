@@ -1841,6 +1841,16 @@ body {
   color: #e94560;
 }
 
+.health-banner {
+  background: linear-gradient(135deg, #16213e 0%, #1a1a2e 100%);
+  border: 1px solid #0f3460;
+  border-radius: 8px;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
 .vibes-metrics {
   display: flex;
   flex-direction: column;

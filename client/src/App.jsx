@@ -600,6 +600,9 @@ function App() {
               <div className="vibes-field"><span className="vibes-label">Reputation</span> <span className="vibes-val vibes-val-rep">{gameState.vibes?.branchLabel || gameState.vibes?.reputation || 'Obscure'}</span></div>
               <div className="vibes-field"><span className="vibes-label">Level</span> <span className="vibes-val vibes-val-level">{(gameState.coverageData?.tier || 0) + 1}</span></div>
             </div>
+          </div>
+
+          <div className="health-banner wide">
             <div className="vibes-metrics">
               {[
                 { key: 'livingStandards', label: 'Living Standards', color: '#48bb78' },
