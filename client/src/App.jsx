@@ -967,7 +967,7 @@ function App() {
                     gameState.residents + (gameState.pendingArrivals?.length || 0) >= gameState.capacity
                   }
                 >
-                  <span className="action-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L3 20h18L12 2z"/><line x1="12" y1="14" x2="12" y2="14.01"/></svg></span>
+                  <span className="action-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><ellipse cx="12" cy="5" rx="3" ry="3.5"/><path d="M9.5 8c-1 1-2 4-2 6s.5 3 1 4"/><path d="M14.5 8c1 1 2 4 2 6s-.5 3-1 4"/><line x1="8.5" y1="18" x2="8.5" y2="22"/><line x1="15.5" y1="18" x2="15.5" y2="22"/><path d="M7 4c-1-1.5-2.5-1.5-3-1"/><path d="M17 4c1-1.5 2.5-1.5 3-1"/></svg></span>
                   <span className="action-label">{gameState.hasRecruitedThisWeek ? 'Recruited' : 'Recruitment'}</span>
                 </button>
                 <button className="action-grid-btn" onClick={() => setShowBuildModal(true)}>
