@@ -477,6 +477,7 @@ function initializeGame(config = savedDefaults) {
       productivity: 0.5,
       partytime: 0.5
     },
+    metricHistory: [],
     vibes: {
       overallLevel: 0.5,
       spread: 0,
@@ -1045,6 +1046,16 @@ function processTick() {
   calculatePrimitives();
   calculateHealthMetrics();
   calculateVibes();
+
+  if (gameState.day !== previousDay || gameState.metricHistory.length === 0) {
+    gameState.metricHistory.push({
+      week: gameState.week,
+      day: gameState.day,
+      ls: Math.round((gameState.healthMetrics.livingStandards || 0) * 100),
+      pr: Math.round((gameState.healthMetrics.productivity || 0) * 100),
+      pt: Math.round((gameState.healthMetrics.partytime || 0) * 100)
+    });
+  }
   
   const ticksPerDay = 24 / gameConfig.hoursPerTick;
   const ticksPerWeek = ticksPerDay * 7;

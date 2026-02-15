@@ -595,41 +595,62 @@ function App() {
         <div className="main-content">
           <div className="content-grid">
           <div className="vibes-banner wide">
-            <div className="vibes-headline">
-              <div className="headline-row">
-                <span className="headline-label">Vibe:</span>
-                <span className="headline-value">{gameState.vibes?.tierName || 'Decent'}</span>
-                {gameState.coverageData && (
-                  <span className="tier-badge">Tier {(gameState.coverageData.tier || 0) + 1}</span>
-                )}
-              </div>
+            <div className="vibes-left">
+              <div className="vibes-name">{gameState.vibes?.tierName || 'Decent'}</div>
+              {gameState.coverageData && (
+                <div className="vibes-level">Level {(gameState.coverageData.tier || 0) + 1}</div>
+              )}
               {gameState.vibes?.branchLabel && (
-                <div className="headline-row">
-                  <span className="headline-label">Reputation:</span>
-                  <span className="headline-value">{gameState.vibes.branchLabel}</span>
-                </div>
+                <div className="vibes-reputation">{gameState.vibes.branchLabel}</div>
               )}
             </div>
-            <div className="balance-section">
-              <div className="health-metrics">
-                {[
-                  { key: 'livingStandards', label: 'Living Standards', short: 'LS' },
-                  { key: 'productivity', label: 'Productivity', short: 'PR' },
-                  { key: 'partytime', label: 'Partytime', short: 'PT' }
-                ].map(m => {
-                  const val = Math.round((gameState.healthMetrics?.[m.key] || 0.5) * 100);
-                  const color = val >= 60 ? '#48bb78' : val >= 30 ? '#ed8936' : '#f56565';
-                  return (
-                    <div key={m.key} className="health-metric">
-                      <span className="hm-label">{m.label}</span>
-                      <div className="hm-bar-container">
-                        <div className="hm-bar" style={{ width: `${val}%`, backgroundColor: color }}/>
-                      </div>
-                      <span className="hm-value">{val}</span>
-                    </div>
-                  );
-                })}
-              </div>
+            <div className="vibes-metrics">
+              {[
+                { key: 'livingStandards', label: 'Living Standards', color: '#48bb78' },
+                { key: 'productivity', label: 'Productivity', color: '#4299e1' },
+                { key: 'partytime', label: 'Partytime', color: '#ed8936' }
+              ].map(m => {
+                const val = Math.round((gameState.healthMetrics?.[m.key] || 0.5) * 100);
+                return (
+                  <div key={m.key} className="vibes-metric-item">
+                    <span className="vibes-metric-label" style={{ color: m.color }}>{m.label}</span>
+                    <span className="vibes-metric-value" style={{ color: m.color }}>{val}</span>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="vibes-graph">
+              {(() => {
+                const history = gameState.metricHistory || [];
+                if (history.length < 2) return <span className="vibes-graph-empty">No data yet</span>;
+                const w = 160, h = 60, pad = 4;
+                const metrics = [
+                  { key: 'ls', color: '#48bb78' },
+                  { key: 'pr', color: '#4299e1' },
+                  { key: 'pt', color: '#ed8936' }
+                ];
+                const recent = history.slice(-28);
+                const maxVal = 100;
+                const xStep = (w - pad * 2) / Math.max(recent.length - 1, 1);
+                return (
+                  <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`}>
+                    {metrics.map(m => {
+                      const points = recent.map((d, i) => ({
+                        x: pad + i * xStep,
+                        y: pad + (h - pad * 2) * (1 - d[m.key] / maxVal)
+                      }));
+                      const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+                      const last = points[points.length - 1];
+                      return (
+                        <g key={m.key}>
+                          <path d={pathD} fill="none" stroke={m.color} strokeWidth="1.5" opacity="0.8"/>
+                          <circle cx={last.x} cy={last.y} r="3" fill={m.color}/>
+                        </g>
+                      );
+                    })}
+                  </svg>
+                );
+              })()}
             </div>
           </div>
 
