@@ -596,7 +596,7 @@ function App() {
           <div className="content-grid">
           <div className="vibes-banner wide">
             <div className="vibes-left">
-              <div className="vibes-name">{gameState.vibes?.tierName || 'Decent'}</div>
+              <div className="vibes-name"><span style={{color: '#8a8a9a', fontWeight: 'normal', fontSize: '0.8em'}}>Vibe: </span>{gameState.vibes?.tierName || 'Decent'}</div>
               {gameState.coverageData && (
                 <div className="vibes-level">Level {(gameState.coverageData.tier || 0) + 1}</div>
               )}
@@ -622,7 +622,7 @@ function App() {
             <div className="vibes-graph">
               {(() => {
                 const history = gameState.metricHistory || [];
-                if (history.length < 2) return <span className="vibes-graph-empty">No data yet</span>;
+                if (history.length < 1) return <span className="vibes-graph-empty">No data yet</span>;
                 const w = 160, h = 60, pad = 4;
                 const metrics = [
                   { key: 'ls', color: '#48bb78' },
@@ -631,19 +631,20 @@ function App() {
                 ];
                 const recent = history.slice(-28);
                 const maxVal = 100;
-                const xStep = (w - pad * 2) / Math.max(recent.length - 1, 1);
+                const xStep = recent.length > 1 ? (w - pad * 2) / (recent.length - 1) : 0;
                 return (
                   <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`}>
                     {metrics.map(m => {
                       const points = recent.map((d, i) => ({
-                        x: pad + i * xStep,
+                        x: recent.length === 1 ? w / 2 : pad + i * xStep,
                         y: pad + (h - pad * 2) * (1 - d[m.key] / maxVal)
                       }));
-                      const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
                       const last = points[points.length - 1];
                       return (
                         <g key={m.key}>
-                          <path d={pathD} fill="none" stroke={m.color} strokeWidth="1.5" opacity="0.8"/>
+                          {points.length > 1 && (
+                            <path d={points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ')} fill="none" stroke={m.color} strokeWidth="1.5" opacity="0.8"/>
+                          )}
                           <circle cx={last.x} cy={last.y} r="3" fill={m.color}/>
                         </g>
                       );

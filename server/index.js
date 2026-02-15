@@ -510,6 +510,13 @@ function initializeGame(config = savedDefaults) {
   calculatePrimitives();
   calculateHealthMetrics();
   calculateVibes();
+  gameState.metricHistory.push({
+    week: gameState.week,
+    day: gameState.day,
+    ls: Math.round((gameState.healthMetrics.livingStandards || 0) * 100),
+    pr: Math.round((gameState.healthMetrics.productivity || 0) * 100),
+    pt: Math.round((gameState.healthMetrics.partytime || 0) * 100)
+  });
   calculateWeeklyProjection();
   generateWeekCandidates();
 }
