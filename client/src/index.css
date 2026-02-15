@@ -1807,29 +1807,35 @@ body {
 
 .vibes-left {
   flex-shrink: 0;
-  min-width: 100px;
+  min-width: 160px;
+}
+
+.vibes-label {
+  color: #8a8a9a;
+  font-weight: 400;
+  font-size: 0.8em;
+}
+
+.vibes-field {
+  line-height: 1.4;
 }
 
 .vibes-name {
   font-size: 1.3rem;
   font-weight: 700;
   color: #fff;
-  line-height: 1.2;
 }
 
 .vibes-level {
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: #e94560;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-top: 4px;
 }
 
 .vibes-reputation {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
+  font-weight: 500;
   color: #a0aec0;
-  margin-top: 4px;
   font-style: italic;
 }
 
