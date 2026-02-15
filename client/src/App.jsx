@@ -749,7 +749,7 @@ function App() {
                 { key: 'cleanliness', label: 'Cleanliness', icon: '🧹' },
                 { key: 'fun', label: 'Fun', icon: '🎉' },
                 { key: 'drive', label: 'Drive', icon: '💪' }
-              ].map(p => {
+              ].map((p, idx) => {
                 const val = Math.round(gameState.primitives?.[p.key] || 0);
                 const coverage = gameState.coverageData?.[p.key];
                 const ratio = coverage?.ratio || 1;
@@ -769,8 +769,10 @@ function App() {
                     <span className="prim-label">{p.label}</span>
                     <div className="prim-bar-container">
                       <div className="prim-bar" style={{ width: `${val}%`, backgroundColor: labelColor }}/>
+                      <div className="bare-minimum-marker" style={{ left: '25%' }}>
+                        {idx === 0 && <span className="bare-minimum-label">Bare Minimum</span>}
+                      </div>
                     </div>
-                    <span className="prim-value">{val}</span>
                     <span className="coverage-tier" style={{ color: labelColor }}>{tierLabel}</span>
                   </div>
                 );
