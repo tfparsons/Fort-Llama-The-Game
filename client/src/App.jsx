@@ -2077,41 +2077,30 @@ function App() {
           <div className="dev-tools-grid three-col">
             <div className="config-section">
               <h3>Budgets</h3>
-              <table style={{width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem'}}>
-                <thead>
-                  <tr style={{borderBottom: '1px solid #4a5568', color: '#a0aec0', textAlign: 'left'}}>
-                    <th style={{padding: '4px 8px'}}>Item</th>
-                    <th style={{padding: '4px 8px'}}>Start (£)</th>
-                    <th style={{padding: '4px 8px'}}>{'{eff/red}'}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {[
-                    { key: 'nutrition', label: 'Ingredients', type: 'coverage' },
-                    { key: 'cleanliness', label: 'Cleaning', type: 'coverage' },
-                    { key: 'fun', label: 'Party supplies', type: 'coverage' },
-                    { key: 'drive', label: 'Internet', type: 'coverage' },
-                    { key: 'maintenance', label: 'Handiman', type: 'stock' },
-                    { key: 'fatigue', label: 'Wellness', type: 'stock' }
-                  ].map(item => (
-                    <tr key={item.key} style={{borderBottom: '1px solid #2d3748'}}>
-                      <td style={{padding: '4px 8px', color: '#e2e8f0'}}>{item.label}</td>
-                      <td style={{padding: '4px 8px'}}>
-                        <input type="number" step="10" min="0" max="500" style={{width: '70px'}} value={editConfig.startingBudgets?.[item.key] ?? 0} onChange={(e) => {
-                          const val = Math.max(0, Math.min(500, parseInt(e.target.value) || 0));
-                          setEditConfig(prev => ({
-                            ...prev,
-                            startingBudgets: { ...prev.startingBudgets, [item.key]: val }
-                          }));
-                        }} />
-                      </td>
-                      <td style={{padding: '4px 8px'}}>
-                        <input type="number" step="0.01" style={{width: '70px'}} value={editConfig?.budgetConfig?.[item.key]?.[item.type === 'coverage' ? 'efficiency' : 'reductionRate'] ?? (item.type === 'coverage' ? 0.5 : 0.02)} onChange={(e) => updateBudgetConfig(item.key, item.type === 'coverage' ? 'efficiency' : 'reductionRate', parseFloat(e.target.value))} />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <div style={{display: 'flex', justifyContent: 'flex-end', gap: '8px', marginBottom: '4px', fontSize: '0.7rem', color: '#a0aec0'}}>
+                <span style={{width: '70px', textAlign: 'center'}}>Start (£)</span>
+                <span style={{width: '70px', textAlign: 'center'}}>{'{eff/red}'}</span>
+              </div>
+              {[
+                { key: 'nutrition', label: 'Ingredients', type: 'coverage' },
+                { key: 'cleanliness', label: 'Cleaning', type: 'coverage' },
+                { key: 'fun', label: 'Party supplies', type: 'coverage' },
+                { key: 'drive', label: 'Internet', type: 'coverage' },
+                { key: 'maintenance', label: 'Handiman', type: 'stock' },
+                { key: 'fatigue', label: 'Wellness', type: 'stock' }
+              ].map(item => (
+                <div key={item.key} className="config-field" style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
+                  <label style={{flex: 1}}>{item.label}</label>
+                  <input type="number" step="10" min="0" max="500" style={{width: '70px'}} value={editConfig.startingBudgets?.[item.key] ?? 0} onChange={(e) => {
+                    const val = Math.max(0, Math.min(500, parseInt(e.target.value) || 0));
+                    setEditConfig(prev => ({
+                      ...prev,
+                      startingBudgets: { ...prev.startingBudgets, [item.key]: val }
+                    }));
+                  }} />
+                  <input type="number" step="0.01" style={{width: '70px', marginLeft: '8px'}} value={editConfig?.budgetConfig?.[item.key]?.[item.type === 'coverage' ? 'efficiency' : 'reductionRate'] ?? (item.type === 'coverage' ? 0.5 : 0.02)} onChange={(e) => updateBudgetConfig(item.key, item.type === 'coverage' ? 'efficiency' : 'reductionRate', parseFloat(e.target.value))} />
+                </div>
+              ))}
             </div>
           </div>
 
