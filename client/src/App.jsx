@@ -3203,13 +3203,23 @@ function App() {
                   </tr>
                 </thead>
                 <tbody>
-                  {editableBuildings.map(b => {
+                  {editableBuildings.filter(b => b.id !== 'great_hall').flatMap(b => {
+                    const greatHall = b.id === 'living_room' ? editableBuildings.find(x => x.id === 'great_hall') : null;
+                    const rows = [b];
+                    if (greatHall) rows.push(greatHall);
+                    return rows;
+                  }).map(b => {
                     const techName = b.techRequired 
                       ? (gameState?.techTree || []).find(t => t.id === b.techRequired)?.name || b.techRequired
                       : null;
+                    const isUpgradeRow = b.isUpgrade;
                     return (
-                    <tr key={b.id}>
-                      <td>{b.name}</td>
+                    <tr key={b.id} style={isUpgradeRow ? {background: '#2d374822'} : undefined}>
+                      <td style={isUpgradeRow ? {paddingLeft: '20px'} : undefined}>
+                        {isUpgradeRow && <span style={{color: '#718096', fontSize: '0.7rem', marginRight: '4px'}}>↳</span>}
+                        {b.name}
+                        {isUpgradeRow && <span style={{color: '#ecc94b', fontSize: '0.65rem', marginLeft: '6px'}}>upgrade</span>}
+                      </td>
                       <td>
                         <input 
                           type="number" 
