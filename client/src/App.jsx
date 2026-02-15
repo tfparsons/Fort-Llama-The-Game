@@ -2105,51 +2105,23 @@ function App() {
           </div>
 
           <div className="dev-tools-grid three-col">
-            <div className="config-section" style={{gridColumn: '1 / -1'}}>
+            <div className="config-section" style={{gridColumn: 'span 2'}}>
               <h3>Policies</h3>
-              <p style={{color: '#a0aec0', fontSize: '0.75rem', marginBottom: '8px'}}>All policies in the game. Read-only reference.</p>
-              <table style={{width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem'}}>
-                <thead>
-                  <tr style={{borderBottom: '1px solid #4a5568', color: '#a0aec0', textAlign: 'left'}}>
-                    <th style={{padding: '4px 8px'}}>Policy</th>
-                    <th style={{padding: '4px 8px'}}>Primitive</th>
-                    <th style={{padding: '4px 8px'}}>Type</th>
-                    <th style={{padding: '4px 8px'}}>Effect</th>
-                    <th style={{padding: '4px 8px'}}>Unlock</th>
-                    <th style={{padding: '4px 8px'}}>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(gameState.policyDefinitions || []).map(policy => {
-                    const isActive = (gameState.activePolicies || []).includes(policy.id);
-                    const techUnlock = policy.techRequired ? (gameState.techTree || []).find(t => t.id === policy.techRequired) : null;
-                    const isUnlocked = !policy.techRequired || (gameState.researchedTechs || []).includes(policy.techRequired);
-                    const pct = Math.round((gameState.policyConfig?.excludePercent || 0.25) * 100);
-                    const ocadoPct = gameState.techConfig?.ocado?.effectPercent || 15;
-                    const desc = policy.description.replace('{pct}', pct).replace('{ocadoPct}', ocadoPct);
-                    return (
-                      <tr key={policy.id} style={{borderBottom: '1px solid #2d3748', opacity: isUnlocked ? 1 : 0.5}}>
-                        <td style={{padding: '6px 8px', color: '#e2e8f0'}}>{policy.name}</td>
-                        <td style={{padding: '6px 8px', color: '#a0aec0', textTransform: 'capitalize'}}>{policy.primitive}</td>
-                        <td style={{padding: '6px 8px', color: '#a0aec0', textTransform: 'capitalize'}}>{policy.type.replace('_', ' ')}</td>
-                        <td style={{padding: '6px 8px', color: '#cbd5e0', maxWidth: '200px'}}>{desc}</td>
-                        <td style={{padding: '6px 8px', color: techUnlock ? '#ecc94b' : '#48bb78'}}>
-                          {techUnlock ? techUnlock.name : 'None'}
-                        </td>
-                        <td style={{padding: '6px 8px'}}>
-                          {!isUnlocked ? (
-                            <span style={{color: '#718096'}}>Locked</span>
-                          ) : isActive ? (
-                            <span style={{color: '#48bb78'}}>Active</span>
-                          ) : (
-                            <span style={{color: '#a0aec0'}}>Available</span>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+              {(gameState.policyDefinitions || []).map(policy => {
+                const techUnlock = policy.techRequired ? (gameState.techTree || []).find(t => t.id === policy.techRequired) : null;
+                const pct = Math.round((gameState.policyConfig?.excludePercent || 0.25) * 100);
+                const ocadoPct = gameState.techConfig?.ocado?.effectPercent || 15;
+                const desc = policy.description.replace('{pct}', pct).replace('{ocadoPct}', ocadoPct);
+                return (
+                  <div key={policy.id} className="config-field" style={{display: 'flex', alignItems: 'baseline', justifyContent: 'space-between'}}>
+                    <label style={{flex: '0 0 auto', marginRight: '12px'}}>{policy.name}</label>
+                    <span style={{flex: 1, color: '#a0aec0', fontSize: '0.75rem'}}>{desc}</span>
+                    <span style={{flex: '0 0 auto', marginLeft: '12px', color: techUnlock ? '#ecc94b' : '#48bb78', fontSize: '0.75rem'}}>
+                      {techUnlock ? techUnlock.name : 'Default'}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
