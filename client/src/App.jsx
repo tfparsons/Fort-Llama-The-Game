@@ -1518,18 +1518,6 @@ function App() {
                   ))}
                 </div>
               </div>
-              <div style={{marginBottom: '8px', borderTop: '1px solid #2d3748', paddingTop: '8px'}}>
-                <label style={{fontSize: '0.75rem', color: '#a0aec0', display: 'block', marginBottom: '4px'}}>Imbalance Detection</label>
-                <div style={{fontSize: '0.75rem', color: '#cbd5e0', padding: '4px 0'}}>
-                  Balanced: spread ≤ {gameState?.vibesConfig?.balancedThreshold || 0.18}
-                </div>
-                <div style={{fontSize: '0.75rem', color: '#cbd5e0', padding: '4px 0'}}>
-                  Mild imbalance: spread {'>'} {gameState?.vibesConfig?.balancedThreshold || 0.18} and ≤ {gameState?.vibesConfig?.strongImbalanceThreshold || 0.30}
-                </div>
-                <div style={{fontSize: '0.75rem', color: '#cbd5e0', padding: '4px 0'}}>
-                  Strong imbalance: spread {'>'} {gameState?.vibesConfig?.strongImbalanceThreshold || 0.30}
-                </div>
-              </div>
               <div style={{borderTop: '1px solid #2d3748', paddingTop: '8px'}}>
                 <label style={{fontSize: '0.75rem', color: '#a0aec0', display: 'block', marginBottom: '6px'}}>Identity Labels (when imbalanced)</label>
                 {(() => {
