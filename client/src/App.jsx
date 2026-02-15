@@ -1730,9 +1730,14 @@ function App() {
               </div>
               {expandedPrimitives.crowding && (
                 <div className="primitive-body">
-                  <div className="formula-display">maxRatio × 50 × penalty(maxRatio)</div>
+                  <div className="formula-display">maxRatio × baseMult × penalty(maxRatio)</div>
                   <div className="primitive-info">
                     <span className="info-label">Ratio:</span> max of (beds, bath, kitchen, living) capacity ratios
+                  </div>
+                  <div className="config-field" style={{marginBottom: '6px'}}>
+                    <label>Base Mult</label>
+                    <input type="number" step="1" min="1" value={editConfig?.primitives?.crowding?.baseMult ?? 50}
+                      onChange={(e) => updatePrimitiveConfig('crowding', 'baseMult', parseInt(e.target.value) || 50)} />
                   </div>
                   <div className="penalty-toggle">
                     <label className="toggle-label">

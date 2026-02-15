@@ -238,7 +238,7 @@ const DEFAULT_TECH_CONFIG = {
 const DEFAULT_PRIMITIVE_CONFIG = {
   penaltyK: 2,
   penaltyP: 2,
-  crowding: { weight: 1.0, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
+  crowding: { baseMult: 50, weight: 1.0, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
   noise: { baseSocial: 5, baseAmbient: 10, socioMult: 0.1, considMult: 0.3, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
   nutrition: { outputRate: 5, consumptionRate: 9, skillMult: 0.1, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
   cleanliness: { outputRate: 2, consumptionRate: 4, skillMult: 0.1, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
@@ -763,7 +763,8 @@ function calculatePrimitives() {
   const rKitch = effectiveN / capKitch;
   const rLiv = effectiveN / effectiveCapLiv;
   const maxRatio = Math.max(rBed, rBath, rKitch, rLiv);
-  const crowding = Math.min(100, maxRatio * 50 * overcrowdingPenalty(maxRatio, 'crowding'));
+  const crowdBaseMult = primitiveConfig.crowding?.baseMult ?? 50;
+  const crowding = Math.min(100, maxRatio * crowdBaseMult * overcrowdingPenalty(maxRatio, 'crowding'));
   
   const cfg = primitiveConfig.noise;
   const socialNoise = N * cfg.baseSocial * (1 + cfg.socioMult * sociability) * (1 - cfg.considMult * consideration);
