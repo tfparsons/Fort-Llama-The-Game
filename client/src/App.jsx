@@ -1258,6 +1258,10 @@ function App() {
                 <input type="number" value={editConfig.startingResidents} onChange={(e) => updateEditConfig('startingResidents', e.target.value)} />
               </div>
               <div className="config-field">
+                <label>Builds / Week</label>
+                <input type="number" min="1" value={editConfig.buildsPerWeek ?? 1} onChange={(e) => updateEditConfig('buildsPerWeek', e.target.value)} />
+              </div>
+              <div className="config-field">
                 <label>Ground Rent (£/wk)</label>
                 <input type="number" value={editConfig.groundRentBase} onChange={(e) => updateEditConfig('groundRentBase', e.target.value)} />
               </div>
@@ -2328,7 +2332,15 @@ function App() {
       {showBuildModal && (
         <div className="modal-overlay" onClick={() => setShowBuildModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>Build</h2>
+            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+              <h2>Build</h2>
+              <span style={{background: (gameState.buildsThisWeek || 0) >= (gameState.config?.buildsPerWeek ?? 1) ? '#e53e3e' : '#4a5568', color: '#fff', padding: '2px 8px', borderRadius: '10px', fontSize: '0.75rem', fontWeight: 600}}>
+                {Math.max(0, (gameState.config?.buildsPerWeek ?? 1) - (gameState.buildsThisWeek || 0))} remaining
+              </span>
+            </div>
+            {(gameState.buildsThisWeek || 0) >= (gameState.config?.buildsPerWeek ?? 1) && (
+              <p style={{color: '#e53e3e', fontSize: '0.85rem', marginBottom: '8px'}}>Build limit reached for this week.</p>
+            )}
             {gameState.buildings?.filter(b => b.buildable && b.cost !== null && (!b.techRequired || gameState.researchedTechs?.includes(b.techRequired))).map(building => (
               <div key={building.id} className="building-card">
                 <h3>{building.name.replace(/s$/, '')}</h3>
@@ -2349,9 +2361,9 @@ function App() {
                 <button 
                   className="action-button"
                   onClick={() => handleBuild(building.id)}
-                  disabled={gameState.treasury < building.cost}
+                  disabled={gameState.treasury < building.cost || (gameState.buildsThisWeek || 0) >= (gameState.config?.buildsPerWeek ?? 1)}
                 >
-                  {gameState.treasury < building.cost ? 'Not enough funds' : 'Build'}
+                  {(gameState.buildsThisWeek || 0) >= (gameState.config?.buildsPerWeek ?? 1) ? 'Limit reached' : gameState.treasury < building.cost ? 'Not enough funds' : 'Build'}
                 </button>
               </div>
             ))}

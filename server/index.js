@@ -334,6 +334,7 @@ const DEFAULT_BUDGET_CONFIG = {
 const INITIAL_DEFAULTS = {
   startingTreasury: 0,
   startingResidents: 10,
+  buildsPerWeek: 1,
   rentMin: 50,
   rentMax: 500,
   defaultRent: 100,
@@ -408,7 +409,7 @@ function deepMergePrimitives(defaults, overrides) {
 }
 
 function initializeGame(config = savedDefaults) {
-  gameConfig = { ...config };
+  gameConfig = { ...INITIAL_DEFAULTS, ...config };
   primitiveConfig = deepMergePrimitives(DEFAULT_PRIMITIVE_CONFIG, config.primitives);
   healthConfig = deepMergePrimitives(DEFAULT_HEALTH_CONFIG, config.health);
   vibesConfig = config.vibes ? { ...config.vibes } : { ...DEFAULT_VIBES_CONFIG };
@@ -466,6 +467,7 @@ function initializeGame(config = savedDefaults) {
     isGameOver: false,
     lastWeekSummary: null,
     hasRecruitedThisWeek: false,
+    buildsThisWeek: 0,
     weekCandidates: [],
     weeklyDelta: 0,
     dailyDelta: 0,
@@ -1148,6 +1150,7 @@ function processWeekEnd() {
   gameState.dayName = 'Monday';
   gameState.hasRecruitedThisWeek = false;
   gameState.hasResearchedThisWeek = false;
+  gameState.buildsThisWeek = 0;
   gameState.treasuryAtWeekStart = gameState.treasury;
   gameState.isPausedForWeeklyDecision = true;
   stopSimulation();
@@ -1608,6 +1611,12 @@ app.post('/api/action/build', (req, res) => {
     return;
   }
   
+  const maxBuilds = gameConfig.buildsPerWeek ?? 1;
+  if ((gameState.buildsThisWeek || 0) >= maxBuilds) {
+    res.status(400).json({ error: `Build limit reached (${maxBuilds} per week)` });
+    return;
+  }
+  
   if (gameState.treasury < building.cost) {
     res.status(400).json({ error: 'Not enough funds' });
     return;
@@ -1615,6 +1624,7 @@ app.post('/api/action/build', (req, res) => {
   
   gameState.treasury -= building.cost;
   building.count += 1;
+  gameState.buildsThisWeek = (gameState.buildsThisWeek || 0) + 1;
   calculateWeeklyProjection();
   res.json({ 
     success: true, 
