@@ -1116,6 +1116,7 @@ function App() {
                 )}
               </div>
 
+              <div className="sidebar-divider" />
               <button className="panel-confirm" onClick={handleDismissWeekly}>
                 Start Week
               </button>

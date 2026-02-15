@@ -1726,12 +1726,17 @@ body {
   50% { transform: scale(1.15); opacity: 0.85; }
 }
 
+.sidebar-divider {
+  border-top: 1px solid #0f3460;
+  margin: 12px 0;
+}
+
 .btn-restart {
   width: 100%;
   padding: 8px;
-  background: #0f3460;
-  border: 1px solid #e94560;
-  color: #e94560;
+  background: #e94560;
+  border: none;
+  color: #fff;
   border-radius: 4px;
   cursor: pointer;
   font-size: 0.85rem;
@@ -1741,8 +1746,8 @@ body {
 }
 
 .btn-restart:hover {
-  background: #e94560;
-  color: #1a1a2e;
+  background: #c73a54;
+  color: #fff;
 }
 
 .vibes-headline {
