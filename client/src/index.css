@@ -1077,6 +1077,8 @@ body {
   border: 1px solid #0f3460;
   border-radius: 8px;
   padding: 14px;
+  display: flex;
+  flex-direction: column;
 }
 
 .candidate-header {
@@ -1129,6 +1131,7 @@ body {
   background: #4ade80;
   color: #1a1a2e;
   border: none;
+  margin-top: auto;
   border-radius: 4px;
   cursor: pointer;
   font-weight: bold;
