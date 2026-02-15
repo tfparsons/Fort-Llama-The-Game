@@ -497,6 +497,13 @@ function App() {
         body: JSON.stringify(editConfig.budgetConfig)
       });
     }
+    if (editConfig.policyConfig) {
+      await fetch(`${API_BASE}/api/policy-config`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editConfig.policyConfig)
+      });
+    }
     if (editConfig.techConfig) {
       await fetch(`${API_BASE}/api/tech-config`, {
         method: 'POST',
@@ -1564,48 +1571,6 @@ function App() {
           <h3 className="section-divider">Mechanics</h3>
           <div className="dev-tools-grid three-col">
             <div className="config-section">
-              <h3>Policy Settings</h3>
-              <div className="config-field">
-                <label title="Percentage of worst-performing residents excluded from stat average">Exclude %</label>
-                <input
-                  type="number"
-                  step="0.05"
-                  min="0"
-                  max="1"
-                  value={editConfig?.policyConfig?.excludePercent ?? 0.25}
-                  onChange={(e) => setEditConfig({...editConfig, policyConfig: {...(editConfig.policyConfig || {}), excludePercent: parseFloat(e.target.value)}})}
-                />
-              </div>
-              <div className="config-field">
-                <label title="Number of active policies before Fun penalty applies">Fun threshold</label>
-                <input
-                  type="number"
-                  step="1"
-                  min="1"
-                  value={editConfig?.policyConfig?.funPenalty?.threshold ?? 3}
-                  onChange={(e) => setEditConfig({...editConfig, policyConfig: {...(editConfig.policyConfig || {}), funPenalty: {...(editConfig.policyConfig?.funPenalty || {}), threshold: parseInt(e.target.value)}}})}
-                />
-              </div>
-              <div className="config-field">
-                <label title="Penalty curve steepness (K) for Fun reduction">Fun K</label>
-                <input
-                  type="number"
-                  step="0.05"
-                  value={editConfig?.policyConfig?.funPenalty?.K ?? 0.15}
-                  onChange={(e) => setEditConfig({...editConfig, policyConfig: {...(editConfig.policyConfig || {}), funPenalty: {...(editConfig.policyConfig?.funPenalty || {}), K: parseFloat(e.target.value)}}})}
-                />
-              </div>
-              <div className="config-field">
-                <label title="Penalty curve exponent (P) for Fun reduction">Fun P</label>
-                <input
-                  type="number"
-                  step="0.1"
-                  value={editConfig?.policyConfig?.funPenalty?.P ?? 1.5}
-                  onChange={(e) => setEditConfig({...editConfig, policyConfig: {...(editConfig.policyConfig || {}), funPenalty: {...(editConfig.policyConfig?.funPenalty || {}), P: parseFloat(e.target.value)}}})}
-                />
-              </div>
-            </div>
-            <div className="config-section">
               <h3>Budget Efficiency</h3>
               {[
                 { key: 'nutrition', label: 'Ingredients', primitive: 'Nutrition', type: 'coverage' },
@@ -1630,7 +1595,6 @@ function App() {
             </div>
           </div>
 
-          <h3 className="section-divider">Technology</h3>
           <div className="dev-tools-grid">
             <div className="config-section" style={{gridColumn: '1 / -1'}}>
               <h3>Tech Tree Configuration</h3>
@@ -1688,6 +1652,38 @@ function App() {
                                   <input type="number" step="1" min="0"
                                     value={cfg.effectPercent ?? 0}
                                     onChange={(e) => updateTechCfg('effectPercent', parseInt(e.target.value) || 0)}
+                                  />
+                                </div>
+                              </>
+                            )}
+                            {tech.type === 'policy' && tech.id === 'chores_rota' && (
+                              <>
+                                <div className="config-field" style={{marginBottom: '4px'}}>
+                                  <label style={{fontSize: '0.7rem'}} title="Percentage of worst-performing residents excluded from stat average">Exclude %</label>
+                                  <input type="number" step="0.05" min="0" max="1"
+                                    value={editConfig?.policyConfig?.excludePercent ?? 0.25}
+                                    onChange={(e) => setEditConfig(prev => ({...prev, policyConfig: {...(prev.policyConfig || {}), excludePercent: parseFloat(e.target.value)}}))}
+                                  />
+                                </div>
+                                <div className="config-field" style={{marginBottom: '4px'}}>
+                                  <label style={{fontSize: '0.7rem'}} title="Number of active policies before Fun penalty applies">Fun threshold</label>
+                                  <input type="number" step="1" min="1"
+                                    value={editConfig?.policyConfig?.funPenalty?.threshold ?? 3}
+                                    onChange={(e) => setEditConfig(prev => ({...prev, policyConfig: {...(prev.policyConfig || {}), funPenalty: {...(prev.policyConfig?.funPenalty || {}), threshold: parseInt(e.target.value)}}}))}
+                                  />
+                                </div>
+                                <div className="config-field" style={{marginBottom: '4px'}}>
+                                  <label style={{fontSize: '0.7rem'}} title="Penalty curve steepness (K) for Fun reduction">Fun K</label>
+                                  <input type="number" step="0.05"
+                                    value={editConfig?.policyConfig?.funPenalty?.K ?? 0.15}
+                                    onChange={(e) => setEditConfig(prev => ({...prev, policyConfig: {...(prev.policyConfig || {}), funPenalty: {...(prev.policyConfig?.funPenalty || {}), K: parseFloat(e.target.value)}}}))}
+                                  />
+                                </div>
+                                <div className="config-field" style={{marginBottom: '0'}}>
+                                  <label style={{fontSize: '0.7rem'}} title="Penalty curve exponent (P) for Fun reduction">Fun P</label>
+                                  <input type="number" step="0.1"
+                                    value={editConfig?.policyConfig?.funPenalty?.P ?? 1.5}
+                                    onChange={(e) => setEditConfig(prev => ({...prev, policyConfig: {...(prev.policyConfig || {}), funPenalty: {...(prev.policyConfig?.funPenalty || {}), P: parseFloat(e.target.value)}}}))}
                                   />
                                 </div>
                               </>
