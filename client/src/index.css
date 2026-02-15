@@ -786,6 +786,8 @@ body {
   justify-content: center;
   align-items: center;
   z-index: 200;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .modal {
@@ -794,6 +796,9 @@ body {
   border-radius: 8px;
   max-width: 400px;
   width: calc(100% - 40px);
+  max-height: 90vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .modal h2 {

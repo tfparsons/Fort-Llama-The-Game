@@ -2475,6 +2475,14 @@ function App() {
                     <div>Utilities: +{(building.utilitiesMultiplier * 100).toFixed(0)}%</div>
                   )}
                   <div>Current: {building.count}</div>
+                  {building.id === 'living_room' && gameState.researchedTechs?.includes('great_hall') && (() => {
+                    const gh = gameState.techConfig?.great_hall || {};
+                    return (
+                      <div style={{marginTop: '4px', padding: '3px 6px', background: '#4299e133', borderRadius: '4px', fontSize: '0.75rem', color: '#4299e1'}}>
+                        Great Hall: Cap +{gh.capacityBoost ?? 10}, Fun +{Math.round((gh.funMultBoost ?? 0.3) * 100)}%, Drive +{Math.round((gh.driveMultBoost ?? 0.2) * 100)}%
+                      </div>
+                    );
+                  })()}
                 </div>
                 <button 
                   className="action-button"
@@ -3282,11 +3290,12 @@ function App() {
                               <input type="number" step="0.1" value={b.noiseMult ?? 1.0} 
                                 onChange={(e) => updateBuildingField(b.id, 'noiseMult', e.target.value)} />
                             </div>
-                            {gameState?.researchedTechs?.includes('great_hall') && (() => {
+                            {(() => {
                               const gh = gameState.techConfig?.great_hall || {};
+                              const researched = gameState?.researchedTechs?.includes('great_hall');
                               return (
-                                <div style={{marginTop: '4px', padding: '3px 6px', background: '#4299e133', borderRadius: '4px', fontSize: '0.7rem', color: '#4299e1'}}>
-                                  Great Hall: Cap +{gh.capacityBoost ?? 10}, Fun +{Math.round((gh.funMultBoost ?? 0.3) * 100)}%, Drive +{Math.round((gh.driveMultBoost ?? 0.2) * 100)}%
+                                <div style={{marginTop: '4px', padding: '3px 6px', background: researched ? '#4299e133' : '#4a556833', borderRadius: '4px', fontSize: '0.7rem', color: researched ? '#4299e1' : '#718096'}}>
+                                  Great Hall{!researched ? ' (not researched)' : ''}: Cap +{gh.capacityBoost ?? 10}, Fun +{Math.round((gh.funMultBoost ?? 0.3) * 100)}%, Drive +{Math.round((gh.driveMultBoost ?? 0.2) * 100)}%
                                 </div>
                               );
                             })()}
