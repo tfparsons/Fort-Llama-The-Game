@@ -1060,6 +1060,40 @@ function App() {
                 </button>
                 {budgetOpen && (
                   <div className="budget-items" style={{marginTop: '8px'}}>
+                    {(() => {
+                      const fixedCostTechs = (gameState.techTree || []).filter(t => 
+                        t.type === 'fixed_expense' && gameState.researchedTechs?.includes(t.id)
+                      );
+                      if (fixedCostTechs.length === 0) return null;
+                      return (
+                        <div style={{marginBottom: '10px', borderBottom: '1px solid #1a3a5c', paddingBottom: '8px'}}>
+                          <div style={{fontSize: '0.75rem', color: '#cbd5e0', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em'}}>Fixed Costs</div>
+                          {fixedCostTechs.map(tech => {
+                            const cfg = gameState.techConfig?.[tech.id] || {};
+                            const isActive = gameState.activeFixedCosts?.includes(tech.id);
+                            return (
+                              <div key={tech.id} className="budget-row" style={{alignItems: 'center'}}>
+                                <label style={{display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', flex: 1}}>
+                                  <input
+                                    type="checkbox"
+                                    checked={isActive}
+                                    onChange={() => handleToggleFixedCost(tech.id)}
+                                    style={{accentColor: '#48bb78'}}
+                                  />
+                                  <span className="budget-label">{tech.name}</span>
+                                </label>
+                                <span style={{color: isActive ? '#fc8181' : '#718096', fontSize: '0.8rem', fontWeight: 600}}>
+                                  £{cfg.weeklyCost || 0}/wk
+                                </span>
+                                <span style={{color: '#cbd5e0', fontSize: '0.7rem', marginLeft: '6px'}}>
+                                  +{cfg.effectPercent || 0}%
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()}
                     {[
                       { key: 'nutrition', label: 'Ingredients', icon: '🥕', primitive: 'Nutrition' },
                       { key: 'cleanliness', label: 'Cleaning materials', icon: '🧹', primitive: 'Cleanliness' },
@@ -1099,41 +1133,6 @@ function App() {
                     </div>
                   </div>
                 )}
-              </div>
-
-              <div className="panel-section">
-                <div style={{fontSize: '0.75rem', color: '#cbd5e0', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em'}}>Fixed Costs</div>
-                {(() => {
-                  const fixedCostTechs = (gameState.techTree || []).filter(t => 
-                    t.type === 'fixed_expense' && gameState.researchedTechs?.includes(t.id)
-                  );
-                  if (fixedCostTechs.length === 0) {
-                    return <p style={{color: '#a0aec0', fontSize: '0.8rem', margin: '4px 0'}}>Research technologies to unlock fixed costs.</p>;
-                  }
-                  return fixedCostTechs.map(tech => {
-                    const cfg = gameState.techConfig?.[tech.id] || {};
-                    const isActive = gameState.activeFixedCosts?.includes(tech.id);
-                    return (
-                      <div key={tech.id} className="budget-row" style={{alignItems: 'center'}}>
-                        <label style={{display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', flex: 1}}>
-                          <input
-                            type="checkbox"
-                            checked={isActive}
-                            onChange={() => handleToggleFixedCost(tech.id)}
-                            style={{accentColor: '#48bb78'}}
-                          />
-                          <span className="budget-label">{tech.name}</span>
-                        </label>
-                        <span style={{color: isActive ? '#fc8181' : '#718096', fontSize: '0.8rem', fontWeight: 600}}>
-                          £{cfg.weeklyCost || 0}/wk
-                        </span>
-                        <span style={{color: '#cbd5e0', fontSize: '0.7rem', marginLeft: '6px'}}>
-                          +{cfg.effectPercent || 0}%
-                        </span>
-                      </div>
-                    );
-                  });
-                })()}
               </div>
 
               <div className="sidebar-divider" />
