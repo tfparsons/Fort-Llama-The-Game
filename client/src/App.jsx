@@ -1064,11 +1064,12 @@ function App() {
                       const fixedCostTechs = (gameState.techTree || []).filter(t => 
                         t.type === 'fixed_expense' && gameState.researchedTechs?.includes(t.id)
                       );
-                      if (fixedCostTechs.length === 0) return null;
                       return (
                         <div style={{marginBottom: '10px', borderBottom: '1px solid #1a3a5c', paddingBottom: '8px'}}>
                           <div style={{fontSize: '0.75rem', color: '#cbd5e0', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em'}}>Fixed Costs</div>
-                          {fixedCostTechs.map(tech => {
+                          {fixedCostTechs.length === 0 ? (
+                            <div style={{color: '#718096', fontSize: '0.8rem', padding: '2px 0'}}>None unlocked</div>
+                          ) : fixedCostTechs.map(tech => {
                             const cfg = gameState.techConfig?.[tech.id] || {};
                             const isActive = gameState.activeFixedCosts?.includes(tech.id);
                             return (
