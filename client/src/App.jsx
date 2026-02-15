@@ -605,9 +605,9 @@ function App() {
           <div className="health-banner">
             <div className="vibes-metrics">
               {[
-                { key: 'livingStandards', label: 'Living Standards', color: '#48bb78' },
+                { key: 'livingStandards', label: 'Living Standards', color: '#f6ad55' },
                 { key: 'productivity', label: 'Productivity', color: '#4299e1' },
-                { key: 'partytime', label: 'Partytime', color: '#ed8936' }
+                { key: 'partytime', label: 'Partytime', color: '#b794f4' }
               ].map(m => {
                 const val = Math.round((gameState.healthMetrics?.[m.key] || 0.5) * 100);
                 return (
@@ -624,9 +624,9 @@ function App() {
                 if (history.length < 1) return <span className="vibes-graph-empty">No data yet</span>;
                 const w = 160, h = 60, pad = 4;
                 const metrics = [
-                  { key: 'ls', color: '#48bb78' },
+                  { key: 'ls', color: '#f6ad55' },
                   { key: 'pr', color: '#4299e1' },
-                  { key: 'pt', color: '#ed8936' }
+                  { key: 'pt', color: '#b794f4' }
                 ];
                 const recent = history.slice(-28);
                 const maxVal = 100;
@@ -894,7 +894,7 @@ function App() {
                   <h2>Culture Badges</h2>
                   <div style={{display: 'flex', flexWrap: 'wrap', gap: '6px'}}>
                     {cultureTechs.map(tech => {
-                      const treeColor = tech.tree === 'livingStandards' ? '#48bb78' : tech.tree === 'productivity' ? '#4299e1' : '#ed8936';
+                      const treeColor = tech.tree === 'livingStandards' ? '#f6ad55' : tech.tree === 'productivity' ? '#4299e1' : '#b794f4';
                       return (
                         <span key={tech.id} style={{background: treeColor + '22', color: treeColor, border: `1px solid ${treeColor}44`, padding: '3px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600}}>
                           {tech.name}
@@ -1576,7 +1576,7 @@ function App() {
               <p style={{color: '#a0aec0', fontSize: '0.75rem', marginBottom: '8px'}}>Configure research costs and effects for each technology. Changes apply on Reset.</p>
               {['livingStandards', 'productivity', 'fun'].map(treeName => {
                 const treeLabel = treeName === 'livingStandards' ? 'Quality of Life' : treeName === 'productivity' ? 'Productivity' : 'Fun';
-                const treeColor = treeName === 'livingStandards' ? '#48bb78' : treeName === 'productivity' ? '#4299e1' : '#ed8936';
+                const treeColor = treeName === 'livingStandards' ? '#f6ad55' : treeName === 'productivity' ? '#4299e1' : '#b794f4';
                 const treeTechs = (gameState.techTree || []).filter(t => t.tree === treeName);
                 return (
                   <div key={treeName} style={{marginBottom: '16px'}}>
@@ -2260,7 +2260,7 @@ function App() {
             </div>
             {['livingStandards', 'productivity', 'fun'].map(treeName => {
               const treeLabel = treeName === 'livingStandards' ? 'Quality of Life' : treeName === 'productivity' ? 'Productivity' : 'Fun';
-              const treeColor = treeName === 'livingStandards' ? '#48bb78' : treeName === 'productivity' ? '#4299e1' : '#ed8936';
+              const treeColor = treeName === 'livingStandards' ? '#f6ad55' : treeName === 'productivity' ? '#4299e1' : '#b794f4';
               const treeTechs = (gameState.techTree || []).filter(t => t.tree === treeName);
               const availableTechs = treeTechs.filter(t => {
                 if (gameState.researchedTechs?.includes(t.id)) return false;
@@ -2322,7 +2322,7 @@ function App() {
             </div>
             {['livingStandards', 'productivity', 'fun'].map(treeName => {
               const treeLabel = treeName === 'livingStandards' ? 'Quality of Life' : treeName === 'productivity' ? 'Productivity' : 'Fun';
-              const treeColor = treeName === 'livingStandards' ? '#48bb78' : treeName === 'productivity' ? '#4299e1' : '#ed8936';
+              const treeColor = treeName === 'livingStandards' ? '#f6ad55' : treeName === 'productivity' ? '#4299e1' : '#b794f4';
               const treeTechs = (gameState.techTree || []).filter(t => t.tree === treeName);
               const l1 = treeTechs.filter(t => t.level === 1);
               const l2 = treeTechs.filter(t => t.level === 2);
