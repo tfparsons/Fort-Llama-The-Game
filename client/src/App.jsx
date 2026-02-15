@@ -1246,6 +1246,153 @@ function App() {
 
           </div>
 
+
+          <h3 className="section-divider">Progression</h3>
+          <div className="dev-tools-grid three-col">
+            <div className="config-section">
+              <h3>Scaling (Global)</h3>
+              <div className="config-field">
+                <label>ref0</label>
+                <input type="number" step="0.05" value={editConfig?.health?.globalScaling?.ref0 ?? 0.5} 
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, globalScaling: {...editConfig.health?.globalScaling, ref0: parseFloat(e.target.value)}}})} />
+              </div>
+              <div className="config-field">
+                <label>alpha</label>
+                <input type="number" step="0.05" value={editConfig?.health?.globalScaling?.alpha ?? 0.15} 
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, globalScaling: {...editConfig.health?.globalScaling, alpha: parseFloat(e.target.value)}}})} />
+              </div>
+              <div className="config-field">
+                <label>p (curve)</label>
+                <input type="number" step="0.5" value={editConfig?.health?.globalScaling?.p ?? 2} 
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, globalScaling: {...editConfig.health?.globalScaling, p: parseFloat(e.target.value)}}})} />
+              </div>
+              <div className="config-field">
+                <label>pop0 (baseline)</label>
+                <input type="number" value={editConfig?.health?.pop0 ?? 2} 
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, pop0: parseInt(e.target.value)}})} />
+              </div>
+              <p className="config-hint">Enable "Custom Scaling" on individual metrics to override.</p>
+            </div>
+
+            <div className="config-section">
+              <h3>Tier Progression</h3>
+              <p className="config-hint">As your commune grows, higher tiers unlock better output from buildings and adjust health metric expectations.</p>
+              <div className="tier-grid">
+                {[0, 1, 2, 3, 4, 5].map(i => {
+                  const brackets = gameState?.tierConfig?.brackets || [6, 12, 20, 50, 100];
+                  const outputMults = gameState?.tierConfig?.outputMults || [1.0, 1.15, 1.3, 1.5, 1.75, 2.0];
+                  const healthMults = gameState?.tierConfig?.healthMults || [1.0, 1.1, 1.2, 1.35, 1.5, 1.7];
+                  const popRange = i === 0 ? `1-${brackets[0]}` : i === 5 ? `${brackets[4]+1}+` : `${brackets[i-1]+1}-${brackets[i]}`;
+                  return (
+                    <div key={i} className="tier-row">
+                      <span className="tier-label">Tier {i + 1}</span>
+                      <span className="tier-pop">{popRange} pop</span>
+                      <span className="tier-mult">Output: {outputMults[i]}x</span>
+                      <span className="tier-mult">Health: {healthMults[i]}x</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="config-section" style={{gridColumn: '1 / -1'}}>
+              <h3>Vibes & Reputation</h3>
+              <div style={{display: 'flex', gap: '8px', marginBottom: '10px'}}>
+                <div className="config-field" style={{flex: 'none', marginBottom: 0}}>
+                  <label>Balanced spread</label>
+                  <input type="number" step="0.01" value={gameState?.vibesConfig?.balancedThreshold || 0.18} readOnly />
+                </div>
+                <div className="config-field" style={{flex: 'none', marginBottom: 0}}>
+                  <label>Strong imbalance</label>
+                  <input type="number" step="0.01" value={gameState?.vibesConfig?.strongImbalanceThreshold || 0.30} readOnly />
+                </div>
+              </div>
+              <div style={{display: 'flex', gap: '16px'}}>
+                <div style={{flex: 1}}>
+                  <label style={{fontSize: '0.75rem', color: '#a0aec0', display: 'block', marginBottom: '4px'}}>Vibes Tier Ladder</label>
+                  <div className="tier-ladder-list">
+                    {(gameState?.vibesConfig?.tierThresholds || [
+                      { name: 'Shambles', min: 0, max: 0.15 },
+                      { name: 'Rough', min: 0.15, max: 0.25 },
+                      { name: 'Scrappy', min: 0.25, max: 0.35 },
+                      { name: 'Fine', min: 0.35, max: 0.45 },
+                      { name: 'Good', min: 0.45, max: 0.55 },
+                      { name: 'Lovely', min: 0.55, max: 0.65 },
+                      { name: 'Thriving', min: 0.65, max: 0.75 },
+                      { name: 'Wonderful', min: 0.75, max: 0.85 },
+                      { name: 'Glorious', min: 0.85, max: 0.95 },
+                      { name: 'Utopia', min: 0.95, max: 1.01 }
+                    ]).map((tier, idx) => (
+                      <div key={idx} className="tier-ladder-item">
+                        <span className="tier-rank">{idx + 1}.</span>
+                        <span className="tier-name">{tier.name}</span>
+                        <span className="tier-range">{Math.round(tier.min * 100)}-{Math.round(tier.max * 100)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div style={{flex: 1}}>
+                  <label style={{fontSize: '0.75rem', color: '#a0aec0', display: 'block', marginBottom: '4px'}}>Fame Levels (Vibes + pop tier)</label>
+                  <div className="tier-ladder-list">
+                    {[
+                      { name: 'Obscure', min: 0, max: 20, tierLabel: 'Any' },
+                      { name: 'Reputable', min: 20, max: 40, tierLabel: 'Tier 2+' },
+                      { name: 'Aspirational', min: 40, max: 60, tierLabel: 'Tier 3+' },
+                      { name: 'Famous', min: 60, max: 80, tierLabel: 'Tier 4+' },
+                      { name: 'Mythical', min: 80, max: 100, tierLabel: 'Tier 5+' }
+                    ].map((f, idx) => (
+                      <div key={idx} className="tier-ladder-item">
+                        <span className="tier-rank">{idx + 1}.</span>
+                        <span className="tier-name">{f.name}</span>
+                        <span className="tier-range" style={{minWidth: '36px'}}>{f.min}-{f.max}</span>
+                        <span style={{fontSize: '0.65rem', color: '#718096', marginLeft: '4px'}}>{f.tierLabel}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div style={{flex: 1}}>
+                  <label style={{fontSize: '0.75rem', color: '#a0aec0', display: 'block', marginBottom: '4px'}}>Identity Labels (when imbalanced)</label>
+                  <table style={{width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem'}}>
+                    <thead>
+                      <tr style={{borderBottom: '1px solid #4a5568'}}>
+                        <th style={{textAlign: 'left', padding: '4px 6px', color: '#718096', fontWeight: 500}}>Condition</th>
+                        <th style={{textAlign: 'left', padding: '4px 6px', color: '#718096', fontWeight: 500}}>Mild</th>
+                        <th style={{textAlign: 'left', padding: '4px 6px', color: '#718096', fontWeight: 500}}>Strong</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(() => {
+                        const labels = gameState?.vibesConfig?.branchLabels || {
+                          highPartytime: { mild: 'Party House', strong: 'Party Mansion' },
+                          highProductivity: { mild: 'Grind House', strong: 'Sweat Shop' },
+                          highLivingStandards: { mild: 'Showhome', strong: 'Dolls House' },
+                          lowLivingStandards: { mild: 'Shanty Town', strong: 'Slum' },
+                          lowProductivity: { mild: 'Decadent', strong: 'Chaotic' },
+                          lowPartytime: { mild: 'Low Energy', strong: 'Dead' }
+                        };
+                        const rows = [
+                          { key: 'highPartytime', label: 'High Partytime', color: '#b794f4' },
+                          { key: 'highProductivity', label: 'High Productivity', color: '#4299e1' },
+                          { key: 'highLivingStandards', label: 'High Living Standards', color: '#4fd1c5' },
+                          { key: 'lowLivingStandards', label: 'Low Living Standards', color: '#4fd1c5' },
+                          { key: 'lowProductivity', label: 'Low Productivity', color: '#4299e1' },
+                          { key: 'lowPartytime', label: 'Low Partytime', color: '#b794f4' }
+                        ];
+                        return rows.map(r => (
+                          <tr key={r.key} style={{borderBottom: '1px solid #1a202c'}}>
+                            <td style={{padding: '4px 6px', color: r.color}}>{r.label}</td>
+                            <td style={{padding: '4px 6px', color: '#ed8936'}}>{labels[r.key]?.mild}</td>
+                            <td style={{padding: '4px 6px', color: '#f56565'}}>{labels[r.key]?.strong}</td>
+                          </tr>
+                        ));
+                      })()}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <h3 className="section-divider">Health Metric Settings</h3>
           <div className="dev-tools-grid three-col">
             <div className="config-section">
@@ -1419,360 +1566,6 @@ function App() {
                   </div>
                 </>
               )}
-            </div>
-          </div>
-
-          <h3 className="section-divider">Progression</h3>
-          <div className="dev-tools-grid three-col">
-            <div className="config-section">
-              <h3>Scaling (Global)</h3>
-              <div className="config-field">
-                <label>ref0</label>
-                <input type="number" step="0.05" value={editConfig?.health?.globalScaling?.ref0 ?? 0.5} 
-                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, globalScaling: {...editConfig.health?.globalScaling, ref0: parseFloat(e.target.value)}}})} />
-              </div>
-              <div className="config-field">
-                <label>alpha</label>
-                <input type="number" step="0.05" value={editConfig?.health?.globalScaling?.alpha ?? 0.15} 
-                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, globalScaling: {...editConfig.health?.globalScaling, alpha: parseFloat(e.target.value)}}})} />
-              </div>
-              <div className="config-field">
-                <label>p (curve)</label>
-                <input type="number" step="0.5" value={editConfig?.health?.globalScaling?.p ?? 2} 
-                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, globalScaling: {...editConfig.health?.globalScaling, p: parseFloat(e.target.value)}}})} />
-              </div>
-              <div className="config-field">
-                <label>pop0 (baseline)</label>
-                <input type="number" value={editConfig?.health?.pop0 ?? 2} 
-                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, pop0: parseInt(e.target.value)}})} />
-              </div>
-              <p className="config-hint">Enable "Custom Scaling" on individual metrics to override.</p>
-            </div>
-
-            <div className="config-section">
-              <h3>Tier Progression</h3>
-              <p className="config-hint">As your commune grows, higher tiers unlock better output from buildings and adjust health metric expectations.</p>
-              <div className="tier-grid">
-                {[0, 1, 2, 3, 4, 5].map(i => {
-                  const brackets = gameState?.tierConfig?.brackets || [6, 12, 20, 50, 100];
-                  const outputMults = gameState?.tierConfig?.outputMults || [1.0, 1.15, 1.3, 1.5, 1.75, 2.0];
-                  const healthMults = gameState?.tierConfig?.healthMults || [1.0, 1.1, 1.2, 1.35, 1.5, 1.7];
-                  const popRange = i === 0 ? `1-${brackets[0]}` : i === 5 ? `${brackets[4]+1}+` : `${brackets[i-1]+1}-${brackets[i]}`;
-                  return (
-                    <div key={i} className="tier-row">
-                      <span className="tier-label">Tier {i + 1}</span>
-                      <span className="tier-pop">{popRange} pop</span>
-                      <span className="tier-mult">Output: {outputMults[i]}x</span>
-                      <span className="tier-mult">Health: {healthMults[i]}x</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="config-section" style={{gridColumn: '1 / -1'}}>
-              <h3>Vibes & Reputation</h3>
-              <div style={{display: 'flex', gap: '8px', marginBottom: '10px'}}>
-                <div className="config-field" style={{flex: 'none', marginBottom: 0}}>
-                  <label>Balanced spread</label>
-                  <input type="number" step="0.01" value={gameState?.vibesConfig?.balancedThreshold || 0.18} readOnly />
-                </div>
-                <div className="config-field" style={{flex: 'none', marginBottom: 0}}>
-                  <label>Strong imbalance</label>
-                  <input type="number" step="0.01" value={gameState?.vibesConfig?.strongImbalanceThreshold || 0.30} readOnly />
-                </div>
-              </div>
-              <div style={{display: 'flex', gap: '16px'}}>
-                <div style={{flex: 1}}>
-                  <label style={{fontSize: '0.75rem', color: '#a0aec0', display: 'block', marginBottom: '4px'}}>Vibes Tier Ladder</label>
-                  <div className="tier-ladder-list">
-                    {(gameState?.vibesConfig?.tierThresholds || [
-                      { name: 'Shambles', min: 0, max: 0.15 },
-                      { name: 'Rough', min: 0.15, max: 0.25 },
-                      { name: 'Scrappy', min: 0.25, max: 0.35 },
-                      { name: 'Fine', min: 0.35, max: 0.45 },
-                      { name: 'Good', min: 0.45, max: 0.55 },
-                      { name: 'Lovely', min: 0.55, max: 0.65 },
-                      { name: 'Thriving', min: 0.65, max: 0.75 },
-                      { name: 'Wonderful', min: 0.75, max: 0.85 },
-                      { name: 'Glorious', min: 0.85, max: 0.95 },
-                      { name: 'Utopia', min: 0.95, max: 1.01 }
-                    ]).map((tier, idx) => (
-                      <div key={idx} className="tier-ladder-item">
-                        <span className="tier-rank">{idx + 1}.</span>
-                        <span className="tier-name">{tier.name}</span>
-                        <span className="tier-range">{Math.round(tier.min * 100)}-{Math.round(tier.max * 100)}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div style={{flex: 1}}>
-                  <label style={{fontSize: '0.75rem', color: '#a0aec0', display: 'block', marginBottom: '4px'}}>Fame Levels (Vibes + pop tier)</label>
-                  <div className="tier-ladder-list">
-                    {[
-                      { name: 'Obscure', min: 0, max: 20, tierLabel: 'Any' },
-                      { name: 'Reputable', min: 20, max: 40, tierLabel: 'Tier 2+' },
-                      { name: 'Aspirational', min: 40, max: 60, tierLabel: 'Tier 3+' },
-                      { name: 'Famous', min: 60, max: 80, tierLabel: 'Tier 4+' },
-                      { name: 'Mythical', min: 80, max: 100, tierLabel: 'Tier 5+' }
-                    ].map((f, idx) => (
-                      <div key={idx} className="tier-ladder-item">
-                        <span className="tier-rank">{idx + 1}.</span>
-                        <span className="tier-name">{f.name}</span>
-                        <span className="tier-range" style={{minWidth: '36px'}}>{f.min}-{f.max}</span>
-                        <span style={{fontSize: '0.65rem', color: '#718096', marginLeft: '4px'}}>{f.tierLabel}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div style={{flex: 1}}>
-                  <label style={{fontSize: '0.75rem', color: '#a0aec0', display: 'block', marginBottom: '4px'}}>Identity Labels (when imbalanced)</label>
-                  <table style={{width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem'}}>
-                    <thead>
-                      <tr style={{borderBottom: '1px solid #4a5568'}}>
-                        <th style={{textAlign: 'left', padding: '4px 6px', color: '#718096', fontWeight: 500}}>Condition</th>
-                        <th style={{textAlign: 'left', padding: '4px 6px', color: '#718096', fontWeight: 500}}>Mild</th>
-                        <th style={{textAlign: 'left', padding: '4px 6px', color: '#718096', fontWeight: 500}}>Strong</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {(() => {
-                        const labels = gameState?.vibesConfig?.branchLabels || {
-                          highPartytime: { mild: 'Party House', strong: 'Party Mansion' },
-                          highProductivity: { mild: 'Grind House', strong: 'Sweat Shop' },
-                          highLivingStandards: { mild: 'Showhome', strong: 'Dolls House' },
-                          lowLivingStandards: { mild: 'Shanty Town', strong: 'Slum' },
-                          lowProductivity: { mild: 'Decadent', strong: 'Chaotic' },
-                          lowPartytime: { mild: 'Low Energy', strong: 'Dead' }
-                        };
-                        const rows = [
-                          { key: 'highPartytime', label: 'High Partytime', color: '#b794f4' },
-                          { key: 'highProductivity', label: 'High Productivity', color: '#4299e1' },
-                          { key: 'highLivingStandards', label: 'High Living Standards', color: '#4fd1c5' },
-                          { key: 'lowLivingStandards', label: 'Low Living Standards', color: '#4fd1c5' },
-                          { key: 'lowProductivity', label: 'Low Productivity', color: '#4299e1' },
-                          { key: 'lowPartytime', label: 'Low Partytime', color: '#b794f4' }
-                        ];
-                        return rows.map(r => (
-                          <tr key={r.key} style={{borderBottom: '1px solid #1a202c'}}>
-                            <td style={{padding: '4px 6px', color: r.color}}>{r.label}</td>
-                            <td style={{padding: '4px 6px', color: '#ed8936'}}>{labels[r.key]?.mild}</td>
-                            <td style={{padding: '4px 6px', color: '#f56565'}}>{labels[r.key]?.strong}</td>
-                          </tr>
-                        ));
-                      })()}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <h3 className="section-divider">Mechanics</h3>
-          <div className="dev-tools-grid three-col">
-            <div className="config-section">
-              <h3>Budget Efficiency</h3>
-              {[
-                { key: 'nutrition', label: 'Ingredients', primitive: 'Nutrition', type: 'coverage' },
-                { key: 'cleanliness', label: 'Cleaning materials', primitive: 'Cleanliness', type: 'coverage' },
-                { key: 'fun', label: 'Party supplies', primitive: 'Fun', type: 'coverage' },
-                { key: 'drive', label: 'Internet', primitive: 'Drive', type: 'coverage' },
-                { key: 'maintenance', label: 'Handiman', primitive: 'Maintenance', type: 'stock' },
-                { key: 'fatigue', label: 'Wellness', primitive: 'Fatigue', type: 'stock' }
-              ].map(item => (
-                <div key={item.key} className="config-field">
-                  <label title={item.type === 'coverage' ? 'Supply boost per £1 invested' : 'Debt reduced per £1 per tick'}>
-                    {item.label} <span style={{color: '#888', fontSize: '0.7rem'}}>({item.type === 'coverage' ? 'eff' : 'red'})</span>
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={editConfig?.budgetConfig?.[item.key]?.[item.type === 'coverage' ? 'efficiency' : 'reductionRate'] ?? (item.type === 'coverage' ? 0.5 : 0.02)}
-                    onChange={(e) => updateBudgetConfig(item.key, item.type === 'coverage' ? 'efficiency' : 'reductionRate', parseFloat(e.target.value))}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="dev-tools-grid">
-            <div className="config-section" style={{gridColumn: '1 / -1'}}>
-              <h3>Tech Tree Configuration</h3>
-              <p style={{color: '#a0aec0', fontSize: '0.75rem', marginBottom: '8px'}}>Configure research costs and effects for each technology. Changes apply on Reset.</p>
-              {['livingStandards', 'productivity', 'fun'].map(treeName => {
-                const treeLabel = treeName === 'livingStandards' ? 'Quality of Life' : treeName === 'productivity' ? 'Productivity' : 'Fun';
-                const treeColor = treeName === 'livingStandards' ? '#4fd1c5' : treeName === 'productivity' ? '#4299e1' : '#b794f4';
-                const treeTechs = (gameState.techTree || []).filter(t => t.tree === treeName);
-                return (
-                  <div key={treeName} style={{marginBottom: '16px'}}>
-                    <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', borderBottom: `2px solid ${treeColor}33`, paddingBottom: '4px'}}>
-                      <span style={{background: treeColor, width: '10px', height: '10px', borderRadius: '50%', display: 'inline-block'}}></span>
-                      <span style={{color: treeColor, fontWeight: 600, fontSize: '0.85rem'}}>{treeLabel}</span>
-                    </div>
-                    {(() => {
-                      const l1 = treeTechs.filter(t => t.level === 1);
-                      const l2 = treeTechs.filter(t => t.level === 2);
-                      const l3 = treeTechs.filter(t => t.level === 3);
-                      const renderDevTechNode = (tech) => {
-                        const cfg = editConfig?.techConfig?.[tech.id] || {};
-                        const updateTechCfg = (field, value) => {
-                          setEditConfig(prev => ({
-                            ...prev,
-                            techConfig: {
-                              ...prev.techConfig,
-                              [tech.id]: { ...(prev.techConfig?.[tech.id] || {}), [field]: value }
-                            }
-                          }));
-                        };
-                        return (
-                          <div key={tech.id} style={{background: '#2d3748', borderRadius: '6px', padding: '8px 10px', border: `1px solid ${tech.available ? treeColor + '44' : '#4a556833'}`}}>
-                            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px'}}>
-                              <span style={{fontWeight: 600, fontSize: '0.8rem', color: tech.available ? '#e2e8f0' : '#718096'}}>{tech.name}</span>
-                              <span style={{fontSize: '0.6rem', background: treeColor + '22', color: treeColor, padding: '1px 6px', borderRadius: '4px', textTransform: 'capitalize'}}>{tech.type.replace('_', ' ')}</span>
-                            </div>
-                            {!tech.available && <div style={{fontSize: '0.65rem', color: '#718096', marginBottom: '6px'}}>Coming Soon</div>}
-                            <div className="config-field" style={{marginBottom: '4px'}}>
-                              <label style={{fontSize: '0.7rem'}}>Cost</label>
-                              <input type="number" step="100" min="0"
-                                value={cfg.cost ?? 500}
-                                onChange={(e) => updateTechCfg('cost', parseInt(e.target.value) || 0)}
-                              />
-                            </div>
-                            {tech.type === 'fixed_expense' && (
-                              <>
-                                <div className="config-field" style={{marginBottom: '4px'}}>
-                                  <label style={{fontSize: '0.7rem'}}>Weekly Cost</label>
-                                  <input type="number" step="10" min="0"
-                                    value={cfg.weeklyCost ?? 0}
-                                    onChange={(e) => updateTechCfg('weeklyCost', parseInt(e.target.value) || 0)}
-                                  />
-                                </div>
-                                <div className="config-field" style={{marginBottom: '0'}}>
-                                  <label style={{fontSize: '0.7rem'}}>Effect %</label>
-                                  <input type="number" step="1" min="0"
-                                    value={cfg.effectPercent ?? 0}
-                                    onChange={(e) => updateTechCfg('effectPercent', parseInt(e.target.value) || 0)}
-                                  />
-                                </div>
-                              </>
-                            )}
-                            {tech.type === 'policy' && tech.id === 'chores_rota' && (
-                              <>
-                                <div className="config-field" style={{marginBottom: '4px'}}>
-                                  <label style={{fontSize: '0.7rem'}} title="Percentage of worst-performing residents excluded from stat average">Exclude %</label>
-                                  <input type="number" step="0.05" min="0" max="1"
-                                    value={editConfig?.policyConfig?.excludePercent ?? 0.25}
-                                    onChange={(e) => setEditConfig(prev => ({...prev, policyConfig: {...(prev.policyConfig || {}), excludePercent: parseFloat(e.target.value)}}))}
-                                  />
-                                </div>
-                                <div className="config-field" style={{marginBottom: '4px'}}>
-                                  <label style={{fontSize: '0.7rem'}} title="Number of active policies before Fun penalty applies">Fun threshold</label>
-                                  <input type="number" step="1" min="1"
-                                    value={editConfig?.policyConfig?.funPenalty?.threshold ?? 3}
-                                    onChange={(e) => setEditConfig(prev => ({...prev, policyConfig: {...(prev.policyConfig || {}), funPenalty: {...(prev.policyConfig?.funPenalty || {}), threshold: parseInt(e.target.value)}}}))}
-                                  />
-                                </div>
-                                <div className="config-field" style={{marginBottom: '4px'}}>
-                                  <label style={{fontSize: '0.7rem'}} title="Penalty curve steepness (K) for Fun reduction">Fun K</label>
-                                  <input type="number" step="0.05"
-                                    value={editConfig?.policyConfig?.funPenalty?.K ?? 0.15}
-                                    onChange={(e) => setEditConfig(prev => ({...prev, policyConfig: {...(prev.policyConfig || {}), funPenalty: {...(prev.policyConfig?.funPenalty || {}), K: parseFloat(e.target.value)}}}))}
-                                  />
-                                </div>
-                                <div className="config-field" style={{marginBottom: '0'}}>
-                                  <label style={{fontSize: '0.7rem'}} title="Penalty curve exponent (P) for Fun reduction">Fun P</label>
-                                  <input type="number" step="0.1"
-                                    value={editConfig?.policyConfig?.funPenalty?.P ?? 1.5}
-                                    onChange={(e) => setEditConfig(prev => ({...prev, policyConfig: {...(prev.policyConfig || {}), funPenalty: {...(prev.policyConfig?.funPenalty || {}), P: parseFloat(e.target.value)}}}))}
-                                  />
-                                </div>
-                              </>
-                            )}
-                            {tech.type === 'policy' && tech.id === 'ocado' && (
-                              <div className="config-field" style={{marginBottom: '0'}}>
-                                <label style={{fontSize: '0.7rem'}}>Effect %</label>
-                                <input type="number" step="1" min="0"
-                                  value={cfg.effectPercent ?? 15}
-                                  onChange={(e) => updateTechCfg('effectPercent', parseInt(e.target.value) || 0)}
-                                />
-                              </div>
-                            )}
-                            {tech.type === 'upgrade' && tech.id === 'great_hall' && (
-                              <>
-                                <div className="config-field" style={{marginBottom: '4px'}}>
-                                  <label style={{fontSize: '0.7rem'}}>Cap Boost</label>
-                                  <input type="number" step="1" min="0"
-                                    value={cfg.capacityBoost ?? 10}
-                                    onChange={(e) => updateTechCfg('capacityBoost', parseInt(e.target.value) || 0)}
-                                  />
-                                </div>
-                                <div className="config-field" style={{marginBottom: '4px'}}>
-                                  <label style={{fontSize: '0.7rem'}}>Fun Mult +</label>
-                                  <input type="number" step="0.05" min="0"
-                                    value={cfg.funMultBoost ?? 0.3}
-                                    onChange={(e) => updateTechCfg('funMultBoost', parseFloat(e.target.value) || 0)}
-                                  />
-                                </div>
-                                <div className="config-field" style={{marginBottom: '0'}}>
-                                  <label style={{fontSize: '0.7rem'}}>Drive Mult +</label>
-                                  <input type="number" step="0.05" min="0"
-                                    value={cfg.driveMultBoost ?? 0.2}
-                                    onChange={(e) => updateTechCfg('driveMultBoost', parseFloat(e.target.value) || 0)}
-                                  />
-                                </div>
-                              </>
-                            )}
-                          </div>
-                        );
-                      };
-                      const root = l1[0];
-                      const branches = l2.map(l2tech => ({
-                        tech: l2tech,
-                        children: l3.filter(l3tech => l3tech.parent === l2tech.id)
-                      }));
-                      return (
-                        <div style={{display: 'flex', gap: '8px', alignItems: 'stretch'}}>
-                          <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1}}>
-                            {root && renderDevTechNode(root)}
-                          </div>
-                          <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
-                            {branches.length === 2 ? (
-                              <svg width="24" height="80" viewBox="0 0 24 80" style={{flexShrink: 0}}>
-                                <path d="M 0 40 L 12 40 L 12 15 L 24 15" fill="none" stroke="#4a5568" strokeWidth="2"/>
-                                <path d="M 12 40 L 12 65 L 24 65" fill="none" stroke="#4a5568" strokeWidth="2"/>
-                              </svg>
-                            ) : <span style={{color: '#4a5568'}}>→</span>}
-                          </div>
-                          <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '8px', flex: 1}}>
-                            {branches.map(branch => (
-                              <div key={branch.tech.id}>{renderDevTechNode(branch.tech)}</div>
-                            ))}
-                          </div>
-                          <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '8px', flex: 1}}>
-                            {branches.map(branch => (
-                              <div key={branch.tech.id} style={{display: 'flex', alignItems: 'center', gap: '4px'}}>
-                                <svg width="16" height={branch.children.length > 1 ? 70 : 30} viewBox={`0 0 16 ${branch.children.length > 1 ? 70 : 30}`} style={{flexShrink: 0}}>
-                                  {branch.children.length > 1 ? (
-                                    <>
-                                      <path d="M 0 35 L 8 35 L 8 12 L 16 12" fill="none" stroke="#4a5568" strokeWidth="2"/>
-                                      <path d="M 8 35 L 8 58 L 16 58" fill="none" stroke="#4a5568" strokeWidth="2"/>
-                                    </>
-                                  ) : (
-                                    <path d="M 0 15 L 16 15" fill="none" stroke="#4a5568" strokeWidth="2"/>
-                                  )}
-                                </svg>
-                                <div style={{display: 'flex', flexDirection: 'column', gap: '4px', flex: 1}}>
-                                  {branch.children.map(l3tech => renderDevTechNode(l3tech))}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    })()}
-                  </div>
-                );
-              })}
             </div>
           </div>
 
@@ -2118,6 +1911,215 @@ function App() {
             </div>
 
           </div>
+
+          <h3 className="section-divider">Mechanics</h3>
+          <div className="dev-tools-grid three-col">
+            <div className="config-section">
+              <h3>Budget Efficiency</h3>
+              {[
+                { key: 'nutrition', label: 'Ingredients', primitive: 'Nutrition', type: 'coverage' },
+                { key: 'cleanliness', label: 'Cleaning materials', primitive: 'Cleanliness', type: 'coverage' },
+                { key: 'fun', label: 'Party supplies', primitive: 'Fun', type: 'coverage' },
+                { key: 'drive', label: 'Internet', primitive: 'Drive', type: 'coverage' },
+                { key: 'maintenance', label: 'Handiman', primitive: 'Maintenance', type: 'stock' },
+                { key: 'fatigue', label: 'Wellness', primitive: 'Fatigue', type: 'stock' }
+              ].map(item => (
+                <div key={item.key} className="config-field">
+                  <label title={item.type === 'coverage' ? 'Supply boost per £1 invested' : 'Debt reduced per £1 per tick'}>
+                    {item.label} <span style={{color: '#888', fontSize: '0.7rem'}}>({item.type === 'coverage' ? 'eff' : 'red'})</span>
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={editConfig?.budgetConfig?.[item.key]?.[item.type === 'coverage' ? 'efficiency' : 'reductionRate'] ?? (item.type === 'coverage' ? 0.5 : 0.02)}
+                    onChange={(e) => updateBudgetConfig(item.key, item.type === 'coverage' ? 'efficiency' : 'reductionRate', parseFloat(e.target.value))}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="dev-tools-grid">
+            <div className="config-section" style={{gridColumn: '1 / -1'}}>
+              <h3>Tech Tree Configuration</h3>
+              <p style={{color: '#a0aec0', fontSize: '0.75rem', marginBottom: '8px'}}>Configure research costs and effects for each technology. Changes apply on Reset.</p>
+              {['livingStandards', 'productivity', 'fun'].map(treeName => {
+                const treeLabel = treeName === 'livingStandards' ? 'Quality of Life' : treeName === 'productivity' ? 'Productivity' : 'Fun';
+                const treeColor = treeName === 'livingStandards' ? '#4fd1c5' : treeName === 'productivity' ? '#4299e1' : '#b794f4';
+                const treeTechs = (gameState.techTree || []).filter(t => t.tree === treeName);
+                return (
+                  <div key={treeName} style={{marginBottom: '16px'}}>
+                    <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', borderBottom: `2px solid ${treeColor}33`, paddingBottom: '4px'}}>
+                      <span style={{background: treeColor, width: '10px', height: '10px', borderRadius: '50%', display: 'inline-block'}}></span>
+                      <span style={{color: treeColor, fontWeight: 600, fontSize: '0.85rem'}}>{treeLabel}</span>
+                    </div>
+                    {(() => {
+                      const l1 = treeTechs.filter(t => t.level === 1);
+                      const l2 = treeTechs.filter(t => t.level === 2);
+                      const l3 = treeTechs.filter(t => t.level === 3);
+                      const renderDevTechNode = (tech) => {
+                        const cfg = editConfig?.techConfig?.[tech.id] || {};
+                        const updateTechCfg = (field, value) => {
+                          setEditConfig(prev => ({
+                            ...prev,
+                            techConfig: {
+                              ...prev.techConfig,
+                              [tech.id]: { ...(prev.techConfig?.[tech.id] || {}), [field]: value }
+                            }
+                          }));
+                        };
+                        return (
+                          <div key={tech.id} style={{background: '#2d3748', borderRadius: '6px', padding: '8px 10px', border: `1px solid ${tech.available ? treeColor + '44' : '#4a556833'}`}}>
+                            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px'}}>
+                              <span style={{fontWeight: 600, fontSize: '0.8rem', color: tech.available ? '#e2e8f0' : '#718096'}}>{tech.name}</span>
+                              <span style={{fontSize: '0.6rem', background: treeColor + '22', color: treeColor, padding: '1px 6px', borderRadius: '4px', textTransform: 'capitalize'}}>{tech.type.replace('_', ' ')}</span>
+                            </div>
+                            {!tech.available && <div style={{fontSize: '0.65rem', color: '#718096', marginBottom: '6px'}}>Coming Soon</div>}
+                            <div className="config-field" style={{marginBottom: '4px'}}>
+                              <label style={{fontSize: '0.7rem'}}>Cost</label>
+                              <input type="number" step="100" min="0"
+                                value={cfg.cost ?? 500}
+                                onChange={(e) => updateTechCfg('cost', parseInt(e.target.value) || 0)}
+                              />
+                            </div>
+                            {tech.type === 'fixed_expense' && (
+                              <>
+                                <div className="config-field" style={{marginBottom: '4px'}}>
+                                  <label style={{fontSize: '0.7rem'}}>Weekly Cost</label>
+                                  <input type="number" step="10" min="0"
+                                    value={cfg.weeklyCost ?? 0}
+                                    onChange={(e) => updateTechCfg('weeklyCost', parseInt(e.target.value) || 0)}
+                                  />
+                                </div>
+                                <div className="config-field" style={{marginBottom: '0'}}>
+                                  <label style={{fontSize: '0.7rem'}}>Effect %</label>
+                                  <input type="number" step="1" min="0"
+                                    value={cfg.effectPercent ?? 0}
+                                    onChange={(e) => updateTechCfg('effectPercent', parseInt(e.target.value) || 0)}
+                                  />
+                                </div>
+                              </>
+                            )}
+                            {tech.type === 'policy' && tech.id === 'chores_rota' && (
+                              <>
+                                <div className="config-field" style={{marginBottom: '4px'}}>
+                                  <label style={{fontSize: '0.7rem'}} title="Percentage of worst-performing residents excluded from stat average">Exclude %</label>
+                                  <input type="number" step="0.05" min="0" max="1"
+                                    value={editConfig?.policyConfig?.excludePercent ?? 0.25}
+                                    onChange={(e) => setEditConfig(prev => ({...prev, policyConfig: {...(prev.policyConfig || {}), excludePercent: parseFloat(e.target.value)}}))}
+                                  />
+                                </div>
+                                <div className="config-field" style={{marginBottom: '4px'}}>
+                                  <label style={{fontSize: '0.7rem'}} title="Number of active policies before Fun penalty applies">Fun threshold</label>
+                                  <input type="number" step="1" min="1"
+                                    value={editConfig?.policyConfig?.funPenalty?.threshold ?? 3}
+                                    onChange={(e) => setEditConfig(prev => ({...prev, policyConfig: {...(prev.policyConfig || {}), funPenalty: {...(prev.policyConfig?.funPenalty || {}), threshold: parseInt(e.target.value)}}}))}
+                                  />
+                                </div>
+                                <div className="config-field" style={{marginBottom: '4px'}}>
+                                  <label style={{fontSize: '0.7rem'}} title="Penalty curve steepness (K) for Fun reduction">Fun K</label>
+                                  <input type="number" step="0.05"
+                                    value={editConfig?.policyConfig?.funPenalty?.K ?? 0.15}
+                                    onChange={(e) => setEditConfig(prev => ({...prev, policyConfig: {...(prev.policyConfig || {}), funPenalty: {...(prev.policyConfig?.funPenalty || {}), K: parseFloat(e.target.value)}}}))}
+                                  />
+                                </div>
+                                <div className="config-field" style={{marginBottom: '0'}}>
+                                  <label style={{fontSize: '0.7rem'}} title="Penalty curve exponent (P) for Fun reduction">Fun P</label>
+                                  <input type="number" step="0.1"
+                                    value={editConfig?.policyConfig?.funPenalty?.P ?? 1.5}
+                                    onChange={(e) => setEditConfig(prev => ({...prev, policyConfig: {...(prev.policyConfig || {}), funPenalty: {...(prev.policyConfig?.funPenalty || {}), P: parseFloat(e.target.value)}}}))}
+                                  />
+                                </div>
+                              </>
+                            )}
+                            {tech.type === 'policy' && tech.id === 'ocado' && (
+                              <div className="config-field" style={{marginBottom: '0'}}>
+                                <label style={{fontSize: '0.7rem'}}>Effect %</label>
+                                <input type="number" step="1" min="0"
+                                  value={cfg.effectPercent ?? 15}
+                                  onChange={(e) => updateTechCfg('effectPercent', parseInt(e.target.value) || 0)}
+                                />
+                              </div>
+                            )}
+                            {tech.type === 'upgrade' && tech.id === 'great_hall' && (
+                              <>
+                                <div className="config-field" style={{marginBottom: '4px'}}>
+                                  <label style={{fontSize: '0.7rem'}}>Cap Boost</label>
+                                  <input type="number" step="1" min="0"
+                                    value={cfg.capacityBoost ?? 10}
+                                    onChange={(e) => updateTechCfg('capacityBoost', parseInt(e.target.value) || 0)}
+                                  />
+                                </div>
+                                <div className="config-field" style={{marginBottom: '4px'}}>
+                                  <label style={{fontSize: '0.7rem'}}>Fun Mult +</label>
+                                  <input type="number" step="0.05" min="0"
+                                    value={cfg.funMultBoost ?? 0.3}
+                                    onChange={(e) => updateTechCfg('funMultBoost', parseFloat(e.target.value) || 0)}
+                                  />
+                                </div>
+                                <div className="config-field" style={{marginBottom: '0'}}>
+                                  <label style={{fontSize: '0.7rem'}}>Drive Mult +</label>
+                                  <input type="number" step="0.05" min="0"
+                                    value={cfg.driveMultBoost ?? 0.2}
+                                    onChange={(e) => updateTechCfg('driveMultBoost', parseFloat(e.target.value) || 0)}
+                                  />
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        );
+                      };
+                      const root = l1[0];
+                      const branches = l2.map(l2tech => ({
+                        tech: l2tech,
+                        children: l3.filter(l3tech => l3tech.parent === l2tech.id)
+                      }));
+                      return (
+                        <div style={{display: 'flex', gap: '8px', alignItems: 'stretch'}}>
+                          <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1}}>
+                            {root && renderDevTechNode(root)}
+                          </div>
+                          <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
+                            {branches.length === 2 ? (
+                              <svg width="24" height="80" viewBox="0 0 24 80" style={{flexShrink: 0}}>
+                                <path d="M 0 40 L 12 40 L 12 15 L 24 15" fill="none" stroke="#4a5568" strokeWidth="2"/>
+                                <path d="M 12 40 L 12 65 L 24 65" fill="none" stroke="#4a5568" strokeWidth="2"/>
+                              </svg>
+                            ) : <span style={{color: '#4a5568'}}>→</span>}
+                          </div>
+                          <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '8px', flex: 1}}>
+                            {branches.map(branch => (
+                              <div key={branch.tech.id}>{renderDevTechNode(branch.tech)}</div>
+                            ))}
+                          </div>
+                          <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '8px', flex: 1}}>
+                            {branches.map(branch => (
+                              <div key={branch.tech.id} style={{display: 'flex', alignItems: 'center', gap: '4px'}}>
+                                <svg width="16" height={branch.children.length > 1 ? 70 : 30} viewBox={`0 0 16 ${branch.children.length > 1 ? 70 : 30}`} style={{flexShrink: 0}}>
+                                  {branch.children.length > 1 ? (
+                                    <>
+                                      <path d="M 0 35 L 8 35 L 8 12 L 16 12" fill="none" stroke="#4a5568" strokeWidth="2"/>
+                                      <path d="M 8 35 L 8 58 L 16 58" fill="none" stroke="#4a5568" strokeWidth="2"/>
+                                    </>
+                                  ) : (
+                                    <path d="M 0 15 L 16 15" fill="none" stroke="#4a5568" strokeWidth="2"/>
+                                  )}
+                                </svg>
+                                <div style={{display: 'flex', flexDirection: 'column', gap: '4px', flex: 1}}>
+                                  {branch.children.map(l3tech => renderDevTechNode(l3tech))}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
 
         </div>
       )}
