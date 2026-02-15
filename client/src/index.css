@@ -2351,14 +2351,14 @@ body {
 .budget-items {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
 }
 
 .budget-row {
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 2px 0;
+  padding: 3px 0;
 }
 
 .budget-icon {

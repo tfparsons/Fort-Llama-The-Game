@@ -1065,10 +1065,10 @@ function App() {
                         t.type === 'fixed_expense' && gameState.researchedTechs?.includes(t.id)
                       );
                       return (
-                        <div style={{marginBottom: '10px', borderBottom: '1px solid #1a3a5c', paddingBottom: '8px'}}>
-                          <div style={{fontSize: '0.75rem', color: '#cbd5e0', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em'}}>Fixed Costs</div>
+                        <div style={{marginBottom: '6px', borderBottom: '1px solid #1a3a5c', paddingBottom: '6px'}}>
+                          <div style={{fontSize: '0.75rem', color: '#cbd5e0', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em'}}>Fixed Costs</div>
                           {fixedCostTechs.length === 0 ? (
-                            <div style={{color: '#718096', fontSize: '0.8rem', padding: '2px 0'}}>None unlocked</div>
+                            <div style={{color: '#718096', fontSize: '0.8rem', padding: '0'}}>None unlocked</div>
                           ) : fixedCostTechs.map(tech => {
                             const cfg = gameState.techConfig?.[tech.id] || {};
                             const isActive = gameState.activeFixedCosts?.includes(tech.id);
