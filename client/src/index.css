@@ -113,10 +113,11 @@ body {
   width: 340px;
   flex-shrink: 0;
   background: #1e2a4a;
-  border-left: 2px solid #e94560;
+  border-right: 2px solid #e94560;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  order: -1;
 }
 
 .sidebar-header {
