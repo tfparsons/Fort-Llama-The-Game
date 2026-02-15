@@ -1667,21 +1667,47 @@ function App() {
                           </div>
                         );
                       };
+                      const root = l1[0];
+                      const branches = l2.map(l2tech => ({
+                        tech: l2tech,
+                        children: l3.filter(l3tech => l3tech.parent === l2tech.id)
+                      }));
                       return (
-                        <div style={{display: 'flex', gap: '8px', alignItems: 'flex-start'}}>
-                          <div style={{display: 'flex', flexDirection: 'column', gap: '4px', flex: 1}}>
-                            <div style={{fontSize: '0.65rem', color: '#718096', textTransform: 'uppercase'}}>Level 1</div>
-                            {l1.map(renderDevTechNode)}
+                        <div style={{display: 'flex', gap: '8px', alignItems: 'stretch'}}>
+                          <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1}}>
+                            {root && renderDevTechNode(root)}
                           </div>
-                          <div style={{display: 'flex', alignItems: 'center', color: '#4a5568', fontSize: '1.2rem', paddingTop: '16px'}}>→</div>
-                          <div style={{display: 'flex', flexDirection: 'column', gap: '4px', flex: 1}}>
-                            <div style={{fontSize: '0.65rem', color: '#718096', textTransform: 'uppercase'}}>Level 2</div>
-                            {l2.map(renderDevTechNode)}
+                          <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
+                            {branches.length === 2 ? (
+                              <svg width="24" height="80" viewBox="0 0 24 80" style={{flexShrink: 0}}>
+                                <path d="M 0 40 L 12 40 L 12 15 L 24 15" fill="none" stroke="#4a5568" strokeWidth="2"/>
+                                <path d="M 12 40 L 12 65 L 24 65" fill="none" stroke="#4a5568" strokeWidth="2"/>
+                              </svg>
+                            ) : <span style={{color: '#4a5568'}}>→</span>}
                           </div>
-                          <div style={{display: 'flex', alignItems: 'center', color: '#4a5568', fontSize: '1.2rem', paddingTop: '16px'}}>→</div>
-                          <div style={{display: 'flex', flexDirection: 'column', gap: '4px', flex: 1}}>
-                            <div style={{fontSize: '0.65rem', color: '#718096', textTransform: 'uppercase'}}>Level 3</div>
-                            {l3.map(renderDevTechNode)}
+                          <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '8px', flex: 1}}>
+                            {branches.map(branch => (
+                              <div key={branch.tech.id}>{renderDevTechNode(branch.tech)}</div>
+                            ))}
+                          </div>
+                          <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '8px', flex: 1}}>
+                            {branches.map(branch => (
+                              <div key={branch.tech.id} style={{display: 'flex', alignItems: 'center', gap: '4px'}}>
+                                <svg width="16" height={branch.children.length > 1 ? 70 : 30} viewBox={`0 0 16 ${branch.children.length > 1 ? 70 : 30}`} style={{flexShrink: 0}}>
+                                  {branch.children.length > 1 ? (
+                                    <>
+                                      <path d="M 0 35 L 8 35 L 8 12 L 16 12" fill="none" stroke="#4a5568" strokeWidth="2"/>
+                                      <path d="M 8 35 L 8 58 L 16 58" fill="none" stroke="#4a5568" strokeWidth="2"/>
+                                    </>
+                                  ) : (
+                                    <path d="M 0 15 L 16 15" fill="none" stroke="#4a5568" strokeWidth="2"/>
+                                  )}
+                                </svg>
+                                <div style={{display: 'flex', flexDirection: 'column', gap: '4px', flex: 1}}>
+                                  {branch.children.map(l3tech => renderDevTechNode(l3tech))}
+                                </div>
+                              </div>
+                            ))}
                           </div>
                         </div>
                       );
@@ -2386,22 +2412,49 @@ function App() {
                 );
               };
               
+              const root = l1[0];
+              const children = l2.map(l2tech => ({
+                tech: l2tech,
+                children: l3.filter(l3tech => l3tech.parent === l2tech.id)
+              }));
+              
               return (
                 <div key={treeName} style={{marginBottom: '24px'}}>
-                  <div style={{display: 'flex', gap: '8px', alignItems: 'flex-start', paddingBottom: '8px'}}>
-                    <div style={{display: 'flex', flexDirection: 'column', gap: '4px', flex: 1}}>
-                      <div style={{fontSize: '0.65rem', color: '#718096', textTransform: 'uppercase'}}>Level 1</div>
-                      {l1.map(renderTechNode)}
+                  <div style={{display: 'flex', gap: '8px', alignItems: 'stretch', paddingBottom: '8px'}}>
+                    <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1}}>
+                      {root && renderTechNode(root)}
                     </div>
-                    <div style={{display: 'flex', alignItems: 'center', color: '#4a5568', fontSize: '1.2rem', paddingTop: '16px'}}>→</div>
-                    <div style={{display: 'flex', flexDirection: 'column', gap: '4px', flex: 1}}>
-                      <div style={{fontSize: '0.65rem', color: '#718096', textTransform: 'uppercase'}}>Level 2</div>
-                      {l2.map(renderTechNode)}
+                    <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', color: '#4a5568', fontSize: '1rem'}}>
+                      {children.length === 2 ? (
+                        <svg width="24" height="80" viewBox="0 0 24 80" style={{flexShrink: 0}}>
+                          <path d="M 0 40 L 12 40 L 12 15 L 24 15" fill="none" stroke="#4a5568" strokeWidth="2"/>
+                          <path d="M 12 40 L 12 65 L 24 65" fill="none" stroke="#4a5568" strokeWidth="2"/>
+                        </svg>
+                      ) : <span>→</span>}
                     </div>
-                    <div style={{display: 'flex', alignItems: 'center', color: '#4a5568', fontSize: '1.2rem', paddingTop: '16px'}}>→</div>
-                    <div style={{display: 'flex', flexDirection: 'column', gap: '4px', flex: 1}}>
-                      <div style={{fontSize: '0.65rem', color: '#718096', textTransform: 'uppercase'}}>Level 3</div>
-                      {l3.map(renderTechNode)}
+                    <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '8px', flex: 1}}>
+                      {children.map(branch => (
+                        <div key={branch.tech.id}>{renderTechNode(branch.tech)}</div>
+                      ))}
+                    </div>
+                    <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '8px', flex: 1}}>
+                      {children.map(branch => (
+                        <div key={branch.tech.id} style={{display: 'flex', alignItems: 'center', gap: '4px'}}>
+                          <svg width="16" height={branch.children.length > 1 ? 70 : 30} viewBox={`0 0 16 ${branch.children.length > 1 ? 70 : 30}`} style={{flexShrink: 0}}>
+                            {branch.children.length > 1 ? (
+                              <>
+                                <path d="M 0 35 L 8 35 L 8 12 L 16 12" fill="none" stroke="#4a5568" strokeWidth="2"/>
+                                <path d="M 8 35 L 8 58 L 16 58" fill="none" stroke="#4a5568" strokeWidth="2"/>
+                              </>
+                            ) : (
+                              <path d="M 0 15 L 16 15" fill="none" stroke="#4a5568" strokeWidth="2"/>
+                            )}
+                          </svg>
+                          <div style={{display: 'flex', flexDirection: 'column', gap: '4px', flex: 1}}>
+                            {branch.children.map(l3tech => renderTechNode(l3tech))}
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>
