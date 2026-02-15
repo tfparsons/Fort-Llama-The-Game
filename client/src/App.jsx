@@ -977,9 +977,6 @@ function App() {
         {showWeeklyPanel && (
           <div className="weekly-sidebar">
             <div className="sidebar-content">
-              <div className="sidebar-ticker">
-                <span>Week {gameState.week}</span>
-              </div>
               <div className="action-grid">
                 <button 
                   className="action-grid-btn"
