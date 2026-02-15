@@ -121,6 +121,7 @@ function App() {
       if (budgetViewedWeekRef.current !== gameState.week) {
         budgetViewedWeekRef.current = gameState.week;
         setBudgetViewedThisWeek(false);
+        setRecruitedInfo(null);
       }
     }
   }, [gameState?.week, gameState?.day, showWeeklyPanel]);
@@ -361,6 +362,8 @@ function App() {
     }
   };
 
+  const [recruitedInfo, setRecruitedInfo] = useState(null);
+
   const handleInvite = async (llamaId) => {
     try {
       const res = await fetch(`${API_BASE}/api/action/invite`, {
@@ -370,8 +373,12 @@ function App() {
       });
       const data = await res.json();
       if (data.success) {
-        alert(`${data.invited} will arrive on ${data.arrivalDayName}!`);
-        setShowRecruitModal(false);
+        const llama = recruitCandidates.find(c => c.id === llamaId);
+        setRecruitedInfo({
+          name: data.invited,
+          arrivalDayName: data.arrivalDayName,
+          llama
+        });
         fetchState();
       }
     } catch (err) {
@@ -1129,11 +1136,7 @@ function App() {
                     <>
                 <button 
                   className="action-grid-btn"
-                  onClick={handleOpenRecruitment}
-                  disabled={
-                    gameState.hasRecruitedThisWeek ||
-                    gameState.residents + (gameState.pendingArrivals?.length || 0) >= gameState.capacity
-                  }
+                  onClick={() => { if (!gameState.hasRecruitedThisWeek) { handleOpenRecruitment(); } else { setShowRecruitModal(true); } }}
                 >
                   {recruitAvailable && <span className="action-notify"/>}
                   <span className="action-icon"><svg width="22" height="22" viewBox="0 0 32 32" fill="currentColor" stroke="none"><path d="M25 4c-.5-1-1.5-1.5-2.5-1.5-.3 0-.5.1-.7.2l-1.3 1.3c-.5.5-.8 1.2-.8 2v3c0 .5-.1 1-.3 1.5L19 12c-1 1.5-2.5 2.5-4 3-2 .5-4 .5-6 1-.8.2-1.5.8-2 1.5-.3.5-.5 1-.5 1.5v2c0 .5.1 1 .3 1.5l.7 1v3.5c0 .5.4 1 1 1h1.5c.5 0 1-.4 1-1v-3h2v3c0 .5.4 1 1 1h1.5c.5 0 1-.4 1-1v-3.5c1-.3 2-.8 3-1.5h2c1 0 2-.3 3-1v3c0 .5.4 1 1 1h1.5c.5 0 1-.4 1-1v-3.5h.5v3.5c0 .5.4 1 1 1h1.5c.5 0 1-.4 1-1V19c0-1-.3-2-.8-3l-.2-.5V11c0-.5-.1-1-.3-1.5L24 7V5c0-.3-.1-.7-.3-1z"/></svg></span>
@@ -2963,56 +2966,87 @@ function App() {
       )}
 
       {showRecruitModal && (
-        <div className="modal-overlay" onClick={handlePassRecruitment}>
+        <div className="modal-overlay" onClick={() => setShowRecruitModal(false)}>
           <div className="modal recruit-modal" onClick={(e) => e.stopPropagation()}>
             <h2>Llama Recruitment</h2>
-            <p className="recruit-intro">Choose 1 of these 3 aspiring llamas, or pass this week.</p>
-            
-            {recruitCandidates.length === 0 ? (
-              <p className="no-candidates">No available llamas to recruit!</p>
+            {gameState.hasRecruitedThisWeek ? (
+              <>
+                {recruitedInfo?.llama ? (
+                  <>
+                    <p className="recruit-intro" style={{color: '#48bb78'}}>Recruited this week</p>
+                    <div className="candidate-list">
+                      <div className="candidate-card" style={{border: '1px solid #48bb78'}}>
+                        <div className="candidate-header">
+                          <h3>{recruitedInfo.llama.name}</h3>
+                          <span className="candidate-age">{recruitedInfo.llama.age} years old</span>
+                        </div>
+                        <p className="candidate-bio">{recruitedInfo.llama.bio}</p>
+                        <div className="candidate-stats">
+                          <div className="stat-row"><span>Sharing</span><span>{recruitedInfo.llama.stats.sharingTolerance}</span></div>
+                          <div className="stat-row"><span>Cooking</span><span>{recruitedInfo.llama.stats.cookingSkill}</span></div>
+                          <div className="stat-row"><span>Tidiness</span><span>{recruitedInfo.llama.stats.tidiness}</span></div>
+                          <div className="stat-row"><span>Handiness</span><span>{recruitedInfo.llama.stats.handiness}</span></div>
+                          <div className="stat-row"><span>Consideration</span><span>{recruitedInfo.llama.stats.consideration}</span></div>
+                          <div className="stat-row"><span>Sociability</span><span>{recruitedInfo.llama.stats.sociability}</span></div>
+                          <div className="stat-row"><span>Party Stamina</span><span>{recruitedInfo.llama.stats.partyStamina}</span></div>
+                          <div className="stat-row"><span>Work Ethic</span><span>{recruitedInfo.llama.stats.workEthic}</span></div>
+                        </div>
+                        <div style={{textAlign: 'center', color: '#48bb78', fontSize: '0.85rem', marginTop: '8px'}}>
+                          Arriving {recruitedInfo.arrivalDayName}
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <p className="recruit-intro" style={{color: '#48bb78'}}>Recruited this week</p>
+                    {gameState.pendingArrivals?.length > 0 && (
+                      <div style={{background: '#2d3748', borderRadius: '8px', padding: '12px', marginBottom: '12px', borderLeft: '4px solid #48bb78'}}>
+                        {gameState.pendingArrivals.map(r => (
+                          <div key={r.id || r.name} style={{color: '#e2e8f0', fontSize: '0.9rem'}}>
+                            {r.name} arriving {['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][r.arrivalDay-1]}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )}
+              </>
+            ) : gameState.residents + (gameState.pendingArrivals?.length || 0) >= gameState.capacity ? (
+              <p className="recruit-intro" style={{color: '#e53e3e'}}>No room available. Build more bedrooms to recruit.</p>
             ) : (
-              <div className="candidate-list">
-                {recruitCandidates.map(llama => (
-                  <div key={llama.id} className="candidate-card">
-                    <div className="candidate-header">
-                      <h3>{llama.name}</h3>
-                      <span className="candidate-age">{llama.age} years old</span>
-                    </div>
-                    <p className="candidate-bio">{llama.bio}</p>
-                    <div className="candidate-stats">
-                      <div className="stat-row">
-                        <span>Sharing</span><span>{llama.stats.sharingTolerance}</span>
+              <>
+                <p className="recruit-intro">Choose 1 of these 3 aspiring llamas, or pass this week.</p>
+                {recruitCandidates.length === 0 ? (
+                  <p className="no-candidates">No available llamas to recruit!</p>
+                ) : (
+                  <div className="candidate-list">
+                    {recruitCandidates.map(llama => (
+                      <div key={llama.id} className="candidate-card">
+                        <div className="candidate-header">
+                          <h3>{llama.name}</h3>
+                          <span className="candidate-age">{llama.age} years old</span>
+                        </div>
+                        <p className="candidate-bio">{llama.bio}</p>
+                        <div className="candidate-stats">
+                          <div className="stat-row"><span>Sharing</span><span>{llama.stats.sharingTolerance}</span></div>
+                          <div className="stat-row"><span>Cooking</span><span>{llama.stats.cookingSkill}</span></div>
+                          <div className="stat-row"><span>Tidiness</span><span>{llama.stats.tidiness}</span></div>
+                          <div className="stat-row"><span>Handiness</span><span>{llama.stats.handiness}</span></div>
+                          <div className="stat-row"><span>Consideration</span><span>{llama.stats.consideration}</span></div>
+                          <div className="stat-row"><span>Sociability</span><span>{llama.stats.sociability}</span></div>
+                          <div className="stat-row"><span>Party Stamina</span><span>{llama.stats.partyStamina}</span></div>
+                          <div className="stat-row"><span>Work Ethic</span><span>{llama.stats.workEthic}</span></div>
+                        </div>
+                        <button className="invite-button" onClick={() => setPendingInvite(llama)}>
+                          Invite
+                        </button>
                       </div>
-                      <div className="stat-row">
-                        <span>Cooking</span><span>{llama.stats.cookingSkill}</span>
-                      </div>
-                      <div className="stat-row">
-                        <span>Tidiness</span><span>{llama.stats.tidiness}</span>
-                      </div>
-                      <div className="stat-row">
-                        <span>Handiness</span><span>{llama.stats.handiness}</span>
-                      </div>
-                      <div className="stat-row">
-                        <span>Consideration</span><span>{llama.stats.consideration}</span>
-                      </div>
-                      <div className="stat-row">
-                        <span>Sociability</span><span>{llama.stats.sociability}</span>
-                      </div>
-                      <div className="stat-row">
-                        <span>Party Stamina</span><span>{llama.stats.partyStamina}</span>
-                      </div>
-                      <div className="stat-row">
-                        <span>Work Ethic</span><span>{llama.stats.workEthic}</span>
-                      </div>
-                    </div>
-                    <button className="invite-button" onClick={() => setPendingInvite(llama)}>
-                      Invite
-                    </button>
+                    ))}
                   </div>
-                ))}
-              </div>
+                )}
+              </>
             )}
-            
             <button className="modal-close" onClick={() => setShowRecruitModal(false)}>
               Close
             </button>
