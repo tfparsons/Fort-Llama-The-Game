@@ -594,7 +594,7 @@ function App() {
         <div className="dashboard-layout">
         <div className="main-content">
           <div className="content-grid">
-          <div className="vibes-banner wide">
+          <div className="vibes-banner">
             <div className="vibes-left">
               <div className="vibes-field"><span className="vibes-label">Vibe</span> <span className="vibes-val vibes-val-vibe">{gameState.vibes?.tierName || 'Decent'}</span></div>
               <div className="vibes-field"><span className="vibes-label">Reputation</span> <span className="vibes-val vibes-val-rep">{gameState.vibes?.branchLabel || gameState.vibes?.reputation || 'Obscure'}</span></div>
@@ -602,7 +602,7 @@ function App() {
             </div>
           </div>
 
-          <div className="health-banner wide">
+          <div className="health-banner">
             <div className="vibes-metrics">
               {[
                 { key: 'livingStandards', label: 'Living Standards', color: '#48bb78' },
