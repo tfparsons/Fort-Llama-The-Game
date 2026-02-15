@@ -967,7 +967,7 @@ function App() {
                     gameState.residents + (gameState.pendingArrivals?.length || 0) >= gameState.capacity
                   }
                 >
-                  <span className="action-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M7 3c0 0-1-1-2-1s-1.5.5-1.5 1.5S4.5 6 6 7"/><path d="M6 7c0 2 .5 4 1 5.5"/><path d="M7 12.5c1 2 3 3.5 6 3.5"/><path d="M13 16c2 0 4-.5 5-2"/><path d="M18 14c1-2 1.5-5 1-8"/><path d="M19 6c-.5-1.5-2-3-4-3"/><path d="M15 3c-2 0-4 1-5 3"/><path d="M10 6c-.5 1-1 2-1 3"/><circle cx="16" cy="7" r="0.8"/><path d="M13 16v5"/><path d="M8 13v5"/></svg></span>
+                  <span className="action-icon"><svg width="22" height="22" viewBox="0 0 32 32" fill="currentColor" stroke="none"><path d="M25 4c-.5-1-1.5-1.5-2.5-1.5-.3 0-.5.1-.7.2l-1.3 1.3c-.5.5-.8 1.2-.8 2v3c0 .5-.1 1-.3 1.5L19 12c-1 1.5-2.5 2.5-4 3-2 .5-4 .5-6 1-.8.2-1.5.8-2 1.5-.3.5-.5 1-.5 1.5v2c0 .5.1 1 .3 1.5l.7 1v3.5c0 .5.4 1 1 1h1.5c.5 0 1-.4 1-1v-3h2v3c0 .5.4 1 1 1h1.5c.5 0 1-.4 1-1v-3.5c1-.3 2-.8 3-1.5h2c1 0 2-.3 3-1v3c0 .5.4 1 1 1h1.5c.5 0 1-.4 1-1v-3.5h.5v3.5c0 .5.4 1 1 1h1.5c.5 0 1-.4 1-1V19c0-1-.3-2-.8-3l-.2-.5V11c0-.5-.1-1-.3-1.5L24 7V5c0-.3-.1-.7-.3-1z"/></svg></span>
                   <span className="action-label">{gameState.hasRecruitedThisWeek ? 'Recruited' : 'Recruitment'}</span>
                 </button>
                 <button className="action-grid-btn" onClick={() => setShowBuildModal(true)}>
