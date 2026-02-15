@@ -1807,36 +1807,39 @@ body {
 
 .vibes-left {
   flex-shrink: 0;
-  min-width: 160px;
-}
-
-.vibes-label {
-  color: #8a8a9a;
-  font-weight: 400;
-  font-size: 0.8em;
+  min-width: 170px;
 }
 
 .vibes-field {
-  line-height: 1.4;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
 }
 
-.vibes-name {
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: #fff;
-}
-
-.vibes-level {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #e94560;
-}
-
-.vibes-reputation {
-  font-size: 0.85rem;
+.vibes-label {
+  color: #6b7280;
   font-weight: 500;
-  color: #a0aec0;
-  font-style: italic;
+  min-width: 80px;
+}
+
+.vibes-val {
+  font-weight: 600;
+}
+
+.vibes-val-vibe {
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.vibes-val-rep {
+  color: #c4b5fd;
+}
+
+.vibes-val-level {
+  color: #e94560;
 }
 
 .vibes-metrics {

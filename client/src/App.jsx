@@ -596,9 +596,9 @@ function App() {
           <div className="content-grid">
           <div className="vibes-banner wide">
             <div className="vibes-left">
-              <div className="vibes-field vibes-name"><span className="vibes-label">Vibe:</span> {gameState.vibes?.tierName || 'Decent'}</div>
-              <div className="vibes-field vibes-level"><span className="vibes-label">Level:</span> {(gameState.coverageData?.tier || 0) + 1}</div>
-              <div className="vibes-field vibes-reputation"><span className="vibes-label">Reputation:</span> {gameState.vibes?.branchLabel || gameState.vibes?.reputation || 'Obscure'}</div>
+              <div className="vibes-field"><span className="vibes-label">Vibe</span> <span className="vibes-val vibes-val-vibe">{gameState.vibes?.tierName || 'Decent'}</span></div>
+              <div className="vibes-field"><span className="vibes-label">Reputation</span> <span className="vibes-val vibes-val-rep">{gameState.vibes?.branchLabel || gameState.vibes?.reputation || 'Obscure'}</span></div>
+              <div className="vibes-field"><span className="vibes-label">Level</span> <span className="vibes-val vibes-val-level">{(gameState.coverageData?.tier || 0) + 1}</span></div>
             </div>
             <div className="vibes-metrics">
               {[
