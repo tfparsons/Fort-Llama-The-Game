@@ -560,11 +560,12 @@ function App() {
         </div>
         <div className="top-bar-stats">
           <div className="top-stat">
-            <span className="top-stat-label">Week {gameState.week}</span>
+            <span className="top-stat-value">Week {gameState.week}</span>
+          </div>
+          <div className="top-stat">
             <span className="top-stat-value">{DAY_NAMES[displayTime.dayIndex]}</span>
           </div>
           <div className="top-stat clock">
-            <span className="top-stat-label">Time</span>
             <span className="top-stat-value">
               {String(displayTime.hour).padStart(2, '0')}:{String(displayTime.minute).padStart(2, '0')}
             </span>
