@@ -954,17 +954,16 @@ function calculateVibes() {
   
   const vibesScore = overallLevel * 100;
   const fameThresholds = [
-    { min: 0, max: 20, name: 'Obscure' },
-    { min: 20, max: 40, name: 'Reputable' },
-    { min: 40, max: 60, name: 'Aspirational' },
-    { min: 60, max: 80, name: 'Famous' },
-    { min: 80, max: 101, name: 'Mythical' }
+    { min: 0, max: 20, name: 'Obscure', minTier: 0 },
+    { min: 20, max: 40, name: 'Reputable', minTier: 1 },
+    { min: 40, max: 60, name: 'Aspirational', minTier: 2 },
+    { min: 60, max: 80, name: 'Famous', minTier: 3 },
+    { min: 80, max: 101, name: 'Mythical', minTier: 4 }
   ];
   let reputation = 'Obscure';
   for (const f of fameThresholds) {
-    if (vibesScore >= f.min && vibesScore < f.max) {
+    if (vibesScore >= f.min && tier >= f.minTier) {
       reputation = f.name;
-      break;
     }
   }
 

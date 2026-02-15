@@ -1501,19 +1501,20 @@ function App() {
                 </div>
                 <div style={{flex: 1}}>
                   <div style={{marginBottom: '8px'}}>
-                    <label style={{fontSize: '0.75rem', color: '#a0aec0', display: 'block', marginBottom: '4px'}}>Fame Levels (based on Vibes score)</label>
+                    <label style={{fontSize: '0.75rem', color: '#a0aec0', display: 'block', marginBottom: '4px'}}>Fame Levels (Vibes score + population tier)</label>
                     <div className="tier-ladder-list">
                       {[
-                        { name: 'Obscure', min: 0, max: 20 },
-                        { name: 'Reputable', min: 20, max: 40 },
-                        { name: 'Aspirational', min: 40, max: 60 },
-                        { name: 'Famous', min: 60, max: 80 },
-                        { name: 'Mythical', min: 80, max: 100 }
+                        { name: 'Obscure', min: 0, max: 20, minTier: 0, tierLabel: 'Any' },
+                        { name: 'Reputable', min: 20, max: 40, minTier: 1, tierLabel: 'Tier 2+' },
+                        { name: 'Aspirational', min: 40, max: 60, minTier: 2, tierLabel: 'Tier 3+' },
+                        { name: 'Famous', min: 60, max: 80, minTier: 3, tierLabel: 'Tier 4+' },
+                        { name: 'Mythical', min: 80, max: 100, minTier: 4, tierLabel: 'Tier 5+' }
                       ].map((f, idx) => (
                         <div key={idx} className="tier-ladder-item">
                           <span className="tier-rank">{idx + 1}.</span>
                           <span className="tier-name">{f.name}</span>
-                          <span className="tier-range">{f.min}-{f.max}</span>
+                          <span className="tier-range" style={{minWidth: '36px'}}>{f.min}-{f.max}</span>
+                          <span style={{fontSize: '0.65rem', color: '#718096', marginLeft: '4px'}}>{f.tierLabel}</span>
                         </div>
                       ))}
                     </div>
