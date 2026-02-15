@@ -1007,7 +1007,7 @@ function App() {
                     gameState.residents + (gameState.pendingArrivals?.length || 0) >= gameState.capacity
                   }
                 >
-                  {gameState.hasRecruitedThisWeek ? 'Already recruited this week' : 'Llama Recruitment'}
+                  {gameState.hasRecruitedThisWeek ? 'Already recruited this week' : 'Recruitment'}
                 </button>
                 {gameState.pendingArrivals && gameState.pendingArrivals.length > 0 && (
                   <div className="panel-note positive">
@@ -2421,8 +2421,8 @@ function App() {
               </div>
             )}
             
-            <button className="modal-close" onClick={handlePassRecruitment}>
-              Pass
+            <button className="modal-close" onClick={() => setShowRecruitModal(false)}>
+              Close
             </button>
           </div>
         </div>
