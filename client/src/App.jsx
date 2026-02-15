@@ -2807,11 +2807,16 @@ function App() {
                     <th>Cost</th>
                     <th>Util Mult</th>
                     <th>Rent Mult</th>
+                    <th>Dependency</th>
                     <th>Buildable</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {editableBuildings.map(b => (
+                  {editableBuildings.map(b => {
+                    const techName = b.techRequired 
+                      ? (gameState?.techTree || []).find(t => t.id === b.techRequired)?.name || b.techRequired
+                      : null;
+                    return (
                     <tr key={b.id}>
                       <td>{b.name}</td>
                       <td>
@@ -2938,6 +2943,9 @@ function App() {
                           placeholder="n/a"
                         />
                       </td>
+                      <td style={{fontSize: '0.75rem', color: techName ? '#a0aec0' : '#4a556844'}}>
+                        {techName || '—'}
+                      </td>
                       <td>
                         <input 
                           type="checkbox" 
@@ -2946,7 +2954,7 @@ function App() {
                         />
                       </td>
                     </tr>
-                  ))}
+                  );})}
                 </tbody>
               </table>
             </div>
