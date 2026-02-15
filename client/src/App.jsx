@@ -2105,26 +2105,35 @@ function App() {
                 </div>
               ))}
             </div>
-          </div>
 
-          <div className="dev-tools-grid three-col">
             <div className="config-section" style={{gridColumn: 'span 2'}}>
               <h3>Policies</h3>
-              {(gameState.policyDefinitions || []).map(policy => {
-                const techUnlock = policy.techRequired ? (gameState.techTree || []).find(t => t.id === policy.techRequired) : null;
-                const pct = Math.round((gameState.policyConfig?.excludePercent || 0.25) * 100);
-                const ocadoPct = gameState.techConfig?.ocado?.effectPercent || 15;
-                const desc = policy.description.replace('{pct}', pct).replace('{ocadoPct}', ocadoPct);
-                return (
-                  <div key={policy.id} className="config-field" style={{display: 'flex', alignItems: 'baseline', justifyContent: 'space-between'}}>
-                    <label style={{flex: '0 0 auto', marginRight: '12px'}}>{policy.name}</label>
-                    <span style={{flex: 1, color: '#a0aec0', fontSize: '0.75rem'}}>{desc}</span>
-                    <span style={{flex: '0 0 auto', marginLeft: '12px', color: techUnlock ? '#ecc94b' : '#48bb78', fontSize: '0.75rem'}}>
-                      {techUnlock ? techUnlock.name : 'Default'}
-                    </span>
-                  </div>
-                );
-              })}
+              <table style={{width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem'}}>
+                <thead>
+                  <tr style={{borderBottom: '1px solid #4a5568', fontSize: '0.7rem', color: '#a0aec0'}}>
+                    <th style={{textAlign: 'left', padding: '2px 8px 4px 0', fontWeight: 400}}>Name</th>
+                    <th style={{textAlign: 'left', padding: '2px 8px 4px', fontWeight: 400}}>Effect</th>
+                    <th style={{textAlign: 'right', padding: '2px 0 4px 8px', fontWeight: 400}}>Unlock</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(gameState.policyDefinitions || []).map(policy => {
+                    const techUnlock = policy.techRequired ? (gameState.techTree || []).find(t => t.id === policy.techRequired) : null;
+                    const pct = Math.round((gameState.policyConfig?.excludePercent || 0.25) * 100);
+                    const ocadoPct = gameState.techConfig?.ocado?.effectPercent || 15;
+                    const desc = policy.description.replace('{pct}', pct).replace('{ocadoPct}', ocadoPct);
+                    return (
+                      <tr key={policy.id} style={{borderBottom: '1px solid #2d3748'}}>
+                        <td style={{padding: '4px 8px 4px 0', whiteSpace: 'nowrap'}}>{policy.name}</td>
+                        <td style={{padding: '4px 8px', color: '#a0aec0', fontSize: '0.75rem'}}>{desc}</td>
+                        <td style={{padding: '4px 0 4px 8px', textAlign: 'right', whiteSpace: 'nowrap', color: techUnlock ? '#ecc94b' : '#48bb78', fontSize: '0.75rem'}}>
+                          {techUnlock ? techUnlock.name : 'Default'}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           </div>
 
