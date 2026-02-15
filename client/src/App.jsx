@@ -34,6 +34,8 @@ function App() {
     fatigue: 0, fun: 0, drive: 0
   });
   const budgetSyncedWeek = useRef(null);
+  const [budgetViewedThisWeek, setBudgetViewedThisWeek] = useState(false);
+  const budgetViewedWeekRef = useRef(null);
   
   const [displayTime, setDisplayTime] = useState({ hour: 9, minute: 0, dayIndex: 0 });
   const clockAnimationRef = useRef(null);
@@ -115,6 +117,10 @@ function App() {
       if (budgetSyncedWeek.current === null) {
         budgetSyncedWeek.current = syncKey;
         setBudgetInputs({ ...gameState.budgets });
+      }
+      if (budgetViewedWeekRef.current !== gameState.week) {
+        budgetViewedWeekRef.current = gameState.week;
+        setBudgetViewedThisWeek(false);
       }
     }
   }, [gameState?.week, gameState?.day, showWeeklyPanel]);
@@ -1107,6 +1113,20 @@ function App() {
           <div className="weekly-sidebar">
             <div className="sidebar-content">
               <div className="action-grid">
+                {(() => {
+                  const recruitAvailable = !gameState.hasRecruitedThisWeek && gameState.residents + (gameState.pendingArrivals?.length || 0) < gameState.capacity;
+                  const buildsRemaining = Math.max(0, (gameState.config?.buildsPerWeek ?? 1) - (gameState.buildsThisWeek || 0));
+                  const hasAvailableTechs = (gameState.techTree || []).some(t => 
+                    !gameState.researchedTechs?.includes(t.id) && t.available && 
+                    (!t.parent || gameState.researchedTechs?.includes(t.parent))
+                  );
+                  const techPending = !gameState.researchingTech && !gameState.hasResearchedThisWeek && hasAvailableTechs;
+                  const policyLimitActive = (gameState.policiesStableWeeks || 0) >= 1 && (gameState.previousPolicies?.length || 0) >= 3;
+                  const policyChangesLeft = policyLimitActive ? Math.max(0, (gameState.config?.policyChangesPerWeek ?? 1) - (gameState.policyChangesThisWeek || 0)) : 999;
+                  const hasUnlockedPolicies = (gameState.policyDefinitions || []).some(p => !p.techRequired || gameState.researchedTechs?.includes(p.techRequired));
+                  const policyNotify = hasUnlockedPolicies && policyChangesLeft > 0 && !policyLimitActive;
+                  return (
+                    <>
                 <button 
                   className="action-grid-btn"
                   onClick={handleOpenRecruitment}
@@ -1115,21 +1135,28 @@ function App() {
                     gameState.residents + (gameState.pendingArrivals?.length || 0) >= gameState.capacity
                   }
                 >
+                  {recruitAvailable && <span className="action-notify"/>}
                   <span className="action-icon"><svg width="22" height="22" viewBox="0 0 32 32" fill="currentColor" stroke="none"><path d="M25 4c-.5-1-1.5-1.5-2.5-1.5-.3 0-.5.1-.7.2l-1.3 1.3c-.5.5-.8 1.2-.8 2v3c0 .5-.1 1-.3 1.5L19 12c-1 1.5-2.5 2.5-4 3-2 .5-4 .5-6 1-.8.2-1.5.8-2 1.5-.3.5-.5 1-.5 1.5v2c0 .5.1 1 .3 1.5l.7 1v3.5c0 .5.4 1 1 1h1.5c.5 0 1-.4 1-1v-3h2v3c0 .5.4 1 1 1h1.5c.5 0 1-.4 1-1v-3.5c1-.3 2-.8 3-1.5h2c1 0 2-.3 3-1v3c0 .5.4 1 1 1h1.5c.5 0 1-.4 1-1v-3.5h.5v3.5c0 .5.4 1 1 1h1.5c.5 0 1-.4 1-1V19c0-1-.3-2-.8-3l-.2-.5V11c0-.5-.1-1-.3-1.5L24 7V5c0-.3-.1-.7-.3-1z"/></svg></span>
                   <span className="action-label">{gameState.hasRecruitedThisWeek ? 'Recruited' : 'Recruitment'}</span>
                 </button>
                 <button className="action-grid-btn" onClick={() => setShowBuildModal(true)}>
+                  {buildsRemaining > 0 && <span className="action-notify"/>}
                   <span className="action-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94L6.73 20.15a2.1 2.1 0 01-2.88-2.88l6.68-6.68A6 6 0 016.53 2.53l3.77 3.77z"/></svg></span>
                   <span className="action-label">Build</span>
                 </button>
                 <button className="action-grid-btn" onClick={() => setShowPolicyModal(true)}>
+                  {policyNotify && <span className="action-notify"/>}
                   <span className="action-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span>
                   <span className="action-label">Policies{(gameState.activePolicies?.length || 0) > 0 ? ` (${gameState.activePolicies.length})` : ''}</span>
                 </button>
                 <button className="action-grid-btn" onClick={() => setShowTechModal(true)}>
+                  {techPending && <span className="action-notify"/>}
                   <span className="action-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 3h6v7l3 7H6l3-7V3z"/><line x1="9" y1="3" x2="15" y2="3"/><line x1="5" y1="21" x2="19" y2="21"/><line x1="6" y1="17" x2="18" y2="17"/></svg></span>
                   <span className="action-label">{gameState.researchingTech ? 'Researching...' : 'Technology'}</span>
                 </button>
+                    </>
+                  );
+                })()}
               </div>
               {gameState.pendingArrivals && gameState.pendingArrivals.length > 0 && (
                 <div className="panel-note positive">
@@ -1178,7 +1205,8 @@ function App() {
               </div>
 
               <div className="panel-section">
-                <button className="panel-action" onClick={() => setBudgetOpen(prev => !prev)}>
+                <button className="panel-action" style={{position: 'relative'}} onClick={() => { setBudgetOpen(prev => !prev); setBudgetViewedThisWeek(true); }}>
+                  {!budgetViewedThisWeek && <span className="action-notify" style={{top: '50%', transform: 'translateY(-50%)', right: '10px'}}/>}
                   Budgets {budgetOpen ? '▲' : '▼'}
                 </button>
                 {budgetOpen && (
