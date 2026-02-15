@@ -1773,6 +1773,11 @@ body {
   50% { transform: scale(1.15); opacity: 0.85; }
 }
 
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 .sidebar-divider {
   border-top: 1px solid #0f3460;
   margin: 12px 0;

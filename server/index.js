@@ -515,7 +515,8 @@ function initializeGame(config = savedDefaults) {
     activePolicies: [],
     researchedTechs: [],
     activeFixedCosts: [],
-    hasResearchedThisWeek: false
+    hasResearchedThisWeek: false,
+    researchingTech: null
   };
   calculatePrimitives();
   calculateHealthMetrics();
@@ -1143,6 +1144,18 @@ function processWeekEnd() {
   };
 
   gameState.communeResidents.forEach(r => r.daysThisWeek = 7);
+
+  if (gameState.researchingTech) {
+    const completedTechId = gameState.researchingTech;
+    gameState.researchedTechs.push(completedTechId);
+    gameState.researchCompletedThisWeek = completedTechId;
+    gameState.researchingTech = null;
+    calculatePrimitives();
+    calculateHealthMetrics();
+    calculateVibes();
+  } else {
+    gameState.researchCompletedThisWeek = null;
+  }
   
   gameState.week += 1;
   gameState.day = 1;
@@ -1365,8 +1378,8 @@ app.post('/api/action/research', (req, res) => {
   if (!gameState.isPausedForWeeklyDecision) {
     return res.status(400).json({ error: 'Can only research during weekly planning' });
   }
-  if (gameState.hasResearchedThisWeek) {
-    return res.status(400).json({ error: 'Already researched this week' });
+  if (gameState.hasResearchedThisWeek || gameState.researchingTech) {
+    return res.status(400).json({ error: 'Already researching this week' });
   }
   const { techId } = req.body;
   const tech = TECH_TREE.find(t => t.id === techId);
@@ -1388,20 +1401,28 @@ app.post('/api/action/research', (req, res) => {
   }
   
   gameState.treasury -= cost;
-  gameState.researchedTechs.push(techId);
+  gameState.researchingTech = techId;
   gameState.hasResearchedThisWeek = true;
   
-  calculatePrimitives();
-  calculateHealthMetrics();
-  calculateVibes();
   calculateWeeklyProjection();
   
   res.json({ 
     success: true, 
-    researched: techId, 
-    researchedTechs: gameState.researchedTechs,
+    researching: techId,
     treasury: gameState.treasury
   });
+});
+
+app.post('/api/action/cancel-research', (req, res) => {
+  if (!gameState.researchingTech) {
+    return res.status(400).json({ error: 'No research in progress' });
+  }
+  const cost = techConfig[gameState.researchingTech]?.cost || 500;
+  gameState.treasury += cost;
+  gameState.researchingTech = null;
+  gameState.hasResearchedThisWeek = false;
+  calculateWeeklyProjection();
+  res.json({ success: true, treasury: gameState.treasury });
 });
 
 app.post('/api/action/toggle-fixed-cost', (req, res) => {

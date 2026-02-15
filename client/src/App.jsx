@@ -14,6 +14,8 @@ function App() {
   const [showPolicyModal, setShowPolicyModal] = useState(false);
   const [showTechModal, setShowTechModal] = useState(false);
   const [showTechTreeModal, setShowTechTreeModal] = useState(false);
+  const [techConfirm, setTechConfirm] = useState(null);
+  const [techComplete, setTechComplete] = useState(null);
   const [budgetOpen, setBudgetOpen] = useState(false);
   const [showLlamaPoolEditor, setShowLlamaPoolEditor] = useState(false);
   const [showBuildingsEditor, setShowBuildingsEditor] = useState(false);
@@ -80,6 +82,19 @@ function App() {
     const interval = setInterval(fetchState, 500);
     return () => clearInterval(interval);
   }, [fetchState]);
+
+  const prevResearchCompleted = useRef(null);
+  useEffect(() => {
+    if (gameState?.researchCompletedThisWeek && gameState.researchCompletedThisWeek !== prevResearchCompleted.current) {
+      prevResearchCompleted.current = gameState.researchCompletedThisWeek;
+      const tech = (gameState.techTree || []).find(t => t.id === gameState.researchCompletedThisWeek);
+      if (tech) {
+        setTechComplete(tech);
+      }
+    } else if (!gameState?.researchCompletedThisWeek) {
+      prevResearchCompleted.current = null;
+    }
+  }, [gameState?.researchCompletedThisWeek]);
 
   const showWeeklyPanel = gameState?.isPausedForWeeklyDecision && !gameState?.isGameOver;
 
@@ -516,7 +531,21 @@ function App() {
       body: JSON.stringify({ techId })
     });
     const data = await res.json();
-    if (!res.ok) alert(data.error);
+    if (!res.ok) {
+      alert(data.error);
+    } else {
+      setTechConfirm(null);
+      setShowTechModal(false);
+    }
+    fetchState();
+  };
+
+  const handleCancelResearch = async () => {
+    await fetch(`${API_BASE}/api/action/cancel-research`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    fetchState();
   };
 
   const handleToggleFixedCost = async (fixedCostId) => {
@@ -1083,11 +1112,9 @@ function App() {
                   <span className="action-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span>
                   <span className="action-label">Policies{(gameState.activePolicies?.length || 0) > 0 ? ` (${gameState.activePolicies.length})` : ''}</span>
                 </button>
-                <button className="action-grid-btn" onClick={() => setShowTechModal(true)}
-                  disabled={gameState.hasResearchedThisWeek}
-                >
+                <button className="action-grid-btn" onClick={() => setShowTechModal(true)}>
                   <span className="action-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 3h6v7l3 7H6l3-7V3z"/><line x1="9" y1="3" x2="15" y2="3"/><line x1="5" y1="21" x2="19" y2="21"/><line x1="6" y1="17" x2="18" y2="17"/></svg></span>
-                  <span className="action-label">{gameState.hasResearchedThisWeek ? 'Researched' : 'Technology'}</span>
+                  <span className="action-label">{gameState.researchingTech ? 'Researching...' : 'Technology'}</span>
                 </button>
               </div>
               {gameState.pendingArrivals && gameState.pendingArrivals.length > 0 && (
@@ -2509,8 +2536,24 @@ function App() {
                 Tech Tree
               </button>
             </div>
+            {gameState.researchingTech && (() => {
+              const rTech = (gameState.techTree || []).find(t => t.id === gameState.researchingTech);
+              const rCfg = gameState.techConfig?.[gameState.researchingTech] || {};
+              const rTreeColor = rTech?.tree === 'livingStandards' ? '#4fd1c5' : rTech?.tree === 'productivity' ? '#4299e1' : '#b794f4';
+              return (
+                <div style={{background: '#2d374880', borderRadius: '8px', padding: '12px', marginBottom: '12px', borderLeft: `4px solid ${rTreeColor}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                  <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
+                    <div style={{fontSize: '1.2rem', animation: 'spin 2s linear infinite'}}>&#9881;</div>
+                    <div>
+                      <div style={{color: '#e2e8f0', fontWeight: 600}}>{rTech?.name}</div>
+                      <div style={{color: rTreeColor, fontSize: '0.75rem'}}>Researching... completes next week</div>
+                    </div>
+                  </div>
+                  <button className="modal-close" style={{width: 'auto', padding: '4px 12px', fontSize: '0.75rem'}} onClick={handleCancelResearch}>Cancel</button>
+                </div>
+              );
+            })()}
             {['livingStandards', 'productivity', 'fun'].map(treeName => {
-              const treeLabel = treeName === 'livingStandards' ? 'Quality of Life' : treeName === 'productivity' ? 'Productivity' : 'Fun';
               const treeColor = treeName === 'livingStandards' ? '#4fd1c5' : treeName === 'productivity' ? '#4299e1' : '#b794f4';
               const treeTechs = (gameState.techTree || []).filter(t => t.tree === treeName);
               const availableTechs = treeTechs.filter(t => {
@@ -2519,6 +2562,7 @@ function App() {
                 if (t.parent && !gameState.researchedTechs?.includes(t.parent)) return false;
                 return true;
               });
+              const isResearching = !!gameState.researchingTech;
               
               return (
                 <div key={treeName} style={{marginBottom: '8px'}}>
@@ -2527,6 +2571,7 @@ function App() {
                       const cfg = gameState.techConfig?.[tech.id] || {};
                       const cost = cfg.cost || 500;
                       const canAfford = gameState.treasury >= cost;
+                      const isThisResearching = gameState.researchingTech === tech.id;
                       const typeLabel = tech.type === 'fixed_expense' ? 'Fixed Cost' : tech.type === 'building' ? 'Building' : tech.type === 'culture' ? 'Culture' : tech.type === 'upgrade' ? 'Upgrade' : 'Policy';
                       let effectText = '';
                       if (tech.type === 'fixed_expense') effectText = `+${cfg.effectPercent || 0}% boost, £${cfg.weeklyCost || 0}/wk`;
@@ -2535,8 +2580,10 @@ function App() {
                       else if (tech.type === 'upgrade') effectText = `Cap +${cfg.capacityBoost || 0}, Fun +${Math.round((cfg.funMultBoost || 0) * 100)}%, Drive +${Math.round((cfg.driveMultBoost || 0) * 100)}%`;
                       else if (tech.type === 'culture') effectText = 'Unlocks next tier technologies';
                       
+                      if (isThisResearching) return null;
+                      
                       return (
-                        <div key={tech.id} style={{background: '#2d3748', borderRadius: '8px', padding: '10px 12px', marginBottom: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderLeft: `4px solid ${treeColor}`}}>
+                        <div key={tech.id} style={{background: '#2d3748', borderRadius: '8px', padding: '10px 12px', marginBottom: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderLeft: `4px solid ${treeColor}`, opacity: isResearching ? 0.4 : 1, pointerEvents: isResearching ? 'none' : 'auto'}}>
                           <div style={{flex: 1}}>
                             <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
                               <span style={{fontWeight: 600, color: '#e2e8f0'}}>{tech.name}</span>
@@ -2546,9 +2593,9 @@ function App() {
                           </div>
                           <button
                             className="action-button"
-                            style={{marginLeft: '10px', width: '80px', textAlign: 'center', flexShrink: 0, opacity: (!canAfford || gameState.hasResearchedThisWeek) ? 0.5 : 1}}
-                            disabled={!canAfford || gameState.hasResearchedThisWeek}
-                            onClick={() => handleResearch(tech.id)}
+                            style={{marginLeft: '10px', width: '80px', textAlign: 'center', flexShrink: 0, opacity: (!canAfford || isResearching) ? 0.5 : 1}}
+                            disabled={!canAfford || isResearching}
+                            onClick={() => setTechConfirm({...tech, cost, treeColor, effectText, typeLabel})}
                           >
                             £{cost.toLocaleString()}
                           </button>
@@ -2588,16 +2635,17 @@ function App() {
               
               const renderTechNode = (tech) => {
                 const researched = isResearched(tech.id);
+                const isBeingResearched = gameState.researchingTech === tech.id;
                 const discovered = isDiscovered(tech);
                 const unavailable = !tech.available;
                 const cfg = gameState.techConfig?.[tech.id] || {};
-                const redacted = !researched && !discovered;
+                const redacted = !researched && !discovered && !isBeingResearched;
                 
                 return (
                   <div key={tech.id} style={{
-                    background: researched ? treeColor + '22' : '#1a202c',
-                    border: `2px solid ${researched ? treeColor : discovered ? '#4a5568' : '#4a556844'}`,
-                    borderLeft: `4px solid ${treeColor}${redacted ? '44' : ''}`,
+                    background: isBeingResearched ? '#2d374880' : researched ? treeColor + '22' : '#1a202c',
+                    border: `2px solid ${isBeingResearched ? '#ecc94b' : researched ? treeColor : discovered ? '#4a5568' : '#4a556844'}`,
+                    borderLeft: `4px solid ${isBeingResearched ? '#ecc94b' : treeColor}${redacted ? '44' : ''}`,
                     borderRadius: '8px',
                     padding: '8px 12px',
                     minWidth: '140px',
@@ -2606,13 +2654,19 @@ function App() {
                     overflow: 'hidden'
                   }}>
                     <div style={{filter: redacted ? 'blur(5px)' : 'none', userSelect: redacted ? 'none' : 'auto'}}>
-                      <div style={{fontWeight: 600, fontSize: '0.8rem', color: researched ? treeColor : '#e2e8f0'}}>{tech.name}</div>
+                      <div style={{fontWeight: 600, fontSize: '0.8rem', color: isBeingResearched ? '#ecc94b' : researched ? treeColor : '#e2e8f0'}}>{tech.name}</div>
                       <div style={{fontSize: '0.65rem', color: '#a0aec0', textTransform: 'capitalize'}}>{tech.type.replace('_', ' ')}</div>
                     </div>
+                    {isBeingResearched && (
+                      <div style={{display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px'}}>
+                        <span style={{fontSize: '0.65rem', display: 'inline-block', animation: 'spin 2s linear infinite'}}>&#9881;</span>
+                        <span style={{fontSize: '0.6rem', color: '#ecc94b'}}>Researching...</span>
+                      </div>
+                    )}
                     {researched && <div style={{fontSize: '0.6rem', color: treeColor, marginTop: '2px'}}>Researched</div>}
                     {redacted && <div style={{fontSize: '0.6rem', color: '#718096', marginTop: '2px'}}>???</div>}
-                    {!researched && !redacted && unavailable && <div style={{fontSize: '0.6rem', color: '#e53e3e', marginTop: '2px'}}>Coming Soon</div>}
-                    {!researched && !redacted && !unavailable && discovered && <div style={{fontSize: '0.6rem', color: '#a0aec0', marginTop: '2px'}}>£{cfg.cost || 500}</div>}
+                    {!researched && !isBeingResearched && !redacted && unavailable && <div style={{fontSize: '0.6rem', color: '#e53e3e', marginTop: '2px'}}>Coming Soon</div>}
+                    {!researched && !isBeingResearched && !redacted && !unavailable && discovered && <div style={{fontSize: '0.6rem', color: '#a0aec0', marginTop: '2px'}}>£{cfg.cost || 500}</div>}
                   </div>
                 );
               };
@@ -2665,6 +2719,72 @@ function App() {
                 </div>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {techConfirm && (
+        <div className="modal-overlay" onClick={() => setTechConfirm(null)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()} style={{maxWidth: '380px'}}>
+            <h2>Confirm Research</h2>
+            <p style={{color: '#e2e8f0', fontSize: '0.9rem', margin: '12px 0'}}>
+              Research <span style={{color: techConfirm.treeColor, fontWeight: 600}}>{techConfirm.name}</span>?
+            </p>
+            <div style={{background: '#1a202c', borderRadius: '8px', padding: '12px', marginBottom: '16px'}}>
+              <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '6px'}}>
+                <span style={{color: '#a0aec0'}}>Type</span>
+                <span style={{color: techConfirm.treeColor}}>{techConfirm.typeLabel}</span>
+              </div>
+              <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '6px'}}>
+                <span style={{color: '#a0aec0'}}>Effect</span>
+                <span style={{color: '#e2e8f0', textAlign: 'right', maxWidth: '200px', fontSize: '0.85rem'}}>{techConfirm.effectText}</span>
+              </div>
+              <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '6px'}}>
+                <span style={{color: '#a0aec0'}}>Cost</span>
+                <span style={{color: '#e53e3e'}}>-£{techConfirm.cost?.toLocaleString()}</span>
+              </div>
+              <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '6px'}}>
+                <span style={{color: '#a0aec0'}}>Treasury after</span>
+                <span style={{color: '#e2e8f0'}}>£{(gameState.treasury - (techConfirm.cost || 0)).toLocaleString()}</span>
+              </div>
+              <div style={{display: 'flex', justifyContent: 'space-between'}}>
+                <span style={{color: '#a0aec0'}}>Completes</span>
+                <span style={{color: '#ecc94b'}}>Next week</span>
+              </div>
+            </div>
+            <div style={{display: 'flex', gap: '8px'}}>
+              <button className="action-button" style={{flex: 1}} onClick={() => handleResearch(techConfirm.id)}>
+                Start Research
+              </button>
+              <button className="modal-close" style={{flex: 1}} onClick={() => setTechConfirm(null)}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {techComplete && (
+        <div className="modal-overlay" onClick={() => setTechComplete(null)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()} style={{maxWidth: '380px', textAlign: 'center'}}>
+            <div style={{fontSize: '2rem', marginBottom: '8px'}}>&#128300;</div>
+            <h2 style={{color: '#48bb78'}}>Research Complete</h2>
+            <p style={{color: '#e2e8f0', fontSize: '0.9rem', margin: '12px 0'}}>
+              <span style={{fontWeight: 600}}>{techComplete.name}</span> has been researched.
+            </p>
+            <div style={{background: '#1a202c', borderRadius: '8px', padding: '12px', marginBottom: '16px', textAlign: 'left'}}>
+              <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '6px'}}>
+                <span style={{color: '#a0aec0'}}>Type</span>
+                <span style={{color: '#e2e8f0', textTransform: 'capitalize'}}>{techComplete.type?.replace('_', ' ')}</span>
+              </div>
+              <div style={{display: 'flex', justifyContent: 'space-between'}}>
+                <span style={{color: '#a0aec0'}}>Tree</span>
+                <span style={{color: '#e2e8f0'}}>{techComplete.tree === 'livingStandards' ? 'Quality of Life' : techComplete.tree === 'productivity' ? 'Productivity' : 'Fun'}</span>
+              </div>
+            </div>
+            <button className="action-button" onClick={() => setTechComplete(null)}>
+              Done
+            </button>
           </div>
         </div>
       )}
