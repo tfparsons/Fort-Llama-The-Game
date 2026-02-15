@@ -374,10 +374,12 @@ function App() {
       const data = await res.json();
       if (data.success) {
         const llama = recruitCandidates.find(c => c.id === llamaId);
+        const rejected = recruitCandidates.filter(c => c.id !== llamaId);
         setRecruitedInfo({
           name: data.invited,
           arrivalDayName: data.arrivalDayName,
-          llama
+          llama,
+          rejected
         });
         fetchState();
       }
@@ -2963,6 +2965,25 @@ function App() {
                           Arriving {recruitedInfo.arrivalDayName}
                         </div>
                       </div>
+                      {recruitedInfo.rejected?.map(r => (
+                        <div key={r.id} className="candidate-card" style={{border: '1px solid #4a5568', opacity: 0.5, textDecoration: 'line-through', position: 'relative'}}>
+                          <div className="candidate-header">
+                            <h3>{r.name}</h3>
+                            <span className="candidate-age">{r.age} years old</span>
+                          </div>
+                          <p className="candidate-bio">{r.bio}</p>
+                          <div className="candidate-stats">
+                            <div className="stat-row"><span>Sharing</span><span>{r.stats.sharingTolerance}</span></div>
+                            <div className="stat-row"><span>Cooking</span><span>{r.stats.cookingSkill}</span></div>
+                            <div className="stat-row"><span>Tidiness</span><span>{r.stats.tidiness}</span></div>
+                            <div className="stat-row"><span>Handiness</span><span>{r.stats.handiness}</span></div>
+                            <div className="stat-row"><span>Consideration</span><span>{r.stats.consideration}</span></div>
+                            <div className="stat-row"><span>Sociability</span><span>{r.stats.sociability}</span></div>
+                            <div className="stat-row"><span>Party Stamina</span><span>{r.stats.partyStamina}</span></div>
+                            <div className="stat-row"><span>Work Ethic</span><span>{r.stats.workEthic}</span></div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </>
                 ) : (
