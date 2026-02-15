@@ -37,6 +37,8 @@ function App() {
   const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   
   const [expandedPrimitives, setExpandedPrimitives] = useState({});
+  const techTreeContainerRef = useRef(null);
+  const [techConnectors, setTechConnectors] = useState({});
 
   const fetchState = useCallback(async () => {
     try {
@@ -190,6 +192,67 @@ function App() {
       }
     };
   }, []);
+
+  const measureTechTree = useCallback(() => {
+    const container = techTreeContainerRef.current;
+    if (!container) return;
+    requestAnimationFrame(() => {
+      const newConnectors = {};
+      container.querySelectorAll('[data-tree-name]').forEach(treeEl => {
+        const treeName = treeEl.dataset.treeName;
+        const treeRect = treeEl.getBoundingClientRect();
+        const cards = treeEl.querySelectorAll('[data-tech-id]');
+        const rects = {};
+        cards.forEach(card => {
+          const r = card.getBoundingClientRect();
+          rects[card.dataset.techId] = {
+            left: r.left - treeRect.left,
+            right: r.right - treeRect.left,
+            midY: (r.top + r.bottom) / 2 - treeRect.top,
+          };
+        });
+        const paths = [];
+        const root = treeEl.querySelector('[data-tech-level="1"]');
+        const l2s = treeEl.querySelectorAll('[data-tech-level="2"]');
+        if (root) {
+          const rootR = rects[root.dataset.techId];
+          if (rootR) {
+            l2s.forEach(l2El => {
+              const l2R = rects[l2El.dataset.techId];
+              if (l2R) {
+                const midX = (rootR.right + l2R.left) / 2;
+                paths.push(`M ${rootR.right} ${rootR.midY} L ${midX} ${rootR.midY} L ${midX} ${l2R.midY} L ${l2R.left} ${l2R.midY}`);
+              }
+            });
+          }
+        }
+        l2s.forEach(l2El => {
+          const l2Id = l2El.dataset.techId;
+          const l2R = rects[l2Id];
+          if (!l2R) return;
+          const children = treeEl.querySelectorAll(`[data-tech-parent="${l2Id}"]`);
+          children.forEach(l3El => {
+            const l3R = rects[l3El.dataset.techId];
+            if (l3R) {
+              const midX = (l2R.right + l3R.left) / 2;
+              paths.push(`M ${l2R.right} ${l2R.midY} L ${midX} ${l2R.midY} L ${midX} ${l3R.midY} L ${l3R.left} ${l3R.midY}`);
+            }
+          });
+        });
+        newConnectors[treeName] = { paths, width: treeRect.width, height: treeRect.height };
+      });
+      setTechConnectors(newConnectors);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (view !== 'devtools' || !techTreeContainerRef.current) return;
+    const timer = setTimeout(measureTechTree, 100);
+    const container = techTreeContainerRef.current;
+    const ro = new ResizeObserver(() => measureTechTree());
+    if (container) ro.observe(container);
+    return () => { clearTimeout(timer); ro.disconnect(); };
+  }, [view, editConfig, gameState, measureTechTree]);
 
   const handleReset = async () => {
     await fetch(`${API_BASE}/api/reset`, { method: 'POST' });
@@ -1943,12 +2006,13 @@ function App() {
             <div className="config-section" style={{gridColumn: '1 / -1'}}>
               <h3>Tech Tree Configuration</h3>
               <p style={{color: '#a0aec0', fontSize: '0.75rem', marginBottom: '8px'}}>Configure research costs and effects for each technology. Changes apply on Reset.</p>
+              <div ref={techTreeContainerRef}>
               {['livingStandards', 'productivity', 'fun'].map(treeName => {
                 const treeLabel = treeName === 'livingStandards' ? 'Quality of Life' : treeName === 'productivity' ? 'Productivity' : 'Fun';
                 const treeColor = treeName === 'livingStandards' ? '#4fd1c5' : treeName === 'productivity' ? '#4299e1' : '#b794f4';
                 const treeTechs = (gameState.techTree || []).filter(t => t.tree === treeName);
                 return (
-                  <div key={treeName} style={{marginBottom: '16px'}}>
+                  <div key={treeName} data-tree-name={treeName} style={{marginBottom: '16px', position: 'relative'}}>
                     <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', borderBottom: `2px solid ${treeColor}33`, paddingBottom: '4px'}}>
                       <span style={{background: treeColor, width: '10px', height: '10px', borderRadius: '50%', display: 'inline-block'}}></span>
                       <span style={{color: treeColor, fontWeight: 600, fontSize: '0.85rem'}}>{treeLabel}</span>
@@ -1969,7 +2033,7 @@ function App() {
                           }));
                         };
                         return (
-                          <div key={tech.id} style={{background: '#2d3748', borderRadius: '6px', padding: '8px 10px', border: `1px solid ${tech.available ? treeColor + '44' : '#4a556833'}`}}>
+                          <div key={tech.id} data-tech-id={tech.id} data-tech-level={tech.level} data-tech-parent={tech.parent || ''} style={{background: '#2d3748', borderRadius: '6px', padding: '8px 10px', border: `1px solid ${tech.available ? treeColor + '44' : '#4a556833'}`}}>
                             <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px'}}>
                               <span style={{fontWeight: 600, fontSize: '0.8rem', color: tech.available ? '#e2e8f0' : '#718096'}}>{tech.name}</span>
                               <span style={{fontSize: '0.6rem', background: treeColor + '22', color: treeColor, padding: '1px 6px', borderRadius: '4px', textTransform: 'capitalize'}}>{tech.type.replace('_', ' ')}</span>
@@ -2075,48 +2139,38 @@ function App() {
                         children: l3.filter(l3tech => l3tech.parent === l2tech.id)
                       }));
                       return (
-                        <div style={{display: 'flex', gap: '8px', alignItems: 'stretch'}}>
-                          <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1}}>
+                        <div style={{display: 'flex', gap: '32px', alignItems: 'flex-start'}}>
+                          <div style={{flex: 1}}>
                             {root && renderDevTechNode(root)}
                           </div>
-                          <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
-                            {branches.length === 2 ? (
-                              <svg width="24" height="80" viewBox="0 0 24 80" style={{flexShrink: 0}}>
-                                <path d="M 0 40 L 12 40 L 12 15 L 24 15" fill="none" stroke="#4a5568" strokeWidth="2"/>
-                                <path d="M 12 40 L 12 65 L 24 65" fill="none" stroke="#4a5568" strokeWidth="2"/>
-                              </svg>
-                            ) : <span style={{color: '#4a5568'}}>→</span>}
-                          </div>
-                          <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '8px', flex: 1}}>
+                          <div style={{flex: 1, display: 'flex', flexDirection: 'column', gap: '8px'}}>
                             {branches.map(branch => (
                               <div key={branch.tech.id}>{renderDevTechNode(branch.tech)}</div>
                             ))}
                           </div>
-                          <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '8px', flex: 1}}>
+                          <div style={{flex: 1, display: 'flex', flexDirection: 'column', gap: '8px'}}>
                             {branches.map(branch => (
-                              <div key={branch.tech.id} style={{display: 'flex', alignItems: 'center', gap: '4px'}}>
-                                <svg width="16" height={branch.children.length > 1 ? 70 : 30} viewBox={`0 0 16 ${branch.children.length > 1 ? 70 : 30}`} style={{flexShrink: 0}}>
-                                  {branch.children.length > 1 ? (
-                                    <>
-                                      <path d="M 0 35 L 8 35 L 8 12 L 16 12" fill="none" stroke="#4a5568" strokeWidth="2"/>
-                                      <path d="M 8 35 L 8 58 L 16 58" fill="none" stroke="#4a5568" strokeWidth="2"/>
-                                    </>
-                                  ) : (
-                                    <path d="M 0 15 L 16 15" fill="none" stroke="#4a5568" strokeWidth="2"/>
-                                  )}
-                                </svg>
-                                <div style={{display: 'flex', flexDirection: 'column', gap: '4px', flex: 1}}>
-                                  {branch.children.map(l3tech => renderDevTechNode(l3tech))}
-                                </div>
+                              <div key={branch.tech.id} style={{display: 'flex', flexDirection: 'column', gap: '4px'}}>
+                                {branch.children.map(l3tech => renderDevTechNode(l3tech))}
                               </div>
                             ))}
                           </div>
                         </div>
                       );
                     })()}
+                    {techConnectors[treeName] && (
+                      <svg style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', overflow: 'visible'}}
+                        viewBox={`0 0 ${techConnectors[treeName].width} ${techConnectors[treeName].height}`}
+                        preserveAspectRatio="none">
+                        {techConnectors[treeName].paths.map((d, i) => (
+                          <path key={i} d={d} fill="none" stroke="#4a5568" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+                        ))}
+                      </svg>
+                    )}
                   </div>
                 );
               })}
+              </div>
             </div>
           </div>
 
