@@ -967,21 +967,21 @@ function App() {
                     gameState.residents + (gameState.pendingArrivals?.length || 0) >= gameState.capacity
                   }
                 >
-                  <span className="action-icon">🦙</span>
+                  <span className="action-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L3 20h18L12 2z"/><line x1="12" y1="14" x2="12" y2="14.01"/></svg></span>
                   <span className="action-label">{gameState.hasRecruitedThisWeek ? 'Recruited' : 'Recruitment'}</span>
                 </button>
                 <button className="action-grid-btn" onClick={() => setShowBuildModal(true)}>
-                  <span className="action-icon">🔨</span>
+                  <span className="action-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94L6.73 20.15a2.1 2.1 0 01-2.88-2.88l6.68-6.68A6 6 0 016.53 2.53l3.77 3.77z"/></svg></span>
                   <span className="action-label">Build</span>
                 </button>
                 <button className="action-grid-btn" onClick={() => setShowPolicyModal(true)}>
-                  <span className="action-icon">📋</span>
+                  <span className="action-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span>
                   <span className="action-label">Policies{(gameState.activePolicies?.length || 0) > 0 ? ` (${gameState.activePolicies.length})` : ''}</span>
                 </button>
                 <button className="action-grid-btn" onClick={() => setShowTechModal(true)}
                   disabled={gameState.hasResearchedThisWeek}
                 >
-                  <span className="action-icon">💡</span>
+                  <span className="action-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 3h6v7l3 7H6l3-7V3z"/><line x1="9" y1="3" x2="15" y2="3"/><line x1="5" y1="21" x2="19" y2="21"/><line x1="6" y1="17" x2="18" y2="17"/></svg></span>
                   <span className="action-label">{gameState.hasResearchedThisWeek ? 'Researched' : 'Technology'}</span>
                 </button>
               </div>

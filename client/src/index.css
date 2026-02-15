@@ -487,8 +487,11 @@ body {
 }
 
 .action-icon {
-  font-size: 1.4rem;
   line-height: 1;
+  color: #e94560;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .action-label {
