@@ -2249,6 +2249,37 @@ body {
   color: #fff;
 }
 
+.btn-tech-tree {
+  background: linear-gradient(135deg, #16213e 0%, #1a1a2e 100%);
+  color: #e2e8f0;
+  border: 1px solid #0f3460;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.btn-tech-tree:hover {
+  border-color: #e94560;
+  color: #fff;
+}
+
+.modal-close-x {
+  background: none;
+  border: none;
+  color: #e94560;
+  font-size: 1.4rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  line-height: 1;
+  transition: color 0.2s;
+}
+
+.modal-close-x:hover {
+  color: #ff6b81;
+}
+
 .formula-section {
   margin-bottom: 16px;
   padding: 12px;

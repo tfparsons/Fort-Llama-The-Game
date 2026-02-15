@@ -2249,7 +2249,7 @@ function App() {
             <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
               <h2>Technology Research</h2>
               <button 
-                style={{background: '#4a5568', color: '#e2e8f0', border: 'none', padding: '4px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem'}}
+                className="btn-tech-tree"
                 onClick={(e) => { e.stopPropagation(); setShowTechModal(false); setShowTechTreeModal(true); }}
               >
                 View Tech Tree
@@ -2315,7 +2315,7 @@ function App() {
           <div className="modal" onClick={(e) => e.stopPropagation()} style={{maxWidth: '800px', maxHeight: '80vh', overflowY: 'auto'}}>
             <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
               <h2>Tech Tree</h2>
-              <button className="close-button" onClick={() => setShowTechTreeModal(false)}>×</button>
+              <button className="modal-close-x" onClick={() => { setShowTechTreeModal(false); setShowTechModal(true); }}>×</button>
             </div>
             {['livingStandards', 'productivity', 'fun'].map(treeName => {
               const treeLabel = treeName === 'livingStandards' ? 'Quality of Life' : treeName === 'productivity' ? 'Productivity' : 'Fun';
