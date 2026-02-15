@@ -2048,16 +2048,6 @@ body {
   pointer-events: none;
 }
 
-.bare-minimum-label {
-  position: absolute;
-  top: -14px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 0.55rem;
-  color: rgba(255, 255, 255, 0.4);
-  white-space: nowrap;
-  letter-spacing: 0.02em;
-}
 
 .prim-value {
   font-size: 0.8rem;

@@ -769,9 +769,7 @@ function App() {
                     <span className="prim-label">{p.label}</span>
                     <div className="prim-bar-container">
                       <div className="prim-bar" style={{ width: `${val}%`, backgroundColor: labelColor }}/>
-                      <div className="bare-minimum-marker" style={{ left: '25%' }}>
-                        {idx === 0 && <span className="bare-minimum-label">Bare Minimum</span>}
-                      </div>
+                      <div className="bare-minimum-marker" style={{ left: '25%' }}/>
                     </div>
                     <span className="coverage-tier" style={{ color: labelColor }}>{tierLabel}</span>
                   </div>
