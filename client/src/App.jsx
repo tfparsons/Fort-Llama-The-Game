@@ -560,16 +560,6 @@ function App() {
         </div>
         <div className="top-bar-stats">
           <div className="top-stat">
-            <span className="top-stat-label">Treasury</span>
-            <span className={`top-stat-value ${gameState.treasury >= 0 ? 'positive' : 'negative'}`}>
-              {formatCurrency(gameState.treasury)}
-            </span>
-          </div>
-          <div className="top-stat">
-            <span className="top-stat-label">Residents</span>
-            <span className="top-stat-value">{gameState.residents}/{gameState.capacity}</span>
-          </div>
-          <div className="top-stat">
             <span className="top-stat-label">Week {gameState.week}</span>
             <span className="top-stat-value">{DAY_NAMES[displayTime.dayIndex]}</span>
           </div>
@@ -778,7 +768,13 @@ function App() {
           </div>
 
             <div className="card">
-              <h2>Weekly Projection</h2>
+              <h2>Treasury</h2>
+              <div className="stat">
+                <span className="stat-label">Balance</span>
+                <span className={`stat-value ${gameState.treasury >= 0 ? 'positive' : 'negative'}`}>
+                  {formatCurrency(gameState.treasury)}
+                </span>
+              </div>
               <div className="stat has-tooltip">
                 <span className="stat-label">Income</span>
                 <span className="stat-value positive">{formatCurrency(projectedIncome)}</span>
@@ -907,7 +903,7 @@ function App() {
             })()}
 
             <div className="card residents-card">
-              <h2>Residents ({gameState.communeResidents?.filter(r => !r.churned).length || 0})</h2>
+              <h2>Residents ({gameState.communeResidents?.filter(r => !r.churned).length || 0}/{gameState.capacity})</h2>
               <div className="residents-list">
                 {gameState.communeResidents && gameState.communeResidents.length > 0 ? (
                   gameState.communeResidents.map(resident => (
