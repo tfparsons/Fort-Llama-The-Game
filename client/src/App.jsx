@@ -1369,29 +1369,6 @@ function App() {
             </div>
 
             <div className="config-section">
-              <h3>Starting Budgets (£/wk)</h3>
-              {[
-                { key: 'nutrition', label: 'Ingredients' },
-                { key: 'cleanliness', label: 'Cleaning' },
-                { key: 'maintenance', label: 'Handiman' },
-                { key: 'fatigue', label: 'Wellness' },
-                { key: 'fun', label: 'Party supplies' },
-                { key: 'drive', label: 'Internet' }
-              ].map(item => (
-                <div className="config-field" key={item.key}>
-                  <label>{item.label}</label>
-                  <input type="number" step="10" min="0" max="500" value={editConfig.startingBudgets?.[item.key] ?? 0} onChange={(e) => {
-                    const val = Math.max(0, Math.min(500, parseInt(e.target.value) || 0));
-                    setEditConfig(prev => ({
-                      ...prev,
-                      startingBudgets: { ...prev.startingBudgets, [item.key]: val }
-                    }));
-                  }} />
-                </div>
-              ))}
-            </div>
-
-            <div className="config-section">
               <h3>Rent & Churn</h3>
               <div className="config-field">
                 <label>Min (£)</label>
@@ -2099,27 +2076,42 @@ function App() {
           <h3 className="section-divider">Mechanics</h3>
           <div className="dev-tools-grid three-col">
             <div className="config-section">
-              <h3>Budget Efficiency</h3>
-              {[
-                { key: 'nutrition', label: 'Ingredients', primitive: 'Nutrition', type: 'coverage' },
-                { key: 'cleanliness', label: 'Cleaning materials', primitive: 'Cleanliness', type: 'coverage' },
-                { key: 'fun', label: 'Party supplies', primitive: 'Fun', type: 'coverage' },
-                { key: 'drive', label: 'Internet', primitive: 'Drive', type: 'coverage' },
-                { key: 'maintenance', label: 'Handiman', primitive: 'Maintenance', type: 'stock' },
-                { key: 'fatigue', label: 'Wellness', primitive: 'Fatigue', type: 'stock' }
-              ].map(item => (
-                <div key={item.key} className="config-field">
-                  <label title={item.type === 'coverage' ? 'Supply boost per £1 invested' : 'Debt reduced per £1 per tick'}>
-                    {item.label} <span style={{color: '#888', fontSize: '0.7rem'}}>({item.type === 'coverage' ? 'eff' : 'red'})</span>
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={editConfig?.budgetConfig?.[item.key]?.[item.type === 'coverage' ? 'efficiency' : 'reductionRate'] ?? (item.type === 'coverage' ? 0.5 : 0.02)}
-                    onChange={(e) => updateBudgetConfig(item.key, item.type === 'coverage' ? 'efficiency' : 'reductionRate', parseFloat(e.target.value))}
-                  />
-                </div>
-              ))}
+              <h3>Budgets</h3>
+              <table style={{width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem'}}>
+                <thead>
+                  <tr style={{borderBottom: '1px solid #4a5568', color: '#a0aec0', textAlign: 'left'}}>
+                    <th style={{padding: '4px 8px'}}>Item</th>
+                    <th style={{padding: '4px 8px'}}>Start (£)</th>
+                    <th style={{padding: '4px 8px'}}>{'{eff/red}'}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { key: 'nutrition', label: 'Ingredients', type: 'coverage' },
+                    { key: 'cleanliness', label: 'Cleaning', type: 'coverage' },
+                    { key: 'fun', label: 'Party supplies', type: 'coverage' },
+                    { key: 'drive', label: 'Internet', type: 'coverage' },
+                    { key: 'maintenance', label: 'Handiman', type: 'stock' },
+                    { key: 'fatigue', label: 'Wellness', type: 'stock' }
+                  ].map(item => (
+                    <tr key={item.key} style={{borderBottom: '1px solid #2d3748'}}>
+                      <td style={{padding: '4px 8px', color: '#e2e8f0'}}>{item.label}</td>
+                      <td style={{padding: '4px 8px'}}>
+                        <input type="number" step="10" min="0" max="500" style={{width: '70px'}} value={editConfig.startingBudgets?.[item.key] ?? 0} onChange={(e) => {
+                          const val = Math.max(0, Math.min(500, parseInt(e.target.value) || 0));
+                          setEditConfig(prev => ({
+                            ...prev,
+                            startingBudgets: { ...prev.startingBudgets, [item.key]: val }
+                          }));
+                        }} />
+                      </td>
+                      <td style={{padding: '4px 8px'}}>
+                        <input type="number" step="0.01" style={{width: '70px'}} value={editConfig?.budgetConfig?.[item.key]?.[item.type === 'coverage' ? 'efficiency' : 'reductionRate'] ?? (item.type === 'coverage' ? 0.5 : 0.02)} onChange={(e) => updateBudgetConfig(item.key, item.type === 'coverage' ? 'efficiency' : 'reductionRate', parseFloat(e.target.value))} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
 
