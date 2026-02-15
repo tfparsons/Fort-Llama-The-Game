@@ -1549,8 +1549,8 @@ function App() {
                           return rows.map(r => (
                             <tr key={r.key} style={{borderBottom: '1px solid #1a202c'}}>
                               <td style={{padding: '4px 6px', color: r.color}}>{r.label}</td>
-                              <td style={{padding: '4px 6px', color: '#cbd5e0'}}>{labels[r.key]?.mild}</td>
-                              <td style={{padding: '4px 6px', color: '#cbd5e0'}}>{labels[r.key]?.strong}</td>
+                              <td style={{padding: '4px 6px', color: '#ed8936'}}>{labels[r.key]?.mild}</td>
+                              <td style={{padding: '4px 6px', color: '#f56565'}}>{labels[r.key]?.strong}</td>
                             </tr>
                           ));
                         })()}
