@@ -1281,10 +1281,7 @@ app.post('/api/save-defaults', (req, res) => {
     techConfig: JSON.parse(JSON.stringify(techConfig))
   };
   savedLlamaPool = JSON.parse(JSON.stringify(llamaPool));
-  // Only update savedBuildingsConfig from gameState if it hasn't been edited separately
-  if (!savedBuildingsConfig) {
-    savedBuildingsConfig = gameState.buildings.map(b => ({ ...b }));
-  }
+  savedBuildingsConfig = gameState.buildings.map(b => ({ ...b }));
   
   // Persist to file
   try {
