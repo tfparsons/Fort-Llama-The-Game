@@ -138,11 +138,7 @@ body {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  margin-bottom: 4px;
-}
-
-.ticker-dot {
-  color: #0f3460;
+  margin-bottom: 10px;
 }
 
 .main-content {

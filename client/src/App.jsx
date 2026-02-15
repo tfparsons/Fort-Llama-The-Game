@@ -957,8 +957,6 @@ function App() {
             <div className="sidebar-content">
               <div className="sidebar-ticker">
                 <span>Week {gameState.week}</span>
-                <span className="ticker-dot">·</span>
-                <span>Planning</span>
               </div>
               <div className="panel-section">
                 <label>Rent</label>
