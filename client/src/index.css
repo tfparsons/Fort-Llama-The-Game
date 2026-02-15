@@ -1809,7 +1809,7 @@ body {
   flex-shrink: 0;
   display: grid;
   grid-template-columns: auto auto;
-  gap: 2px 12px;
+  gap: 2px 10px;
   align-items: baseline;
 }
 
@@ -1819,19 +1819,18 @@ body {
 
 .vibes-label {
   color: #cbd5e0;
-  font-weight: 500;
+  font-weight: 400;
   font-size: 0.9rem;
-  text-align: right;
+  text-align: left;
 }
 
 .vibes-val {
-  font-weight: 700;
-  font-size: 0.95rem;
+  font-weight: 400;
+  font-size: 0.9rem;
 }
 
 .vibes-val-vibe {
   color: #fff;
-  font-size: 1.1rem;
 }
 
 .vibes-val-rep {
