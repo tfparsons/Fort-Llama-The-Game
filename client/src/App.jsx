@@ -1583,8 +1583,11 @@ function App() {
                       <span style={{background: treeColor, width: '10px', height: '10px', borderRadius: '50%', display: 'inline-block'}}></span>
                       <span style={{color: treeColor, fontWeight: 600, fontSize: '0.85rem'}}>{treeLabel}</span>
                     </div>
-                    <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '8px'}}>
-                      {treeTechs.map(tech => {
+                    {(() => {
+                      const l1 = treeTechs.filter(t => t.level === 1);
+                      const l2 = treeTechs.filter(t => t.level === 2);
+                      const l3 = treeTechs.filter(t => t.level === 3);
+                      const renderDevTechNode = (tech) => {
                         const cfg = editConfig?.techConfig?.[tech.id] || {};
                         const updateTechCfg = (field, value) => {
                           setEditConfig(prev => ({
@@ -1601,7 +1604,7 @@ function App() {
                               <span style={{fontWeight: 600, fontSize: '0.8rem', color: tech.available ? '#e2e8f0' : '#718096'}}>{tech.name}</span>
                               <span style={{fontSize: '0.6rem', background: treeColor + '22', color: treeColor, padding: '1px 6px', borderRadius: '4px', textTransform: 'capitalize'}}>{tech.type.replace('_', ' ')}</span>
                             </div>
-                            <div style={{fontSize: '0.65rem', color: '#718096', marginBottom: '6px'}}>L{tech.level} {!tech.available && '(Coming Soon)'}</div>
+                            {!tech.available && <div style={{fontSize: '0.65rem', color: '#718096', marginBottom: '6px'}}>Coming Soon</div>}
                             <div className="config-field" style={{marginBottom: '4px'}}>
                               <label style={{fontSize: '0.7rem'}}>Cost</label>
                               <input type="number" step="100" min="0"
@@ -1663,8 +1666,26 @@ function App() {
                             )}
                           </div>
                         );
-                      })}
-                    </div>
+                      };
+                      return (
+                        <div style={{display: 'flex', gap: '8px', alignItems: 'flex-start'}}>
+                          <div style={{display: 'flex', flexDirection: 'column', gap: '4px', flex: 1}}>
+                            <div style={{fontSize: '0.65rem', color: '#718096', textTransform: 'uppercase'}}>Level 1</div>
+                            {l1.map(renderDevTechNode)}
+                          </div>
+                          <div style={{display: 'flex', alignItems: 'center', color: '#4a5568', fontSize: '1.2rem', paddingTop: '16px'}}>→</div>
+                          <div style={{display: 'flex', flexDirection: 'column', gap: '4px', flex: 1}}>
+                            <div style={{fontSize: '0.65rem', color: '#718096', textTransform: 'uppercase'}}>Level 2</div>
+                            {l2.map(renderDevTechNode)}
+                          </div>
+                          <div style={{display: 'flex', alignItems: 'center', color: '#4a5568', fontSize: '1.2rem', paddingTop: '16px'}}>→</div>
+                          <div style={{display: 'flex', flexDirection: 'column', gap: '4px', flex: 1}}>
+                            <div style={{fontSize: '0.65rem', color: '#718096', textTransform: 'uppercase'}}>Level 3</div>
+                            {l3.map(renderDevTechNode)}
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
                 );
               })}
