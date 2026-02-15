@@ -1520,36 +1520,42 @@ function App() {
               </div>
               <div style={{borderTop: '1px solid #2d3748', paddingTop: '8px'}}>
                 <label style={{fontSize: '0.75rem', color: '#a0aec0', display: 'block', marginBottom: '6px'}}>Identity Labels (when imbalanced)</label>
-                {(() => {
-                  const labels = gameState?.vibesConfig?.branchLabels || {
-                    highPartytime: { mild: 'Party House', strong: 'Party Mansion' },
-                    highProductivity: { mild: 'Grind House', strong: 'Sweat Shop' },
-                    highLivingStandards: { mild: 'Showhome', strong: 'Dolls House' },
-                    lowLivingStandards: { mild: 'Shanty Town', strong: 'Slum' },
-                    lowProductivity: { mild: 'Decadent', strong: 'Chaotic' },
-                    lowPartytime: { mild: 'Low Energy', strong: 'Dead' }
-                  };
-                  const conditions = [
-                    { key: 'highPartytime', condition: 'Partytime is highest', color: '#b794f4' },
-                    { key: 'highProductivity', condition: 'Productivity is highest', color: '#4299e1' },
-                    { key: 'highLivingStandards', condition: 'Living Standards is highest', color: '#4fd1c5' },
-                    { key: 'lowLivingStandards', condition: 'Living Standards is lowest', color: '#4fd1c5' },
-                    { key: 'lowProductivity', condition: 'Productivity is lowest', color: '#4299e1' },
-                    { key: 'lowPartytime', condition: 'Partytime is lowest', color: '#b794f4' }
-                  ];
-                  return conditions.map(c => (
-                    <div key={c.key} style={{display: 'flex', alignItems: 'center', gap: '6px', padding: '3px 0', fontSize: '0.75rem', borderBottom: '1px solid #1a202c'}}>
-                      <span style={{color: c.color, minWidth: '160px'}}>{c.condition}</span>
-                      <span style={{color: '#ed8936', minWidth: '80px'}}>{labels[c.key]?.mild}</span>
-                      <span style={{color: '#f56565'}}>{labels[c.key]?.strong}</span>
-                    </div>
-                  ));
-                })()}
-                <div style={{display: 'flex', gap: '6px', padding: '6px 0 0', fontSize: '0.65rem', color: '#718096'}}>
-                  <span style={{minWidth: '160px'}}>Trigger</span>
-                  <span style={{minWidth: '80px', color: '#ed8936'}}>Mild</span>
-                  <span style={{color: '#f56565'}}>Strong</span>
-                </div>
+                <table style={{width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem'}}>
+                  <thead>
+                    <tr style={{borderBottom: '1px solid #4a5568'}}>
+                      <th style={{textAlign: 'left', padding: '4px 6px', color: '#718096', fontWeight: 500}}>Condition</th>
+                      <th style={{textAlign: 'left', padding: '4px 6px', color: '#ed8936', fontWeight: 500}}>Mild</th>
+                      <th style={{textAlign: 'left', padding: '4px 6px', color: '#f56565', fontWeight: 500}}>Strong</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(() => {
+                      const labels = gameState?.vibesConfig?.branchLabels || {
+                        highPartytime: { mild: 'Party House', strong: 'Party Mansion' },
+                        highProductivity: { mild: 'Grind House', strong: 'Sweat Shop' },
+                        highLivingStandards: { mild: 'Showhome', strong: 'Dolls House' },
+                        lowLivingStandards: { mild: 'Shanty Town', strong: 'Slum' },
+                        lowProductivity: { mild: 'Decadent', strong: 'Chaotic' },
+                        lowPartytime: { mild: 'Low Energy', strong: 'Dead' }
+                      };
+                      const rows = [
+                        { key: 'highPartytime', label: 'High Partytime', color: '#b794f4' },
+                        { key: 'highProductivity', label: 'High Productivity', color: '#4299e1' },
+                        { key: 'highLivingStandards', label: 'High Living Standards', color: '#4fd1c5' },
+                        { key: 'lowLivingStandards', label: 'Low Living Standards', color: '#4fd1c5' },
+                        { key: 'lowProductivity', label: 'Low Productivity', color: '#4299e1' },
+                        { key: 'lowPartytime', label: 'Low Partytime', color: '#b794f4' }
+                      ];
+                      return rows.map(r => (
+                        <tr key={r.key} style={{borderBottom: '1px solid #1a202c'}}>
+                          <td style={{padding: '4px 6px', color: r.color}}>{r.label}</td>
+                          <td style={{padding: '4px 6px', color: '#ed8936'}}>{labels[r.key]?.mild}</td>
+                          <td style={{padding: '4px 6px', color: '#f56565'}}>{labels[r.key]?.strong}</td>
+                        </tr>
+                      ));
+                    })()}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
