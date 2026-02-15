@@ -958,43 +958,38 @@ function App() {
               <div className="sidebar-ticker">
                 <span>Week {gameState.week}</span>
               </div>
-              <div className="panel-section">
+              <div className="action-grid">
                 <button 
-                  className="panel-action"
+                  className="action-grid-btn"
                   onClick={handleOpenRecruitment}
                   disabled={
                     gameState.hasRecruitedThisWeek ||
                     gameState.residents + (gameState.pendingArrivals?.length || 0) >= gameState.capacity
                   }
                 >
-                  {gameState.hasRecruitedThisWeek ? 'Already recruited this week' : 'Recruitment'}
+                  <span className="action-icon">🦙</span>
+                  <span className="action-label">{gameState.hasRecruitedThisWeek ? 'Recruited' : 'Recruitment'}</span>
                 </button>
-                {gameState.pendingArrivals && gameState.pendingArrivals.length > 0 && (
-                  <div className="panel-note positive">
-                    {gameState.pendingArrivals.map(r => `${r.name} arriving ${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][r.arrivalDay-1]}`).join(', ')}
-                  </div>
-                )}
-              </div>
-
-              <div className="panel-section">
-                <button className="panel-action" onClick={() => setShowBuildModal(true)}>
-                  Build
+                <button className="action-grid-btn" onClick={() => setShowBuildModal(true)}>
+                  <span className="action-icon">🔨</span>
+                  <span className="action-label">Build</span>
                 </button>
-              </div>
-
-              <div className="panel-section">
-                <button className="panel-action" onClick={() => setShowPolicyModal(true)}>
-                  Policies {(gameState.activePolicies?.length || 0) > 0 ? `(${gameState.activePolicies.length} active)` : ''}
+                <button className="action-grid-btn" onClick={() => setShowPolicyModal(true)}>
+                  <span className="action-icon">📋</span>
+                  <span className="action-label">Policies{(gameState.activePolicies?.length || 0) > 0 ? ` (${gameState.activePolicies.length})` : ''}</span>
                 </button>
-              </div>
-
-              <div className="panel-section">
-                <button className="panel-action" onClick={() => setShowTechModal(true)}
+                <button className="action-grid-btn" onClick={() => setShowTechModal(true)}
                   disabled={gameState.hasResearchedThisWeek}
                 >
-                  {gameState.hasResearchedThisWeek ? `Researched this week` : 'Technology'}
+                  <span className="action-icon">💡</span>
+                  <span className="action-label">{gameState.hasResearchedThisWeek ? 'Researched' : 'Technology'}</span>
                 </button>
               </div>
+              {gameState.pendingArrivals && gameState.pendingArrivals.length > 0 && (
+                <div className="panel-note positive">
+                  {gameState.pendingArrivals.map(r => `${r.name} arriving ${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][r.arrivalDay-1]}`).join(', ')}
+                </div>
+              )}
 
               <div className="panel-section">
                 <label>Rent</label>
