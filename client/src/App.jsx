@@ -585,7 +585,7 @@ function App() {
     if (!res.ok) alert(data.error);
   };
 
-  const handleApplyConfig = async () => {
+  const pushAllDevToolConfigs = async () => {
     await fetch(`${API_BASE}/api/config`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -612,38 +612,24 @@ function App() {
         body: JSON.stringify(editConfig.techConfig)
       });
     }
+    if (editableBuildings.length > 0) {
+      await fetch(`${API_BASE}/api/buildings`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ buildings: editableBuildings })
+      });
+    }
+  };
+
+  const handleApplyConfig = async () => {
+    await pushAllDevToolConfigs();
     budgetSyncedWeek.current = null;
     fetchState();
     setView('dashboard');
   };
 
   const handleSaveDefaults = async () => {
-    await fetch(`${API_BASE}/api/config`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(editConfig)
-    });
-    if (editConfig.budgetConfig) {
-      await fetch(`${API_BASE}/api/budget-config`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editConfig.budgetConfig)
-      });
-    }
-    if (editConfig.policyConfig) {
-      await fetch(`${API_BASE}/api/policy-config`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editConfig.policyConfig)
-      });
-    }
-    if (editConfig.techConfig) {
-      await fetch(`${API_BASE}/api/tech-config`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editConfig.techConfig)
-      });
-    }
+    await pushAllDevToolConfigs();
     await fetch(`${API_BASE}/api/save-defaults`, { method: 'POST' });
     budgetSyncedWeek.current = null;
     fetchState();
