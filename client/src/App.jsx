@@ -600,9 +600,9 @@ function App() {
               {gameState.coverageData && (
                 <div className="vibes-level">Level {(gameState.coverageData.tier || 0) + 1}</div>
               )}
-              {gameState.vibes?.branchLabel && (
-                <div className="vibes-reputation">{gameState.vibes.branchLabel}</div>
-              )}
+              <div className="vibes-reputation">
+                {gameState.vibes?.branchLabel || gameState.vibes?.reputation || 'Obscure'}
+              </div>
             </div>
             <div className="vibes-metrics">
               {[

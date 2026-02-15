@@ -952,6 +952,22 @@ function calculateVibes() {
   
   const tierName = cfg.tierThresholds[baseTierIndex].name;
   
+  const vibesScore = overallLevel * 100;
+  const fameThresholds = [
+    { min: 0, max: 20, name: 'Obscure' },
+    { min: 20, max: 40, name: 'Known' },
+    { min: 40, max: 60, name: 'Reputable' },
+    { min: 60, max: 80, name: 'Famous' },
+    { min: 80, max: 101, name: 'Mythical' }
+  ];
+  let reputation = 'Obscure';
+  for (const f of fameThresholds) {
+    if (vibesScore >= f.min && vibesScore < f.max) {
+      reputation = f.name;
+      break;
+    }
+  }
+
   let branchLabel = null;
   if (!isBalanced) {
     const highDelta = sorted[2] - median;
@@ -974,7 +990,7 @@ function calculateVibes() {
     branchLabel = cfg.branchLabels[branchKey]?.[severity] || null;
   }
   
-  gameState.vibes = { overallLevel, spread, tierName, branchLabel, isBalanced, scaleTier };
+  gameState.vibes = { overallLevel, spread, tierName, branchLabel, isBalanced, scaleTier, reputation };
 }
 
 function calculateRecruitmentSlots() {

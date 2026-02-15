@@ -50,6 +50,9 @@ The project follows a client-server architecture:
         -   Tier progression: Shambles → Rough → Scrappy → Fine → Good → Lovely → Thriving → Wonderful → Glorious → Utopia
         -   Thresholds: 0-15, 15-25, 25-35, 35-45, 45-55, 55-65, 65-75, 75-85, 85-95, 95+
         -   Early game starts at "Fine" (health metrics ~35-45)
+        -   **Reputation System:** 5-level fame scale always displayed in Vibes banner. Based on overall Vibes score (geometric mean × 100):
+            -   Obscure (0-19), Known (20-39), Reputable (40-59), Famous (60-79), Mythical (80-100)
+            -   When commune is imbalanced, special identity labels (e.g. "Party House") override the fame label
     -   **Resident System:** Features 20 unique llamas with individual stats (e.g., Sharing Tolerance, Cooking Skill). Residents are tracked individually, and churned residents remain visible but inactive, returning to the recruitable pool.
     -   **Buildings System:** Different building types (Bedrooms, Kitchen, Bathroom, Living Room, Utility Closet) contribute to capacity and primitive calculations. Each building has quality levels and specific primitive multipliers.
     -   **Budgets System:** Weekly mechanic allowing players to dedicate money towards "Budget Items" that boost specific primitives. Each item has a configurable efficiency/reductionRate (tunable in Dev Tools):
