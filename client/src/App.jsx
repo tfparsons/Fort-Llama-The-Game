@@ -12,6 +12,8 @@ function App() {
   const [buildComplete, setBuildComplete] = useState(null);
   const [showRecruitModal, setShowRecruitModal] = useState(false);
   const [showPolicyModal, setShowPolicyModal] = useState(false);
+  const [policyConfirm, setPolicyConfirm] = useState(null);
+  const [policyComplete, setPolicyComplete] = useState(null);
   const [showTechModal, setShowTechModal] = useState(false);
   const [showTechTreeModal, setShowTechTreeModal] = useState(false);
   const [techConfirm, setTechConfirm] = useState(null);
@@ -516,11 +518,23 @@ function App() {
   };
 
   const handleTogglePolicy = async (policyId) => {
-    await fetch(`${API_BASE}/api/action/toggle-policy`, {
+    const res = await fetch(`${API_BASE}/api/action/toggle-policy`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ policyId })
     });
+    const data = await res.json();
+    if (!res.ok) {
+      alert(data.error);
+    } else {
+      setPolicyConfirm(null);
+      const policy = (gameState.policyDefinitions || []).find(p => p.id === policyId);
+      setPolicyComplete({
+        name: policy?.name || policyId,
+        action: data.action,
+        primitive: policy?.primitive
+      });
+    }
     fetchState();
   };
 
@@ -1300,6 +1314,14 @@ function App() {
               <div className="config-field">
                 <label>Builds / Week</label>
                 <input type="number" min="1" value={editConfig.buildsPerWeek ?? 1} onChange={(e) => updateEditConfig('buildsPerWeek', e.target.value)} />
+              </div>
+              <div className="config-field">
+                <label>Policy Changes / Week</label>
+                <input type="number" min="1" value={editConfig.policyChangesPerWeek ?? 1} onChange={(e) => updateEditConfig('policyChangesPerWeek', e.target.value)} />
+              </div>
+              <div className="config-field">
+                <label>Research Actions / Week</label>
+                <input type="number" min="1" value={editConfig.researchActionsPerWeek ?? 1} onChange={(e) => updateEditConfig('researchActionsPerWeek', e.target.value)} />
               </div>
               <div className="config-field">
                 <label>Ground Rent (£/wk)</label>
@@ -2476,18 +2498,34 @@ function App() {
         </div>
       )}
 
-      {showPolicyModal && (
+      {showPolicyModal && (() => {
+        const policyLimitActive = (gameState.policiesStableWeeks || 0) >= 1 && (gameState.previousPolicies?.length || 0) >= 3;
+        const maxChanges = gameState.config?.policyChangesPerWeek ?? 1;
+        const changesUsed = gameState.policyChangesThisWeek || 0;
+        const changesRemaining = Math.max(0, maxChanges - changesUsed);
+        const changeLimitReached = policyLimitActive && changesUsed >= maxChanges;
+        return (
         <div className="modal-overlay" onClick={() => setShowPolicyModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
               <h2>Policies</h2>
-              <span style={{background: (gameState.activePolicies?.length || 0) > 3 ? '#e53e3e' : '#4a5568', color: '#fff', padding: '4px 10px', borderRadius: '12px', fontSize: '0.85rem', fontWeight: 600}}>
-                {gameState.activePolicies?.length || 0} / 3
-              </span>
+              <div style={{display: 'flex', gap: '6px', alignItems: 'center'}}>
+                {policyLimitActive && (
+                  <span style={{background: changeLimitReached ? '#e53e3e' : '#4a5568', color: '#fff', padding: '2px 8px', borderRadius: '10px', fontSize: '0.7rem'}}>
+                    {changesRemaining} change{changesRemaining !== 1 ? 's' : ''} left
+                  </span>
+                )}
+                <span style={{background: (gameState.activePolicies?.length || 0) > 3 ? '#e53e3e' : '#4a5568', color: '#fff', padding: '4px 10px', borderRadius: '12px', fontSize: '0.85rem', fontWeight: 600}}>
+                  {gameState.activePolicies?.length || 0} / 3
+                </span>
+              </div>
             </div>
             <p style={{color: '#a0aec0', fontSize: '0.85rem', marginBottom: '12px'}}>
               Toggle policies to improve your commune. More than 3 active policies will reduce Fun.
             </p>
+            {changeLimitReached && (
+              <p style={{color: '#e53e3e', fontSize: '0.8rem', marginBottom: '8px'}}>Policy change limit reached for this week.</p>
+            )}
             <div className="policy-list">
               {(gameState.policyDefinitions || []).filter(policy => !policy.techRequired || gameState.researchedTechs?.includes(policy.techRequired)).length === 0 && (
                 <p style={{color: '#a0aec0', fontSize: '0.85rem', textAlign: 'center', padding: '20px 0'}}>No policies available yet. Research technologies to unlock policies.</p>
@@ -2506,9 +2544,10 @@ function App() {
                     <p className="policy-desc">{desc}</p>
                     <button 
                       className={`policy-toggle ${isActive ? 'active' : ''}`}
-                      onClick={() => handleTogglePolicy(policy.id)}
+                      onClick={() => setPolicyConfirm({...policy, isActive, desc})}
+                      disabled={changeLimitReached}
                     >
-                      {isActive ? 'Deactivate' : 'Activate'}
+                      {changeLimitReached ? 'Limit reached' : isActive ? 'Deactivate' : 'Activate'}
                     </button>
                   </div>
                 );
@@ -2516,6 +2555,63 @@ function App() {
             </div>
             <button className="modal-close" onClick={() => setShowPolicyModal(false)}>
               Close
+            </button>
+          </div>
+        </div>
+        );
+      })()}
+
+      {policyConfirm && (
+        <div className="modal-overlay" onClick={() => setPolicyConfirm(null)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()} style={{maxWidth: '360px'}}>
+            <h2>Confirm Policy Change</h2>
+            <p style={{color: '#e2e8f0', fontSize: '0.9rem', margin: '12px 0'}}>
+              {policyConfirm.isActive ? 'Deactivate' : 'Activate'} <span style={{color: '#48bb78', fontWeight: 600}}>{policyConfirm.name}</span>?
+            </p>
+            <div style={{background: '#1a202c', borderRadius: '8px', padding: '12px', marginBottom: '16px'}}>
+              <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '6px'}}>
+                <span style={{color: '#a0aec0'}}>Policy</span>
+                <span style={{color: '#e2e8f0'}}>{policyConfirm.name}</span>
+              </div>
+              <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '6px'}}>
+                <span style={{color: '#a0aec0'}}>Affects</span>
+                <span style={{color: '#e2e8f0', textTransform: 'capitalize'}}>{policyConfirm.primitive}</span>
+              </div>
+              <div style={{display: 'flex', justifyContent: 'space-between'}}>
+                <span style={{color: '#a0aec0'}}>Action</span>
+                <span style={{color: policyConfirm.isActive ? '#e53e3e' : '#48bb78'}}>{policyConfirm.isActive ? 'Deactivate' : 'Activate'}</span>
+              </div>
+            </div>
+            <div style={{display: 'flex', gap: '8px'}}>
+              <button className="action-button" style={{flex: 1}} onClick={() => handleTogglePolicy(policyConfirm.id)}>
+                Confirm
+              </button>
+              <button className="modal-close" style={{flex: 1}} onClick={() => setPolicyConfirm(null)}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {policyComplete && (
+        <div className="modal-overlay" onClick={() => setPolicyComplete(null)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()} style={{maxWidth: '360px', textAlign: 'center'}}>
+            <div style={{fontSize: '2rem', marginBottom: '8px'}}>{policyComplete.action === 'activated' ? '\u2705' : '\u274C'}</div>
+            <h2 style={{color: policyComplete.action === 'activated' ? '#48bb78' : '#e53e3e'}}>
+              Policy {policyComplete.action === 'activated' ? 'Activated' : 'Deactivated'}
+            </h2>
+            <p style={{color: '#e2e8f0', fontSize: '0.9rem', margin: '12px 0'}}>
+              <span style={{fontWeight: 600}}>{policyComplete.name}</span> has been {policyComplete.action}.
+            </p>
+            <div style={{background: '#1a202c', borderRadius: '8px', padding: '12px', marginBottom: '16px', textAlign: 'left'}}>
+              <div style={{display: 'flex', justifyContent: 'space-between'}}>
+                <span style={{color: '#a0aec0'}}>Affects</span>
+                <span style={{color: '#e2e8f0', textTransform: 'capitalize'}}>{policyComplete.primitive}</span>
+              </div>
+            </div>
+            <button className="action-button" onClick={() => setPolicyComplete(null)}>
+              Done
             </button>
           </div>
         </div>

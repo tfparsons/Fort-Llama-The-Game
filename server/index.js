@@ -335,6 +335,8 @@ const INITIAL_DEFAULTS = {
   startingTreasury: 0,
   startingResidents: 10,
   buildsPerWeek: 1,
+  policyChangesPerWeek: 1,
+  researchActionsPerWeek: 1,
   rentMin: 50,
   rentMax: 500,
   defaultRent: 100,
@@ -516,7 +518,10 @@ function initializeGame(config = savedDefaults) {
     researchedTechs: [],
     activeFixedCosts: [],
     hasResearchedThisWeek: false,
-    researchingTech: null
+    researchingTech: null,
+    policyChangesThisWeek: 0,
+    policiesStableWeeks: 0,
+    previousPolicies: []
   };
   calculatePrimitives();
   calculateHealthMetrics();
@@ -1157,6 +1162,20 @@ function processWeekEnd() {
     gameState.researchCompletedThisWeek = null;
   }
   
+  const prevPolicies = [...(gameState.previousPolicies || [])];
+  const currPolicies = [...(gameState.activePolicies || [])];
+  const policiesUnchanged = prevPolicies.length === currPolicies.length && 
+    prevPolicies.every(p => currPolicies.includes(p));
+  if (currPolicies.length >= 3 && policiesUnchanged) {
+    gameState.policiesStableWeeks = (gameState.policiesStableWeeks || 0) + 1;
+  } else if (currPolicies.length >= 3) {
+    gameState.policiesStableWeeks = 1;
+  } else {
+    gameState.policiesStableWeeks = 0;
+  }
+  gameState.previousPolicies = [...currPolicies];
+  gameState.policyChangesThisWeek = 0;
+
   gameState.week += 1;
   gameState.day = 1;
   gameState.hour = 9;
@@ -1344,16 +1363,29 @@ app.post('/api/action/toggle-policy', (req, res) => {
   if (policy.techRequired && !gameState.researchedTechs.includes(policy.techRequired)) {
     return res.status(400).json({ error: 'Technology not yet researched' });
   }
+  
+  const maxChanges = gameConfig.policyChangesPerWeek ?? 1;
+  const policyLimitActive = gameState.policiesStableWeeks >= 1 && gameState.previousPolicies.length >= 3;
+  if (policyLimitActive && gameState.policyChangesThisWeek >= maxChanges) {
+    return res.status(400).json({ error: `Policy change limit reached (${maxChanges}/week)` });
+  }
+
   const idx = gameState.activePolicies.indexOf(policyId);
+  const action = idx >= 0 ? 'deactivated' : 'activated';
   if (idx >= 0) {
     gameState.activePolicies.splice(idx, 1);
   } else {
     gameState.activePolicies.push(policyId);
   }
+  
+  if (policyLimitActive) {
+    gameState.policyChangesThisWeek += 1;
+  }
+  
   calculatePrimitives();
   calculateHealthMetrics();
   calculateVibes();
-  res.json({ success: true, activePolicies: gameState.activePolicies });
+  res.json({ success: true, activePolicies: gameState.activePolicies, action, policyId });
 });
 
 app.get('/api/policy-config', (req, res) => {
