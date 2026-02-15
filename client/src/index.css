@@ -1799,18 +1799,18 @@ body {
   background: linear-gradient(135deg, #16213e 0%, #1a1a2e 100%);
   border: 1px solid #0f3460;
   border-radius: 8px;
-  padding: 16px 20px;
+  padding: 12px 20px;
   display: flex;
-  align-items: center;
-  gap: 20px;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .vibes-left {
-  flex-shrink: 0;
   display: grid;
   grid-template-columns: auto auto;
   gap: 2px 10px;
   align-items: baseline;
+  justify-content: start;
 }
 
 .vibes-field {
@@ -1847,8 +1847,8 @@ body {
   border-radius: 8px;
   padding: 12px 20px;
   display: flex;
-  align-items: center;
-  gap: 20px;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .vibes-metrics {
@@ -1877,15 +1877,18 @@ body {
 }
 
 .vibes-graph {
-  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   background: rgba(15, 52, 96, 0.3);
   border-radius: 6px;
   padding: 6px;
-  min-width: 170px;
-  min-height: 70px;
+  width: 100%;
+  min-height: 60px;
+}
+
+.vibes-graph svg {
+  width: 100%;
 }
 
 .vibes-graph-empty {
