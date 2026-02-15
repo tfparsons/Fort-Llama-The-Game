@@ -1807,31 +1807,31 @@ body {
 
 .vibes-left {
   flex-shrink: 0;
-  min-width: 170px;
-}
-
-.vibes-field {
-  font-size: 0.95rem;
-  line-height: 1.6;
-  display: flex;
-  gap: 6px;
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 2px 12px;
   align-items: baseline;
 }
 
+.vibes-field {
+  display: contents;
+}
+
 .vibes-label {
-  color: #6b7280;
+  color: #cbd5e0;
   font-weight: 500;
-  min-width: 80px;
+  font-size: 0.9rem;
+  text-align: right;
 }
 
 .vibes-val {
-  font-weight: 600;
+  font-weight: 700;
+  font-size: 0.95rem;
 }
 
 .vibes-val-vibe {
   color: #fff;
-  font-size: 1.05rem;
-  font-weight: 700;
+  font-size: 1.1rem;
 }
 
 .vibes-val-rep {
