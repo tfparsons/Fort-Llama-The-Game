@@ -2394,7 +2394,7 @@ function App() {
         <div className="modal-overlay" onClick={handlePassRecruitment}>
           <div className="modal recruit-modal" onClick={(e) => e.stopPropagation()}>
             <h2>Llama Recruitment</h2>
-            <p className="recruit-intro">Choose a llama to join your commune, or pass on this round.</p>
+            <p className="recruit-intro">Choose 1 of these 3 aspiring llamas, or pass this week.</p>
             
             {recruitCandidates.length === 0 ? (
               <p className="no-candidates">No available llamas to recruit!</p>
