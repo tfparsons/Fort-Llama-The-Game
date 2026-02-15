@@ -128,6 +128,12 @@ const DEFAULT_BUILDINGS = [
     quality: 1, repairMult: 1.0
   },
   {
+    id: 'great_hall', name: 'Great Hall', capacity: 30, atStart: 0, cost: null,
+    utilitiesMultiplier: null, groundRentMultiplier: null, buildable: false,
+    quality: 1, funMult: 1.3, noiseMult: 1.0, driveMult: 1.2,
+    techRequired: 'great_hall', isUpgrade: true, upgradeOf: 'living_room'
+  },
+  {
     id: 'heaven', name: 'Heaven', capacity: 15, atStart: 0, cost: 500,
     utilitiesMultiplier: 0.1, groundRentMultiplier: 0.05, buildable: true,
     quality: 1, funOutput: 3, techRequired: 'blanket_fort'
@@ -725,13 +731,15 @@ function calculatePrimitives() {
   const capUtil = getBuildingCapacity('utility_closet');
   
   let effectiveCapLiv = capLiv;
-  let greatHallFunBoost = 0;
-  let greatHallDriveBoost = 0;
+  let greatHallFunMult = 1;
+  let greatHallDriveMult = 1;
   if (gameState.researchedTechs.includes('great_hall')) {
-    const ghCfg = techConfig.great_hall || {};
-    effectiveCapLiv += (ghCfg.capacityBoost || 10);
-    greatHallFunBoost = ghCfg.funMultBoost || 0.3;
-    greatHallDriveBoost = ghCfg.driveMultBoost || 0.2;
+    const ghBuilding = gameState.buildings.find(b => b.id === 'great_hall');
+    if (ghBuilding) {
+      effectiveCapLiv = capLiv + (ghBuilding.capacity != null ? ghBuilding.capacity : 10);
+      greatHallFunMult = ghBuilding.funMult != null ? ghBuilding.funMult : 1.3;
+      greatHallDriveMult = ghBuilding.driveMult != null ? ghBuilding.driveMult : 1.2;
+    }
   }
   
   const shareTol = statTo01(getAverageResidentStat('sharingTolerance'));
@@ -808,7 +816,7 @@ function calculatePrimitives() {
   
   const funCfg = primitiveConfig.fun;
   const funServed = Math.min(N, effectiveCapLiv);
-  const funSupply = funServed * funCfg.outputRate * tierOutputMult * lQ * getBuildingMult('living_room', 'funMult') * (1 + funCfg.skillMult * (sociability + partyStamina) / 2) * (1 + greatHallFunBoost);
+  const funSupply = funServed * funCfg.outputRate * tierOutputMult * lQ * getBuildingMult('living_room', 'funMult') * (1 + funCfg.skillMult * (sociability + partyStamina) / 2) * greatHallFunMult;
   const funBudgetBoost = (gameState.budgets.fun || 0) * (budgetConfig.fun.efficiency || 0);
   const totalFunSupply = funSupply + funBudgetBoost;
   let extraFunOutput = 0;
@@ -837,7 +845,7 @@ function calculatePrimitives() {
   
   const dCfg = primitiveConfig.drive;
   const driveServed = Math.min(N, effectiveCapLiv);
-  const driveSupply = driveServed * dCfg.outputRate * tierOutputMult * lQ * (1 + dCfg.skillMult * workEthic) * (1 + greatHallDriveBoost);
+  const driveSupply = driveServed * dCfg.outputRate * tierOutputMult * lQ * (1 + dCfg.skillMult * workEthic) * greatHallDriveMult;
   const driveBudgetBoost = (gameState.budgets.drive || 0) * (budgetConfig.drive.efficiency || 0);
   let totalDriveSupply = driveSupply + driveBudgetBoost;
   if (gameState.activeFixedCosts.includes('starlink')) {

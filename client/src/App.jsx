@@ -849,18 +849,21 @@ function App() {
 
             <div className="card">
               <h2>Buildings</h2>
-              {gameState.buildings?.map(b => (
+              {gameState.buildings?.filter(b => !b.isUpgrade).map(b => (
                 <div key={b.id} className="stat">
                   <span className="stat-label">{b.name}</span>
                   <span className="stat-value">{b.count} ({b.count * b.capacity})</span>
                 </div>
               ))}
-              {gameState.researchedTechs?.includes('great_hall') && (
-                <div className="stat" style={{borderTop: '1px solid #4a5568', paddingTop: '4px', marginTop: '4px'}}>
-                  <span className="stat-label" style={{color: '#4299e1'}}>Great Hall (Upgrade)</span>
-                  <span className="stat-value" style={{color: '#4299e1', fontSize: '0.75rem'}}>Active</span>
-                </div>
-              )}
+              {gameState.researchedTechs?.includes('great_hall') && (() => {
+                const gh = gameState.buildings?.find(b => b.id === 'great_hall');
+                return gh ? (
+                  <div className="stat" style={{borderTop: '1px solid #4a5568', paddingTop: '4px', marginTop: '4px'}}>
+                    <span className="stat-label" style={{color: '#4299e1'}}>Great Hall (Upgrade)</span>
+                    <span className="stat-value" style={{color: '#4299e1', fontSize: '0.75rem'}}>Active</span>
+                  </div>
+                ) : null;
+              })()}
             </div>
 
             <div className="card">
@@ -2229,29 +2232,9 @@ function App() {
                               </div>
                             )}
                             {tech.type === 'upgrade' && tech.id === 'great_hall' && (
-                              <>
-                                <div className="config-field" style={{marginBottom: '4px'}}>
-                                  <label style={{fontSize: '0.7rem'}}>Cap Boost</label>
-                                  <input type="number" step="1" min="0"
-                                    value={cfg.capacityBoost ?? 10}
-                                    onChange={(e) => updateTechCfg('capacityBoost', parseInt(e.target.value) || 0)}
-                                  />
-                                </div>
-                                <div className="config-field" style={{marginBottom: '4px'}}>
-                                  <label style={{fontSize: '0.7rem'}}>Fun Mult +</label>
-                                  <input type="number" step="0.05" min="0"
-                                    value={cfg.funMultBoost ?? 0.3}
-                                    onChange={(e) => updateTechCfg('funMultBoost', parseFloat(e.target.value) || 0)}
-                                  />
-                                </div>
-                                <div className="config-field" style={{marginBottom: '0'}}>
-                                  <label style={{fontSize: '0.7rem'}}>Drive Mult +</label>
-                                  <input type="number" step="0.05" min="0"
-                                    value={cfg.driveMultBoost ?? 0.2}
-                                    onChange={(e) => updateTechCfg('driveMultBoost', parseFloat(e.target.value) || 0)}
-                                  />
-                                </div>
-                              </>
+                              <div style={{fontSize: '0.65rem', color: '#718096', marginTop: '4px'}}>
+                                Stats editable in Manage Buildings
+                              </div>
                             )}
                           </div>
                         );
@@ -2476,10 +2459,11 @@ function App() {
                   )}
                   <div>Current: {building.count}</div>
                   {building.id === 'living_room' && gameState.researchedTechs?.includes('great_hall') && (() => {
-                    const gh = gameState.techConfig?.great_hall || {};
+                    const gh = gameState.buildings?.find(b => b.id === 'great_hall');
+                    if (!gh) return null;
                     return (
                       <div style={{marginTop: '4px', padding: '3px 6px', background: '#4299e133', borderRadius: '4px', fontSize: '0.75rem', color: '#4299e1'}}>
-                        Great Hall: Cap +{gh.capacityBoost ?? 10}, Fun +{Math.round((gh.funMultBoost ?? 0.3) * 100)}%, Drive +{Math.round((gh.driveMultBoost ?? 0.2) * 100)}%
+                        Great Hall: Cap {gh.capacity}, Fun x{gh.funMult ?? 1.3}, Drive x{gh.driveMult ?? 1.2}
                       </div>
                     );
                   })()}
@@ -2737,7 +2721,7 @@ function App() {
                       if (tech.type === 'fixed_expense') effectText = `+${cfg.effectPercent || 0}% boost, £${cfg.weeklyCost || 0}/wk`;
                       else if (tech.type === 'policy') effectText = tech.id === 'chores_rota' ? 'Unlocks Cooking & Cleaning Rota' : tech.id === 'ocado' ? `+${cfg.effectPercent || 0}% ingredient efficiency` : tech.description;
                       else if (tech.type === 'building') effectText = tech.id === 'blanket_fort' ? 'Unlocks Heaven building' : tech.id === 'outdoor_plumbing' ? 'Unlocks Hot Tub building' : tech.description;
-                      else if (tech.type === 'upgrade') effectText = `Cap +${cfg.capacityBoost || 0}, Fun +${Math.round((cfg.funMultBoost || 0) * 100)}%, Drive +${Math.round((cfg.driveMultBoost || 0) * 100)}%`;
+                      else if (tech.type === 'upgrade') effectText = 'Living Room upgrade (see Buildings)';
                       else if (tech.type === 'culture') effectText = 'Unlocks next level technologies';
                       
                       if (isThisResearching) return null;
@@ -3290,15 +3274,25 @@ function App() {
                               <input type="number" step="0.1" value={b.noiseMult ?? 1.0} 
                                 onChange={(e) => updateBuildingField(b.id, 'noiseMult', e.target.value)} />
                             </div>
-                            {(() => {
-                              const gh = gameState.techConfig?.great_hall || {};
-                              const researched = gameState?.researchedTechs?.includes('great_hall');
-                              return (
-                                <div style={{marginTop: '4px', padding: '3px 6px', background: researched ? '#4299e133' : '#4a556833', borderRadius: '4px', fontSize: '0.7rem', color: researched ? '#4299e1' : '#718096'}}>
-                                  Great Hall{!researched ? ' (not researched)' : ''}: Cap +{gh.capacityBoost ?? 10}, Fun +{Math.round((gh.funMultBoost ?? 0.3) * 100)}%, Drive +{Math.round((gh.driveMultBoost ?? 0.2) * 100)}%
-                                </div>
-                              );
-                            })()}
+                          </>
+                        )}
+                        {b.id === 'great_hall' && (
+                          <>
+                            <div className="mult-row">
+                              <label>Fun:</label>
+                              <input type="number" step="0.1" value={b.funMult ?? 1.3} 
+                                onChange={(e) => updateBuildingField(b.id, 'funMult', e.target.value)} />
+                            </div>
+                            <div className="mult-row">
+                              <label>Noise:</label>
+                              <input type="number" step="0.1" value={b.noiseMult ?? 1.0} 
+                                onChange={(e) => updateBuildingField(b.id, 'noiseMult', e.target.value)} />
+                            </div>
+                            <div className="mult-row">
+                              <label>Drive:</label>
+                              <input type="number" step="0.1" value={b.driveMult ?? 1.2} 
+                                onChange={(e) => updateBuildingField(b.id, 'driveMult', e.target.value)} />
+                            </div>
                           </>
                         )}
                         {b.id === 'utility_closet' && (
