@@ -883,7 +883,7 @@ function App() {
                     return (
                       <div key={pId} className="stat has-tooltip">
                         <span className="stat-label">{policy.name}</span>
-                        <span className="stat-value" style={{color: '#48bb78', fontSize: '0.8rem'}}>{policy.primitive}</span>
+                        <span className="stat-value" style={{color: '#48bb78', fontSize: '0.8rem'}}>+{pct}% {policy.primitive.charAt(0).toUpperCase() + policy.primitive.slice(1)}</span>
                         <div className="projection-tooltip">
                           <div className="tooltip-title">{policy.name}</div>
                           <div className="tooltip-row"><span>{desc}</span></div>
