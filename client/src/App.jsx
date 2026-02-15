@@ -751,10 +751,15 @@ function App() {
                 const coverage = gameState.coverageData?.[p.key];
                 const ratio = coverage?.ratio || 1;
                 const tierLabel = coverage?.label || 'Adequate';
-                const labelColor = tierLabel === 'Shortfall' ? '#f56565' : 
-                                   tierLabel === 'Adequate' ? '#ed8936' : 
-                                   tierLabel === 'Good' ? '#48bb78' : 
-                                   tierLabel === 'Great' ? '#38b2ac' : '#805ad5';
+                const tierColors = {
+                  'Shortfall': '#f56565',
+                  'Tight': '#ed8936',
+                  'Adequate': '#ecc94b',
+                  'Good': '#68d391',
+                  'Great': '#48bb78',
+                  'Superb': '#38b2ac'
+                };
+                const labelColor = tierColors[tierLabel] || '#805ad5';
                 return (
                   <div key={p.key} className="primitive-item coverage-item">
                     <span className="prim-icon">{p.icon}</span>
