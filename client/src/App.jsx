@@ -2249,12 +2249,12 @@ function App() {
             <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px'}}>
               <h2 style={{margin: 0}}>Technology Research</h2>
               <button 
-                className="sidebar-btn"
+                className="action-grid-btn"
                 onClick={(e) => { e.stopPropagation(); setShowTechModal(false); setShowTechTreeModal(true); }}
-                style={{margin: 0, minWidth: 'auto', padding: '8px 16px'}}
+                style={{padding: '8px 16px', flex: 'none', width: 'auto'}}
               >
-                <span className="sidebar-icon">🌳</span>
-                <span>Tech Tree</span>
+                <span className="action-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="22" x2="12" y2="8"/><polyline points="8 12 12 8 16 12"/><path d="M12 8a4 4 0 0 0-4-4H4"/><path d="M12 8a4 4 0 0 1 4-4h4"/><line x1="4" y1="2" x2="4" y2="4"/><line x1="20" y1="2" x2="20" y2="4"/></svg></span>
+                <span className="action-label">Tech Tree</span>
               </button>
             </div>
             {['livingStandards', 'productivity', 'fun'].map(treeName => {
