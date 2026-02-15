@@ -1463,101 +1463,99 @@ function App() {
               </div>
             </div>
 
-            <div className="config-section" style={{gridColumn: 'span 2'}}>
+            <div className="config-section" style={{gridColumn: '1 / -1'}}>
               <h3>Vibes & Reputation</h3>
+              <div style={{display: 'flex', gap: '8px', marginBottom: '10px'}}>
+                <div className="config-field" style={{flex: 'none', marginBottom: 0}}>
+                  <label>Balanced spread</label>
+                  <input type="number" step="0.01" value={gameState?.vibesConfig?.balancedThreshold || 0.18} readOnly />
+                </div>
+                <div className="config-field" style={{flex: 'none', marginBottom: 0}}>
+                  <label>Strong imbalance</label>
+                  <input type="number" step="0.01" value={gameState?.vibesConfig?.strongImbalanceThreshold || 0.30} readOnly />
+                </div>
+              </div>
               <div style={{display: 'flex', gap: '16px'}}>
                 <div style={{flex: 1}}>
-                  <div className="config-field">
-                    <label>Balanced spread</label>
-                    <input type="number" step="0.01" value={gameState?.vibesConfig?.balancedThreshold || 0.18} readOnly />
-                  </div>
-                  <div className="config-field">
-                    <label>Strong imbalance</label>
-                    <input type="number" step="0.01" value={gameState?.vibesConfig?.strongImbalanceThreshold || 0.30} readOnly />
-                  </div>
-                  <div className="vibes-tier-ladder">
-                    <label>Vibes Tier Ladder</label>
-                    <div className="tier-ladder-list">
-                      {(gameState?.vibesConfig?.tierThresholds || [
-                        { name: 'Shambles', min: 0, max: 0.15 },
-                        { name: 'Rough', min: 0.15, max: 0.25 },
-                        { name: 'Scrappy', min: 0.25, max: 0.35 },
-                        { name: 'Fine', min: 0.35, max: 0.45 },
-                        { name: 'Good', min: 0.45, max: 0.55 },
-                        { name: 'Lovely', min: 0.55, max: 0.65 },
-                        { name: 'Thriving', min: 0.65, max: 0.75 },
-                        { name: 'Wonderful', min: 0.75, max: 0.85 },
-                        { name: 'Glorious', min: 0.85, max: 0.95 },
-                        { name: 'Utopia', min: 0.95, max: 1.01 }
-                      ]).map((tier, idx) => (
-                        <div key={idx} className="tier-ladder-item">
-                          <span className="tier-rank">{idx + 1}.</span>
-                          <span className="tier-name">{tier.name}</span>
-                          <span className="tier-range">{Math.round(tier.min * 100)}-{Math.round(tier.max * 100)}</span>
-                        </div>
-                      ))}
-                    </div>
+                  <label style={{fontSize: '0.75rem', color: '#a0aec0', display: 'block', marginBottom: '4px'}}>Vibes Tier Ladder</label>
+                  <div className="tier-ladder-list">
+                    {(gameState?.vibesConfig?.tierThresholds || [
+                      { name: 'Shambles', min: 0, max: 0.15 },
+                      { name: 'Rough', min: 0.15, max: 0.25 },
+                      { name: 'Scrappy', min: 0.25, max: 0.35 },
+                      { name: 'Fine', min: 0.35, max: 0.45 },
+                      { name: 'Good', min: 0.45, max: 0.55 },
+                      { name: 'Lovely', min: 0.55, max: 0.65 },
+                      { name: 'Thriving', min: 0.65, max: 0.75 },
+                      { name: 'Wonderful', min: 0.75, max: 0.85 },
+                      { name: 'Glorious', min: 0.85, max: 0.95 },
+                      { name: 'Utopia', min: 0.95, max: 1.01 }
+                    ]).map((tier, idx) => (
+                      <div key={idx} className="tier-ladder-item">
+                        <span className="tier-rank">{idx + 1}.</span>
+                        <span className="tier-name">{tier.name}</span>
+                        <span className="tier-range">{Math.round(tier.min * 100)}-{Math.round(tier.max * 100)}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
                 <div style={{flex: 1}}>
-                  <div style={{marginBottom: '8px'}}>
-                    <label style={{fontSize: '0.75rem', color: '#a0aec0', display: 'block', marginBottom: '4px'}}>Fame Levels (Vibes score + population tier)</label>
-                    <div className="tier-ladder-list">
-                      {[
-                        { name: 'Obscure', min: 0, max: 20, minTier: 0, tierLabel: 'Any' },
-                        { name: 'Reputable', min: 20, max: 40, minTier: 1, tierLabel: 'Tier 2+' },
-                        { name: 'Aspirational', min: 40, max: 60, minTier: 2, tierLabel: 'Tier 3+' },
-                        { name: 'Famous', min: 60, max: 80, minTier: 3, tierLabel: 'Tier 4+' },
-                        { name: 'Mythical', min: 80, max: 100, minTier: 4, tierLabel: 'Tier 5+' }
-                      ].map((f, idx) => (
-                        <div key={idx} className="tier-ladder-item">
-                          <span className="tier-rank">{idx + 1}.</span>
-                          <span className="tier-name">{f.name}</span>
-                          <span className="tier-range" style={{minWidth: '36px'}}>{f.min}-{f.max}</span>
-                          <span style={{fontSize: '0.65rem', color: '#718096', marginLeft: '4px'}}>{f.tierLabel}</span>
-                        </div>
-                      ))}
-                    </div>
+                  <label style={{fontSize: '0.75rem', color: '#a0aec0', display: 'block', marginBottom: '4px'}}>Fame Levels (Vibes + pop tier)</label>
+                  <div className="tier-ladder-list">
+                    {[
+                      { name: 'Obscure', min: 0, max: 20, tierLabel: 'Any' },
+                      { name: 'Reputable', min: 20, max: 40, tierLabel: 'Tier 2+' },
+                      { name: 'Aspirational', min: 40, max: 60, tierLabel: 'Tier 3+' },
+                      { name: 'Famous', min: 60, max: 80, tierLabel: 'Tier 4+' },
+                      { name: 'Mythical', min: 80, max: 100, tierLabel: 'Tier 5+' }
+                    ].map((f, idx) => (
+                      <div key={idx} className="tier-ladder-item">
+                        <span className="tier-rank">{idx + 1}.</span>
+                        <span className="tier-name">{f.name}</span>
+                        <span className="tier-range" style={{minWidth: '36px'}}>{f.min}-{f.max}</span>
+                        <span style={{fontSize: '0.65rem', color: '#718096', marginLeft: '4px'}}>{f.tierLabel}</span>
+                      </div>
+                    ))}
                   </div>
-                  <div style={{borderTop: '1px solid #2d3748', paddingTop: '8px'}}>
-                    <label style={{fontSize: '0.75rem', color: '#a0aec0', display: 'block', marginBottom: '6px'}}>Identity Labels (when imbalanced)</label>
-                    <table style={{width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem'}}>
-                      <thead>
-                        <tr style={{borderBottom: '1px solid #4a5568'}}>
-                          <th style={{textAlign: 'left', padding: '4px 6px', color: '#718096', fontWeight: 500}}>Condition</th>
-                          <th style={{textAlign: 'left', padding: '4px 6px', color: '#718096', fontWeight: 500}}>Mild</th>
-                          <th style={{textAlign: 'left', padding: '4px 6px', color: '#718096', fontWeight: 500}}>Strong</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {(() => {
-                          const labels = gameState?.vibesConfig?.branchLabels || {
-                            highPartytime: { mild: 'Party House', strong: 'Party Mansion' },
-                            highProductivity: { mild: 'Grind House', strong: 'Sweat Shop' },
-                            highLivingStandards: { mild: 'Showhome', strong: 'Dolls House' },
-                            lowLivingStandards: { mild: 'Shanty Town', strong: 'Slum' },
-                            lowProductivity: { mild: 'Decadent', strong: 'Chaotic' },
-                            lowPartytime: { mild: 'Low Energy', strong: 'Dead' }
-                          };
-                          const rows = [
-                            { key: 'highPartytime', label: 'High Partytime', color: '#b794f4' },
-                            { key: 'highProductivity', label: 'High Productivity', color: '#4299e1' },
-                            { key: 'highLivingStandards', label: 'High Living Standards', color: '#4fd1c5' },
-                            { key: 'lowLivingStandards', label: 'Low Living Standards', color: '#4fd1c5' },
-                            { key: 'lowProductivity', label: 'Low Productivity', color: '#4299e1' },
-                            { key: 'lowPartytime', label: 'Low Partytime', color: '#b794f4' }
-                          ];
-                          return rows.map(r => (
-                            <tr key={r.key} style={{borderBottom: '1px solid #1a202c'}}>
-                              <td style={{padding: '4px 6px', color: r.color}}>{r.label}</td>
-                              <td style={{padding: '4px 6px', color: '#ed8936'}}>{labels[r.key]?.mild}</td>
-                              <td style={{padding: '4px 6px', color: '#f56565'}}>{labels[r.key]?.strong}</td>
-                            </tr>
-                          ));
-                        })()}
-                      </tbody>
-                    </table>
-                  </div>
+                </div>
+                <div style={{flex: 1}}>
+                  <label style={{fontSize: '0.75rem', color: '#a0aec0', display: 'block', marginBottom: '4px'}}>Identity Labels (when imbalanced)</label>
+                  <table style={{width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem'}}>
+                    <thead>
+                      <tr style={{borderBottom: '1px solid #4a5568'}}>
+                        <th style={{textAlign: 'left', padding: '4px 6px', color: '#718096', fontWeight: 500}}>Condition</th>
+                        <th style={{textAlign: 'left', padding: '4px 6px', color: '#718096', fontWeight: 500}}>Mild</th>
+                        <th style={{textAlign: 'left', padding: '4px 6px', color: '#718096', fontWeight: 500}}>Strong</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(() => {
+                        const labels = gameState?.vibesConfig?.branchLabels || {
+                          highPartytime: { mild: 'Party House', strong: 'Party Mansion' },
+                          highProductivity: { mild: 'Grind House', strong: 'Sweat Shop' },
+                          highLivingStandards: { mild: 'Showhome', strong: 'Dolls House' },
+                          lowLivingStandards: { mild: 'Shanty Town', strong: 'Slum' },
+                          lowProductivity: { mild: 'Decadent', strong: 'Chaotic' },
+                          lowPartytime: { mild: 'Low Energy', strong: 'Dead' }
+                        };
+                        const rows = [
+                          { key: 'highPartytime', label: 'High Partytime', color: '#b794f4' },
+                          { key: 'highProductivity', label: 'High Productivity', color: '#4299e1' },
+                          { key: 'highLivingStandards', label: 'High Living Standards', color: '#4fd1c5' },
+                          { key: 'lowLivingStandards', label: 'Low Living Standards', color: '#4fd1c5' },
+                          { key: 'lowProductivity', label: 'Low Productivity', color: '#4299e1' },
+                          { key: 'lowPartytime', label: 'Low Partytime', color: '#b794f4' }
+                        ];
+                        return rows.map(r => (
+                          <tr key={r.key} style={{borderBottom: '1px solid #1a202c'}}>
+                            <td style={{padding: '4px 6px', color: r.color}}>{r.label}</td>
+                            <td style={{padding: '4px 6px', color: '#ed8936'}}>{labels[r.key]?.mild}</td>
+                            <td style={{padding: '4px 6px', color: '#f56565'}}>{labels[r.key]?.strong}</td>
+                          </tr>
+                        ));
+                      })()}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
