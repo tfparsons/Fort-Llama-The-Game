@@ -835,6 +835,77 @@ function App() {
               </div>
             </div>
 
+            <div className="card residents-card">
+              <h2>Residents ({gameState.communeResidents?.filter(r => !r.churned).length || 0}/{gameState.capacity})</h2>
+              <div className="residents-list">
+                {gameState.communeResidents && gameState.communeResidents.length > 0 ? (
+                  gameState.communeResidents.map(resident => (
+                    <div 
+                      key={resident.id} 
+                      className={`resident-chip${resident.churned ? ' churned' : ''}`}
+                      onMouseEnter={() => setHoveredResident(resident)}
+                      onMouseLeave={() => setHoveredResident(null)}
+                    >
+                      {resident.name}
+                      {hoveredResident && hoveredResident.id === resident.id && (
+                        <div className="resident-tooltip">
+                          <div className="tooltip-header">
+                            <strong>{resident.name}</strong>, {resident.age}
+                          </div>
+                          <p className="tooltip-bio">{resident.bio}</p>
+                          <div className="tooltip-stats">
+                            <div><span>Sharing:</span> {resident.stats.sharingTolerance}</div>
+                            <div><span>Cooking:</span> {resident.stats.cookingSkill}</div>
+                            <div><span>Tidiness:</span> {resident.stats.tidiness}</div>
+                            <div><span>Handiness:</span> {resident.stats.handiness}</div>
+                            <div><span>Consideration:</span> {resident.stats.consideration}</div>
+                            <div><span>Sociability:</span> {resident.stats.sociability}</div>
+                            <div><span>Party Stamina:</span> {resident.stats.partyStamina}</div>
+                            <div><span>Work Ethic:</span> {resident.stats.workEthic}</div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <div className="no-residents">No llamas yet</div>
+                )}
+              </div>
+              {gameState.communeResidents && gameState.communeResidents.length > 0 && (() => {
+                const residents = gameState.communeResidents.filter(r => !r.churned);
+                const count = residents.length;
+                const calcPct = (statKey) => {
+                  const avg = residents.reduce((sum, r) => sum + (r.stats[statKey] || 10), 0) / count;
+                  return Math.round((avg - 10) * 10);
+                };
+                const stats = [
+                  { key: 'sharingTolerance', label: 'Sharing' },
+                  { key: 'cookingSkill', label: 'Cooking' },
+                  { key: 'tidiness', label: 'Tidiness' },
+                  { key: 'handiness', label: 'Handiness' },
+                  { key: 'consideration', label: 'Consideration' },
+                  { key: 'sociability', label: 'Sociability' },
+                  { key: 'partyStamina', label: 'Party' },
+                  { key: 'workEthic', label: 'Work' }
+                ];
+                return (
+                  <div className="aggregate-stats">
+                    {stats.map(s => {
+                      const pct = calcPct(s.key);
+                      return (
+                        <div key={s.key} className="agg-stat">
+                          <span className="agg-label">{s.label}</span>
+                          <span className={`agg-value ${pct >= 0 ? 'positive' : 'negative'}`}>
+                            {pct >= 0 ? '+' : ''}{pct}%
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
+            </div>
+
             <div className="card">
               <h2>Buildings</h2>
               {gameState.buildings?.filter(b => !b.isUpgrade).map(b => (
@@ -910,77 +981,6 @@ function App() {
                 </div>
               );
             })()}
-
-            <div className="card residents-card">
-              <h2>Residents ({gameState.communeResidents?.filter(r => !r.churned).length || 0}/{gameState.capacity})</h2>
-              <div className="residents-list">
-                {gameState.communeResidents && gameState.communeResidents.length > 0 ? (
-                  gameState.communeResidents.map(resident => (
-                    <div 
-                      key={resident.id} 
-                      className={`resident-chip${resident.churned ? ' churned' : ''}`}
-                      onMouseEnter={() => setHoveredResident(resident)}
-                      onMouseLeave={() => setHoveredResident(null)}
-                    >
-                      {resident.name}
-                      {hoveredResident && hoveredResident.id === resident.id && (
-                        <div className="resident-tooltip">
-                          <div className="tooltip-header">
-                            <strong>{resident.name}</strong>, {resident.age}
-                          </div>
-                          <p className="tooltip-bio">{resident.bio}</p>
-                          <div className="tooltip-stats">
-                            <div><span>Sharing:</span> {resident.stats.sharingTolerance}</div>
-                            <div><span>Cooking:</span> {resident.stats.cookingSkill}</div>
-                            <div><span>Tidiness:</span> {resident.stats.tidiness}</div>
-                            <div><span>Handiness:</span> {resident.stats.handiness}</div>
-                            <div><span>Consideration:</span> {resident.stats.consideration}</div>
-                            <div><span>Sociability:</span> {resident.stats.sociability}</div>
-                            <div><span>Party Stamina:</span> {resident.stats.partyStamina}</div>
-                            <div><span>Work Ethic:</span> {resident.stats.workEthic}</div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ))
-                ) : (
-                  <div className="no-residents">No llamas yet</div>
-                )}
-              </div>
-              {gameState.communeResidents && gameState.communeResidents.length > 0 && (() => {
-                const residents = gameState.communeResidents.filter(r => !r.churned);
-                const count = residents.length;
-                const calcPct = (statKey) => {
-                  const avg = residents.reduce((sum, r) => sum + (r.stats[statKey] || 10), 0) / count;
-                  return Math.round((avg - 10) * 10);
-                };
-                const stats = [
-                  { key: 'sharingTolerance', label: 'Sharing' },
-                  { key: 'cookingSkill', label: 'Cooking' },
-                  { key: 'tidiness', label: 'Tidiness' },
-                  { key: 'handiness', label: 'Handiness' },
-                  { key: 'consideration', label: 'Consideration' },
-                  { key: 'sociability', label: 'Sociability' },
-                  { key: 'partyStamina', label: 'Party' },
-                  { key: 'workEthic', label: 'Work' }
-                ];
-                return (
-                  <div className="aggregate-stats">
-                    {stats.map(s => {
-                      const pct = calcPct(s.key);
-                      return (
-                        <div key={s.key} className="agg-stat">
-                          <span className="agg-label">{s.label}</span>
-                          <span className={`agg-value ${pct >= 0 ? 'positive' : 'negative'}`}>
-                            {pct >= 0 ? '+' : ''}{pct}%
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                );
-              })()}
-            </div>
 
           <div className="card pressure-card">
               <div className="pressure-gauges">
