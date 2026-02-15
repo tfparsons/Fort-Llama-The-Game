@@ -1497,6 +1497,73 @@ function App() {
                 </div>
               </div>
             </div>
+
+            <div className="config-section">
+              <h3>Reputation Thresholds</h3>
+              <div style={{marginBottom: '8px'}}>
+                <label style={{fontSize: '0.75rem', color: '#a0aec0', display: 'block', marginBottom: '4px'}}>Fame Levels (based on Vibes score)</label>
+                <div className="tier-ladder-list">
+                  {[
+                    { name: 'Obscure', min: 0, max: 20 },
+                    { name: 'Known', min: 20, max: 40 },
+                    { name: 'Reputable', min: 40, max: 60 },
+                    { name: 'Famous', min: 60, max: 80 },
+                    { name: 'Mythical', min: 80, max: 100 }
+                  ].map((f, idx) => (
+                    <div key={idx} className={`tier-ladder-item ${gameState?.vibes?.reputation === f.name ? 'current' : ''}`}>
+                      <span className="tier-rank">{idx + 1}.</span>
+                      <span className="tier-name">{f.name}</span>
+                      <span className="tier-range">{f.min}-{f.max}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div style={{marginBottom: '8px', borderTop: '1px solid #2d3748', paddingTop: '8px'}}>
+                <label style={{fontSize: '0.75rem', color: '#a0aec0', display: 'block', marginBottom: '4px'}}>Imbalance Detection</label>
+                <div style={{fontSize: '0.75rem', color: '#cbd5e0', padding: '4px 0'}}>
+                  Balanced: spread ≤ {gameState?.vibesConfig?.balancedThreshold || 0.18}
+                </div>
+                <div style={{fontSize: '0.75rem', color: '#cbd5e0', padding: '4px 0'}}>
+                  Mild imbalance: spread {'>'} {gameState?.vibesConfig?.balancedThreshold || 0.18} and ≤ {gameState?.vibesConfig?.strongImbalanceThreshold || 0.30}
+                </div>
+                <div style={{fontSize: '0.75rem', color: '#cbd5e0', padding: '4px 0'}}>
+                  Strong imbalance: spread {'>'} {gameState?.vibesConfig?.strongImbalanceThreshold || 0.30}
+                </div>
+              </div>
+              <div style={{borderTop: '1px solid #2d3748', paddingTop: '8px'}}>
+                <label style={{fontSize: '0.75rem', color: '#a0aec0', display: 'block', marginBottom: '6px'}}>Identity Labels (when imbalanced)</label>
+                {(() => {
+                  const labels = gameState?.vibesConfig?.branchLabels || {
+                    highPartytime: { mild: 'Party House', strong: 'Party Mansion' },
+                    highProductivity: { mild: 'Grind House', strong: 'Sweat Shop' },
+                    highLivingStandards: { mild: 'Showhome', strong: 'Dolls House' },
+                    lowLivingStandards: { mild: 'Shanty Town', strong: 'Slum' },
+                    lowProductivity: { mild: 'Decadent', strong: 'Chaotic' },
+                    lowPartytime: { mild: 'Low Energy', strong: 'Dead' }
+                  };
+                  const conditions = [
+                    { key: 'highPartytime', condition: 'Partytime is highest', color: '#b794f4' },
+                    { key: 'highProductivity', condition: 'Productivity is highest', color: '#4299e1' },
+                    { key: 'highLivingStandards', condition: 'Living Standards is highest', color: '#4fd1c5' },
+                    { key: 'lowLivingStandards', condition: 'Living Standards is lowest', color: '#4fd1c5' },
+                    { key: 'lowProductivity', condition: 'Productivity is lowest', color: '#4299e1' },
+                    { key: 'lowPartytime', condition: 'Partytime is lowest', color: '#b794f4' }
+                  ];
+                  return conditions.map(c => (
+                    <div key={c.key} style={{display: 'flex', alignItems: 'center', gap: '6px', padding: '3px 0', fontSize: '0.75rem', borderBottom: '1px solid #1a202c'}}>
+                      <span style={{color: c.color, minWidth: '160px'}}>{c.condition}</span>
+                      <span style={{color: '#ed8936', minWidth: '80px'}}>{labels[c.key]?.mild}</span>
+                      <span style={{color: '#f56565'}}>{labels[c.key]?.strong}</span>
+                    </div>
+                  ));
+                })()}
+                <div style={{display: 'flex', gap: '6px', padding: '6px 0 0', fontSize: '0.65rem', color: '#718096'}}>
+                  <span style={{minWidth: '160px'}}>Trigger</span>
+                  <span style={{minWidth: '80px', color: '#ed8936'}}>Mild</span>
+                  <span style={{color: '#f56565'}}>Strong</span>
+                </div>
+              </div>
+            </div>
           </div>
 
           <h3 className="section-divider">Mechanics</h3>
