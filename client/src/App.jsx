@@ -445,7 +445,8 @@ function App() {
       }
       if (field === 'utilitiesMultiplier' || field === 'groundRentMultiplier' || 
           field === 'recoveryMult' || field === 'foodMult' || field === 'messMult' ||
-          field === 'cleanMult' || field === 'funMult' || field === 'noiseMult' || field === 'repairMult') {
+          field === 'cleanMult' || field === 'funMult' || field === 'noiseMult' || field === 'repairMult' ||
+          field === 'funOutput') {
         const parsed = value === '' ? null : parseFloat(value);
         return { ...b, [field]: parsed };
       }
@@ -2334,6 +2335,9 @@ function App() {
                 <div className="building-stats">
                   <div>Cost: £{building.cost?.toLocaleString()}</div>
                   <div>Capacity: {building.capacity} residents</div>
+                  {building.funOutput != null && (
+                    <div>Fun Output: {building.funOutput}</div>
+                  )}
                   {building.groundRentMultiplier !== null && (
                     <div>Ground Rent: +{(building.groundRentMultiplier * 100).toFixed(0)}%</div>
                   )}
@@ -2890,6 +2894,13 @@ function App() {
                             <label>Repair:</label>
                             <input type="number" step="0.1" value={b.repairMult ?? 1.0} 
                               onChange={(e) => updateBuildingField(b.id, 'repairMult', e.target.value)} />
+                          </div>
+                        )}
+                        {(b.id === 'heaven' || b.id === 'hot_tub') && (
+                          <div className="mult-row">
+                            <label>Fun Out:</label>
+                            <input type="number" step="0.5" value={b.funOutput ?? 0} 
+                              onChange={(e) => updateBuildingField(b.id, 'funOutput', e.target.value)} />
                           </div>
                         )}
                       </td>
