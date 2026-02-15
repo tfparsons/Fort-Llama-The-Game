@@ -2249,12 +2249,13 @@ function App() {
             <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px'}}>
               <h2 style={{margin: 0}}>Technology Research</h2>
               <button 
-                className="action-grid-btn"
                 onClick={(e) => { e.stopPropagation(); setShowTechModal(false); setShowTechTreeModal(true); }}
-                style={{padding: '8px 16px', flex: 'none', width: 'auto'}}
+                style={{display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 14px', background: '#0a1929', border: '1px solid #1a3a5c', borderRadius: '6px', color: '#cbd5e0', cursor: 'pointer', fontSize: '0.85rem', transition: 'all 0.15s ease'}}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#e94560'; e.currentTarget.style.color = '#fff'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#1a3a5c'; e.currentTarget.style.color = '#cbd5e0'; }}
               >
-                <span className="action-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="22" x2="12" y2="8"/><polyline points="8 12 12 8 16 12"/><path d="M12 8a4 4 0 0 0-4-4H4"/><path d="M12 8a4 4 0 0 1 4-4h4"/><line x1="4" y1="2" x2="4" y2="4"/><line x1="20" y1="2" x2="20" y2="4"/></svg></span>
-                <span className="action-label">Tech Tree</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e94560" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="22" x2="12" y2="8"/><polyline points="8 12 12 8 16 12"/><path d="M12 8a4 4 0 0 0-4-4H4"/><path d="M12 8a4 4 0 0 1 4-4h4"/><line x1="4" y1="2" x2="4" y2="4"/><line x1="20" y1="2" x2="20" y2="4"/></svg>
+                Tech Tree
               </button>
             </div>
             {['livingStandards', 'productivity', 'fun'].map(treeName => {
