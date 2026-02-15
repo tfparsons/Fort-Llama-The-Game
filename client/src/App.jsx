@@ -2211,26 +2211,26 @@ function App() {
               Toggle policies to improve your commune. More than 3 active policies will reduce Fun.
             </p>
             <div className="policy-list">
-              {(gameState.policyDefinitions || []).map(policy => {
+              {(gameState.policyDefinitions || []).filter(policy => !policy.techRequired || gameState.researchedTechs?.includes(policy.techRequired)).length === 0 && (
+                <p style={{color: '#a0aec0', fontSize: '0.85rem', textAlign: 'center', padding: '20px 0'}}>No policies available yet. Research technologies to unlock policies.</p>
+              )}
+              {(gameState.policyDefinitions || []).filter(policy => !policy.techRequired || gameState.researchedTechs?.includes(policy.techRequired)).map(policy => {
                 const isActive = (gameState.activePolicies || []).includes(policy.id);
-                const isLocked = policy.techRequired && !gameState.researchedTechs?.includes(policy.techRequired);
                 const pct = Math.round((gameState.policyConfig?.excludePercent || 0.25) * 100);
                 const ocadoPct = gameState.techConfig?.ocado?.effectPercent || 15;
                 let desc = policy.description.replace('{pct}', pct).replace('{ocadoPct}', ocadoPct);
                 return (
-                  <div key={policy.id} className={`policy-card ${isActive ? 'active' : ''} ${isLocked ? 'locked' : ''}`}>
+                  <div key={policy.id} className={`policy-card ${isActive ? 'active' : ''}`}>
                     <div className="policy-header">
-                      <h3>{policy.name} {isLocked && '🔒'}</h3>
+                      <h3>{policy.name}</h3>
                       <span className="policy-primitive">{policy.primitive}</span>
                     </div>
-                    <p className="policy-desc">{isLocked ? `Requires ${policy.techRequired} tech` : desc}</p>
+                    <p className="policy-desc">{desc}</p>
                     <button 
                       className={`policy-toggle ${isActive ? 'active' : ''}`}
                       onClick={() => handleTogglePolicy(policy.id)}
-                      disabled={isLocked}
-                      style={isLocked ? {opacity: 0.4, cursor: 'not-allowed'} : {}}
                     >
-                      {isLocked ? 'Locked' : isActive ? 'Deactivate' : 'Activate'}
+                      {isActive ? 'Deactivate' : 'Activate'}
                     </button>
                   </div>
                 );
