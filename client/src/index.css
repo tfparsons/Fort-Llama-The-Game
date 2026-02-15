@@ -120,22 +120,29 @@ body {
   order: -1;
 }
 
-.sidebar-header {
-  padding: 12px 14px;
-  background: #16213e;
-  border-bottom: 1px solid #0f3460;
-}
-
-.sidebar-title {
-  font-weight: bold;
-  font-size: 1rem;
-  color: #e94560;
-}
-
 .sidebar-content {
-  padding: 14px;
+  padding: 16px;
   overflow-y: auto;
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sidebar-ticker {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: #e94560;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+.ticker-dot {
+  color: #0f3460;
 }
 
 .main-content {
@@ -398,7 +405,7 @@ body {
 }
 
 .panel-section {
-  margin-bottom: 8px;
+  margin-bottom: 2px;
 }
 
 .panel-section label {

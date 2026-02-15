@@ -954,11 +954,14 @@ function App() {
         </div>
         {showWeeklyPanel && (
           <div className="weekly-sidebar">
-            <div className="sidebar-header">
-              <div className="sidebar-title">Week {gameState.week} Planning</div>
-            </div>
             <div className="sidebar-content">
+              <div className="sidebar-ticker">
+                <span>Week {gameState.week}</span>
+                <span className="ticker-dot">·</span>
+                <span>Planning</span>
+              </div>
               <div className="panel-section">
+                <label>Rent</label>
                 <div className="rent-row">
                   <input 
                     type="range" 
