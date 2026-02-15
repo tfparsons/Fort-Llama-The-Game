@@ -427,9 +427,17 @@ function initializeGame(config = savedDefaults) {
     ? JSON.parse(JSON.stringify(savedLlamaPool)) 
     : JSON.parse(JSON.stringify(STARTING_LLAMAS));
   
-  const buildingsConfig = savedBuildingsConfig 
-    ? JSON.parse(JSON.stringify(savedBuildingsConfig))
-    : JSON.parse(JSON.stringify(DEFAULT_BUILDINGS));
+  let buildingsConfig;
+  if (savedBuildingsConfig) {
+    buildingsConfig = JSON.parse(JSON.stringify(savedBuildingsConfig));
+    DEFAULT_BUILDINGS.forEach(def => {
+      if (!buildingsConfig.find(b => b.id === def.id)) {
+        buildingsConfig.push(JSON.parse(JSON.stringify(def)));
+      }
+    });
+  } else {
+    buildingsConfig = JSON.parse(JSON.stringify(DEFAULT_BUILDINGS));
+  }
   
   const shuffled = [...llamaPool].sort(() => Math.random() - 0.5);
   const startingResidentObjects = shuffled.slice(0, gameConfig.startingResidents).map(llama => ({
@@ -1641,7 +1649,15 @@ app.post('/api/buildings', (req, res) => {
 });
 
 app.get('/api/buildings-config', (req, res) => {
-  res.json(savedBuildingsConfig || DEFAULT_BUILDINGS);
+  const config = savedBuildingsConfig ? [...savedBuildingsConfig] : JSON.parse(JSON.stringify(DEFAULT_BUILDINGS));
+  if (savedBuildingsConfig) {
+    DEFAULT_BUILDINGS.forEach(def => {
+      if (!config.find(b => b.id === def.id)) {
+        config.push(JSON.parse(JSON.stringify(def)));
+      }
+    });
+  }
+  res.json(config);
 });
 
 app.post('/api/buildings-config', (req, res) => {
