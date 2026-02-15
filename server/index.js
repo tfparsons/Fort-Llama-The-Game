@@ -953,6 +953,7 @@ function calculateVibes() {
   const tierName = cfg.tierThresholds[baseTierIndex].name;
   
   const vibesScore = overallLevel * 100;
+  const popTier = getPopulationTier(N);
   const fameThresholds = [
     { min: 0, max: 20, name: 'Obscure', minTier: 0 },
     { min: 20, max: 40, name: 'Reputable', minTier: 1 },
@@ -962,7 +963,7 @@ function calculateVibes() {
   ];
   let reputation = 'Obscure';
   for (const f of fameThresholds) {
-    if (vibesScore >= f.min && tier >= f.minTier) {
+    if (vibesScore >= f.min && popTier >= f.minTier) {
       reputation = f.name;
     }
   }
