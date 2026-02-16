@@ -492,7 +492,7 @@ function initializeGame(config = savedDefaults) {
       crowding: 0,
       noise: 0,
       nutrition: 50,
-      cleanliness: 0,
+      cleanliness: 40,
       maintenance: 0,
       fatigue: 0,
       fun: 50,
@@ -716,7 +716,7 @@ function getCoverageTierLabel(score) {
 function calculatePrimitives() {
   const N = gameState.communeResidents.length;
   if (N === 0) {
-    gameState.primitives = { crowding: 0, noise: 0, nutrition: 50, cleanliness: 0, maintenance: 0, fatigue: 0, fun: 50, drive: 50 };
+    gameState.primitives = { crowding: 0, noise: 0, nutrition: 50, cleanliness: 40, maintenance: 0, fatigue: 0, fun: 50, drive: 50 };
     return;
   }
   
