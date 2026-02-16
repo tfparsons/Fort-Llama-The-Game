@@ -18,19 +18,21 @@ The project follows a client-server architecture:
     -   The main content area uses cards for Commune Status, Weekly Projection, and Game Status.
     -   Weekly actions are managed via a draggable, minimizable floating panel, allowing dashboard visibility during decision-making.
     -   A continuous, client-side 24-hour clock system uses `requestAnimationFrame` for smooth animation.
-    -   Primitives are visualized with distinct UI elements: circular gauges for "Pressure" (Crowding, Noise), horizontal bars for "Instant Metrics" (Nutrition, Cleanliness, Fun, Drive), and vertical tanks for "Stock Levels" (Maintenance, Fatigue). Tanks visually fill and change color based on debt accumulation.
+    -   Primitives are visualized with distinct UI elements: circular gauges for "Pressure" (Crowding, Noise), horizontal bars for "Instant Metrics" (Nutrition, Fun, Drive), and vertical tanks for "Stock Levels" (Cleanliness, Maintenance, Fatigue). Tanks visually fill and change color based on debt accumulation.
 -   **Game Mechanics:**
     -   **Time System:** Daily ticks (7 days per week) with an auto-pause at the end of each week for player decisions. The weekly action modal appears on Monday at 9 am.
     -   **Primitives System:** Eight core metrics with three types:
         -   **Pressure** (Crowding, Noise): Increase with population and decrease quality of life
-        -   **Coverage** (Nutrition, Cleanliness, Fun, Drive): Supply/demand model with log2 scoring
+        -   **Coverage** (Nutrition, Fun, Drive): Supply/demand model with log2 scoring
             -   Supply = min(N, capacity) × outputRate × tierOutputMult × buildingQuality × (1 + skillMult × avgSkill)
             -   Demand = N × consumptionRate (or slackRate for Drive)
             -   Score = 25 × (log2(ratio) + 2), clamped 0-100
             -   Tier labels (score-based): Shortfall (0-24), Tight (25-44), Adequate (45-59), Good (60-74), Great (75-89), Superb (90-100)
-            -   Default rates tuned for ~35 score at game start: Nutrition 5/9, Cleanliness 2/4, Fun 6/12, Drive 4/8
+            -   Default rates tuned for ~35 score at game start: Nutrition 5/9, Fun 6/12, Drive 4/8
             -   skillMult: 0.1 (reduced to limit resident modifier impact)
-        -   **Stock** (Maintenance, Fatigue): Debt-based accumulation over time
+        -   **Stock** (Cleanliness, Maintenance, Fatigue): Debt-based accumulation over time
+            -   Cleanliness: messIn = messPerResident × N × overcrowdingPenalty, cleanOut = cleanBase × bathQuality × cleanMult × (1 + skillMult × tidiness). No tier scaling on cleaning — intentionally punishing at high populations, forcing tech/budget investment
+            -   Cleanliness starts at 0 (clean), higher = worse. Uses dampener in Living Standards formula
     -   **Tier Progression System:** Population-based tiers scale the game's progression:
         -   Brackets: 1-6, 7-12, 13-20, 21-50, 51-100, 101+
         -   outputMults: [1.0, 1.15, 1.3, 1.5, 1.75, 2.0] - scales supply for coverage primitives

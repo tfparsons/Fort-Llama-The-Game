@@ -1051,6 +1051,7 @@ function App() {
           <div className="card stocks-card">
               <div className="stocks-tanks">
                 {[
+                  { key: 'cleanliness', label: 'Cleanliness', icon: '🧹' },
                   { key: 'maintenance', label: 'Maintenance', icon: '🔧' },
                   { key: 'fatigue', label: 'Fatigue', icon: '😴' }
                 ].map(p => {
@@ -1074,7 +1075,6 @@ function App() {
           <div className="card instants-card wide">
               {[
                 { key: 'nutrition', label: 'Nutrition', icon: '🍽️' },
-                { key: 'cleanliness', label: 'Cleanliness', icon: '🧹' },
                 { key: 'fun', label: 'Fun', icon: '🎉' },
                 { key: 'drive', label: 'Drive', icon: '💪' }
               ].map((p, idx) => {
@@ -1555,9 +1555,9 @@ function App() {
                   onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, livingStandards: {...editConfig.health?.livingStandards, nutritionWeight: parseFloat(e.target.value)}}})} />
               </div>
               <div className="config-field">
-                <label>Cleanliness wt</label>
-                <input type="number" step="0.1" value={editConfig?.health?.livingStandards?.cleanlinessWeight ?? 0.5} 
-                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, livingStandards: {...editConfig.health?.livingStandards, cleanlinessWeight: parseFloat(e.target.value)}}})} />
+                <label>Cleanliness damp</label>
+                <input type="number" step="0.1" value={editConfig?.health?.livingStandards?.cleanlinessDampen ?? 0.35} 
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, livingStandards: {...editConfig.health?.livingStandards, cleanlinessDampen: parseFloat(e.target.value)}}})} />
               </div>
               <div className="config-field">
                 <label>Crowding damp</label>
@@ -1946,35 +1946,32 @@ function App() {
               <div className="primitive-header" onClick={() => togglePrimitiveExpanded('cleanliness')}>
                 <span className="expand-icon">{expandedPrimitives.cleanliness ? '▼' : '▶'}</span>
                 <span className="primitive-name">Cleanliness</span>
-                <span className="primitive-type coverage">Coverage</span>
+                <span className="primitive-type stock">Stock (Debt)</span>
               </div>
               {expandedPrimitives.cleanliness && (
                 <div className="primitive-body">
-                  <div className="formula-display">supply = min(N,cap) × outputRate × levelMult × quality × (1 + skillMult × tidiness)</div>
-                  <div className="coverage-stats">
-                    <span>Supply: {gameState?.coverageData?.cleanliness?.supply?.toFixed(1) || 0}</span>
-                    <span>Demand: {gameState?.coverageData?.cleanliness?.demand?.toFixed(1) || 0}</span>
-                    <span>Ratio: {gameState?.coverageData?.cleanliness?.ratio?.toFixed(2) || 1}x</span>
-                  </div>
+                  <div className="formula-display">messIn = messPerResident × N × overcrowdingPenalty</div>
+                  <div className="formula-display">cleanOut = cleanBase × bathQuality × cleanMult × (1 + skillMult × tidiness)</div>
+                  <div className="formula-display">debt += (messIn - cleanOut) × 0.5 - budgetReduction</div>
                   <div className="primitive-controls">
                     <div className="config-field">
-                      <label>outputRate</label>
-                      <input type="number" step="1" value={editConfig?.primitives?.cleanliness?.outputRate ?? 3}
-                        onChange={(e) => updatePrimitiveConfig('cleanliness', 'outputRate', parseFloat(e.target.value))} />
+                      <label>messPerResident</label>
+                      <input type="number" step="0.1" value={editConfig?.primitives?.cleanliness?.messPerResident ?? 1.2}
+                        onChange={(e) => updatePrimitiveConfig('cleanliness', 'messPerResident', parseFloat(e.target.value))} />
                     </div>
                     <div className="config-field">
-                      <label>consumptionRate</label>
-                      <input type="number" step="0.1" value={editConfig?.primitives?.cleanliness?.consumptionRate ?? 1}
-                        onChange={(e) => updatePrimitiveConfig('cleanliness', 'consumptionRate', parseFloat(e.target.value))} />
+                      <label>cleanBase</label>
+                      <input type="number" step="0.1" value={editConfig?.primitives?.cleanliness?.cleanBase ?? 3}
+                        onChange={(e) => updatePrimitiveConfig('cleanliness', 'cleanBase', parseFloat(e.target.value))} />
                     </div>
                     <div className="config-field">
                       <label>skillMult</label>
-                      <input type="number" step="0.1" value={editConfig?.primitives?.cleanliness?.skillMult ?? 0.3}
+                      <input type="number" step="0.1" value={editConfig?.primitives?.cleanliness?.skillMult ?? 0.1}
                         onChange={(e) => updatePrimitiveConfig('cleanliness', 'skillMult', parseFloat(e.target.value))} />
                     </div>
                   </div>
                   <div className="linked-buildings">
-                    <span className="info-label">Buildings:</span> Bathroom (cap: {gameState?.buildings?.find(b => b.id === 'bathroom')?.capacity ?? 4}, cleanMult: {gameState?.buildings?.find(b => b.id === 'bathroom')?.cleanMult ?? 1.0})
+                    <span className="info-label">Buildings:</span> Bathroom (quality & cleanMult affect cleaning rate)
                   </div>
                 </div>
               )}
@@ -2079,7 +2076,7 @@ function App() {
               </div>
               {[
                 { key: 'nutrition', label: 'Ingredients', type: 'coverage' },
-                { key: 'cleanliness', label: 'Cleaning', type: 'coverage' },
+                { key: 'cleanliness', label: 'Cleaning', type: 'stock' },
                 { key: 'fun', label: 'Party supplies', type: 'coverage' },
                 { key: 'drive', label: 'Internet', type: 'coverage' },
                 { key: 'maintenance', label: 'Handiman', type: 'stock' },
@@ -2295,8 +2292,8 @@ function App() {
                 <h2>Living Standards</h2>
                 <div className="formula-section">
                   <h4>Raw Formula</h4>
-                  <code>LS_raw = baseline(Nutrition) × baseline(Cleanliness) × damp(Crowding) × damp(Maintenance)</code>
-                  <p>Nutrition and Cleanliness provide the baseline. Crowding and Maintenance are dampeners.</p>
+                  <code>LS_raw = baseline(Nutrition) × damp(Cleanliness) × damp(Crowding) × damp(Maintenance)</code>
+                  <p>Nutrition provides the baseline. Cleanliness, Crowding and Maintenance are dampeners (higher debt = worse).</p>
                 </div>
                 <div className="formula-section">
                   <h4>Scoring (0-100)</h4>
@@ -2308,7 +2305,7 @@ function App() {
                   <h4>Primitives Used</h4>
                   <ul>
                     <li><strong>Nutrition</strong> (baseline × nutritionWeight) - Food quality from Kitchen</li>
-                    <li><strong>Cleanliness</strong> (dampener × cleanlinessWeight) - Mess debt reduces LS</li>
+                    <li><strong>Cleanliness</strong> (dampener × cleanlinessDampen) - Mess debt reduces LS</li>
                     <li><strong>Crowding</strong> (dampener × crowdingDampen) - Worst ratio across all rooms</li>
                     <li><strong>Maintenance</strong> (dampener × maintenanceDampen) - Wear debt reduces LS</li>
                   </ul>

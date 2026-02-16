@@ -241,7 +241,7 @@ const DEFAULT_PRIMITIVE_CONFIG = {
   crowding: { baseMult: 50, weight: 1.0, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
   noise: { baseSocial: 5, baseAmbient: 10, socioMult: 0.1, considMult: 0.3, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
   nutrition: { outputRate: 5, consumptionRate: 9, skillMult: 0.1, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
-  cleanliness: { outputRate: 2, consumptionRate: 4, skillMult: 0.1, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
+  cleanliness: { messPerResident: 1.2, cleanBase: 3, skillMult: 0.1, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
   maintenance: { wearPerResident: 1, repairBase: 3, recoveryRate: 0.1, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
   fatigue: { exertBase: 3, recoverBase: 5, workMult: 0.3, socioMult: 0.2 },
   fun: { outputRate: 6, consumptionRate: 12, skillMult: 0.1, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
@@ -251,7 +251,7 @@ const DEFAULT_PRIMITIVE_CONFIG = {
 const DEFAULT_HEALTH_CONFIG = {
   livingStandards: {
     nutritionWeight: 0.5,
-    cleanlinessWeight: 0.5,
+    cleanlinessDampen: 0.35,
     crowdingDampen: 0.35,
     maintenanceDampen: 0.35,
     rentCurve: 0.7,
@@ -330,7 +330,7 @@ const DEFAULT_VIBES_CONFIG = {
 
 const DEFAULT_BUDGET_CONFIG = {
   nutrition: { key: 'nutrition', label: 'Ingredients', type: 'coverage', efficiency: 0.5, investment: 0 },
-  cleanliness: { key: 'cleanliness', label: 'Cleaning materials', type: 'coverage', efficiency: 0.5, investment: 0 },
+  cleanliness: { key: 'cleanliness', label: 'Cleaning materials', type: 'stock', reductionRate: 0.02, investment: 0 },
   maintenance: { key: 'maintenance', label: 'Handiman', type: 'stock', reductionRate: 0.02, investment: 0 },
   fatigue: { key: 'fatigue', label: 'Wellness', type: 'stock', reductionRate: 0.02, investment: 0 },
   fun: { key: 'fun', label: 'Party supplies', type: 'coverage', efficiency: 0.5, investment: 0 },
@@ -492,7 +492,7 @@ function initializeGame(config = savedDefaults) {
       crowding: 0,
       noise: 0,
       nutrition: 50,
-      cleanliness: 50,
+      cleanliness: 0,
       maintenance: 0,
       fatigue: 0,
       fun: 50,
@@ -516,7 +516,6 @@ function initializeGame(config = savedDefaults) {
       tier: 0,
       tierOutputMult: 1.0,
       nutrition: { supply: 0, demand: 0, ratio: 1, label: 'Adequate' },
-      cleanliness: { supply: 0, demand: 0, ratio: 1, label: 'Adequate' },
       fun: { supply: 0, demand: 0, ratio: 1, label: 'Adequate' },
       drive: { supply: 0, demand: 0, ratio: 1, label: 'Adequate' }
     },
@@ -717,7 +716,7 @@ function getCoverageTierLabel(score) {
 function calculatePrimitives() {
   const N = gameState.communeResidents.length;
   if (N === 0) {
-    gameState.primitives = { crowding: 0, noise: 0, nutrition: 50, cleanliness: 50, maintenance: 0, fatigue: 0, fun: 50, drive: 50 };
+    gameState.primitives = { crowding: 0, noise: 0, nutrition: 50, cleanliness: 0, maintenance: 0, fatigue: 0, fun: 50, drive: 50 };
     return;
   }
   
@@ -789,17 +788,15 @@ function calculatePrimitives() {
   const nutrition = log2CoverageScore(nutritionRatio);
   
   const cCfg = primitiveConfig.cleanliness;
-  const cleanServed = Math.min(N, capBath);
-  const cleanSupply = cleanServed * cCfg.outputRate * tierOutputMult * bathQ * getBuildingMult('bathroom', 'cleanMult') * (1 + cCfg.skillMult * tidiness);
-  const cleanBudgetBoost = (gameState.budgets.cleanliness || 0) * (budgetConfig.cleanliness.efficiency || 0);
-  let totalCleanSupply = cleanSupply + cleanBudgetBoost;
+  const messIn = cCfg.messPerResident * N * overcrowdingPenalty(N / capUtil, 'cleanliness');
+  let cleanOut = cCfg.cleanBase * bathQ * getBuildingMult('bathroom', 'cleanMult') * (1 + cCfg.skillMult * tidiness);
   if (gameState.activeFixedCosts.includes('cleaner')) {
     const cleanerBoost = (techConfig.cleaner?.effectPercent || 20) / 100;
-    totalCleanSupply *= (1 + cleanerBoost);
+    cleanOut *= (1 + cleanerBoost);
   }
-  const cleanDemand = N * cCfg.consumptionRate;
-  const cleanRatio = cleanDemand > 0 ? totalCleanSupply / cleanDemand : 1;
-  const cleanliness = log2CoverageScore(cleanRatio);
+  const netMess = messIn - cleanOut;
+  const oldClean = gameState.primitives.cleanliness || 0;
+  const cleanliness = Math.min(100, Math.max(0, oldClean + netMess * 0.5 - (gameState.budgets.cleanliness || 0) * (budgetConfig.cleanliness.reductionRate || 0) / ticksPerWeek));
   
   const mCfg = primitiveConfig.maintenance;
   const wearIn = mCfg.wearPerResident * N * overcrowdingPenalty(N / capUtil, 'maintenance');
@@ -863,7 +860,6 @@ function calculatePrimitives() {
     tier,
     tierOutputMult,
     nutrition: { supply: totalNutritionSupply, demand: nutritionDemand, ratio: nutritionRatio, label: getCoverageTierLabel(nutrition), budgetBoost: nutritionBudgetBoost },
-    cleanliness: { supply: totalCleanSupply, demand: cleanDemand, ratio: cleanRatio, label: getCoverageTierLabel(cleanliness), budgetBoost: cleanBudgetBoost },
     fun: { supply: totalFunWithBuildings, demand: funDemand, ratio: funRatio, label: getCoverageTierLabel(fun), budgetBoost: funBudgetBoost },
     drive: { supply: totalDriveSupply, demand: driveDemand, ratio: driveRatio, label: getCoverageTierLabel(drive), budgetBoost: driveBudgetBoost }
   };
@@ -919,7 +915,7 @@ function calculateHealthMetrics() {
   
   const lsRaw = Math.max(0.001,
     baseline(p.nutrition, ls.nutritionWeight) *
-    baseline(p.cleanliness, ls.cleanlinessWeight) *
+    dampener(p.cleanliness, ls.cleanlinessDampen) *
     dampener(p.crowding, ls.crowdingDampen) *
     dampener(p.maintenance, ls.maintenanceDampen)
   );
