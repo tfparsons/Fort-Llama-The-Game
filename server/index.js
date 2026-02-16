@@ -255,8 +255,8 @@ const DEFAULT_HEALTH_CONFIG = {
     crowdingDampen: 0.35,
     maintenanceDampen: 0.35,
     rentCurve: 0.7,
-    useCustomScaling: false,
-    ref0: 0.3,
+    useCustomScaling: true,
+    ref0: 0.5,
     alpha: 0.15,
     p: 2,
     tierMult: [1.0, 1.1, 1.2, 1.35, 1.5, 1.7]
@@ -492,7 +492,7 @@ function initializeGame(config = savedDefaults) {
       crowding: 0,
       noise: 0,
       nutrition: 50,
-      cleanliness: 40,
+      cleanliness: 0,
       maintenance: 0,
       fatigue: 0,
       fun: 50,
@@ -716,7 +716,7 @@ function getCoverageTierLabel(score) {
 function calculatePrimitives() {
   const N = gameState.communeResidents.length;
   if (N === 0) {
-    gameState.primitives = { crowding: 0, noise: 0, nutrition: 50, cleanliness: 40, maintenance: 0, fatigue: 0, fun: 50, drive: 50 };
+    gameState.primitives = { crowding: 0, noise: 0, nutrition: 50, cleanliness: 0, maintenance: 0, fatigue: 0, fun: 50, drive: 50 };
     return;
   }
   
