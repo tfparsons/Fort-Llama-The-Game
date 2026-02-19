@@ -223,9 +223,9 @@ const DEFAULT_PRIMITIVE_CONFIG = {
   crowding: { baseMult: 50, weight: 1.0, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
   noise: { baseSocial: 5, baseAmbient: 10, socioMult: 0.1, considMult: 0.3, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
   nutrition: { outputRate: 7, consumptionRate: 9, skillMult: 0.1, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
-  cleanliness: { messPerResident: 0.4, cleanBase: 3, skillMult: 0.1, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
-  maintenance: { wearPerResident: 0.5, repairBase: 3, handinessCoeff: 0.1, tidinessCoeff: 0.05, useCustomPenalty: true, penaltyK: 4, penaltyP: 3 },
-  fatigue: { exertBase: 5, recoverBase: 4.5, workMult: 0.3, socioMult: 0.2 },
+  cleanliness: { messPerResident: 0.06, cleanBase: 0.5, skillMult: 0.1, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
+  maintenance: { wearPerResident: 0.08, repairBase: 0.5, handinessCoeff: 0.1, tidinessCoeff: 0.05, useCustomPenalty: true, penaltyK: 4, penaltyP: 3 },
+  fatigue: { exertBase: 0.5, recoverBase: 0.45, workMult: 0.3, socioMult: 0.2 },
   fun: { outputRate: 9, consumptionRate: 12, skillMult: 0.1, considerationPenalty: 0.05, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
   drive: { outputRate: 6, slackRate: 8, skillMult: 0.1, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 }
 };
@@ -294,8 +294,8 @@ const DEFAULT_VIBES_CONFIG = {
     { name: 'Utopia', min: 0.95, max: 1.01 }
   ],
   scaleBreakpoints: [
-    { min: 1, max: 5, tierMin: 3, tierMax: 5 },
-    { min: 6, max: 10, tierMin: 3, tierMax: 6 },
+    { min: 1, max: 5, tierMin: 2, tierMax: 5 },
+    { min: 6, max: 10, tierMin: 2, tierMax: 6 },
     { min: 11, max: 20, tierMin: 2, tierMax: 7 },
     { min: 21, max: 35, tierMin: 1, tierMax: 8 },
     { min: 36, max: 999, tierMin: 0, tierMax: 9 }
