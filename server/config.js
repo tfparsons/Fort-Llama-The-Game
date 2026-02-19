@@ -110,7 +110,7 @@ const DEFAULT_BUILDINGS = [
   {
     id: 'great_hall', name: 'Great Hall', capacity: 30, atStart: 0, cost: null,
     utilitiesMultiplier: null, groundRentMultiplier: null, buildable: false,
-    quality: 1, funMult: 1.3, noiseMult: 1.0, driveMult: 1.2,
+    quality: 2.0,
     techRequired: 'great_hall', isUpgrade: true, upgradeOf: 'living_room'
   },
   {
@@ -196,7 +196,7 @@ const DEFAULT_TECH_CONFIG = {
   cleaner: { cost: 1000, weeklyCost: 150, effectPercent: 20 },
   ocado: { cost: 1000, effectPercent: 15 },
   wellness: { cost: 1000 },
-  great_hall: { cost: 1000, capacityBoost: 10, funMultBoost: 0.3, driveMultBoost: 0.2 },
+  great_hall: { cost: 1000 },
   starlink: { cost: 500, weeklyCost: 100, effectPercent: 15 },
   blanket_fort: { cost: 500 },
   always_be_escalating: { cost: 1000 },
@@ -224,7 +224,7 @@ const DEFAULT_PRIMITIVE_CONFIG = {
   noise: { baseSocial: 5, baseAmbient: 10, socioMult: 0.1, considMult: 0.3, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
   nutrition: { outputRate: 7, consumptionRate: 9, skillMult: 0.1, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
   cleanliness: { messPerResident: 0.4, cleanBase: 3, skillMult: 0.1, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
-  maintenance: { wearPerResident: 0.5, repairBase: 3, recoveryRate: 0.1, tidinessCoeff: 0.2, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
+  maintenance: { wearPerResident: 0.5, repairBase: 3, handinessCoeff: 0.1, tidinessCoeff: 0.05, useCustomPenalty: true, penaltyK: 4, penaltyP: 3 },
   fatigue: { exertBase: 5, recoverBase: 4.5, workMult: 0.3, socioMult: 0.2 },
   fun: { outputRate: 9, consumptionRate: 12, skillMult: 0.1, considerationPenalty: 0.05, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
   drive: { outputRate: 6, slackRate: 8, skillMult: 0.1, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 }
