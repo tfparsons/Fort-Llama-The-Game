@@ -311,12 +311,12 @@ const DEFAULT_VIBES_CONFIG = {
 };
 
 const DEFAULT_BUDGET_CONFIG = {
-  nutrition:   { key: 'nutrition',   label: 'Ingredients',        type: 'coverage', efficiency: 0.5,         investment: 0 },
-  cleanliness: { key: 'cleanliness', label: 'Cleaning materials', type: 'outflow',  budgetEfficiency: 0.005, investment: 0 },
-  maintenance: { key: 'maintenance', label: 'Handiman',           type: 'outflow',  budgetEfficiency: 0.005, investment: 0 },
-  fatigue:     { key: 'fatigue',     label: 'Wellness',           type: 'outflow',  budgetEfficiency: 0.005, investment: 0 },
-  fun:         { key: 'fun',         label: 'Party supplies',     type: 'coverage', efficiency: 0.5,         investment: 0 },
-  drive:       { key: 'drive',       label: 'Internet',           type: 'coverage', efficiency: 0.5,         investment: 0 }
+  nutrition:   { key: 'nutrition',   label: 'Ingredients',        type: 'coverage', supplyPerPound: 0.5,         investment: 0 },
+  cleanliness: { key: 'cleanliness', label: 'Cleaning materials', type: 'outflow',  outflowBoostPerPound: 0.005, investment: 0 },
+  maintenance: { key: 'maintenance', label: 'Handiman',           type: 'outflow',  outflowBoostPerPound: 0.005, investment: 0 },
+  fatigue:     { key: 'fatigue',     label: 'Wellness',           type: 'outflow',  outflowBoostPerPound: 0.005, investment: 0 },
+  fun:         { key: 'fun',         label: 'Party supplies',     type: 'coverage', supplyPerPound: 0.5,         investment: 0 },
+  drive:       { key: 'drive',       label: 'Internet',           type: 'coverage', supplyPerPound: 0.5,         investment: 0 }
 };
 
 const INITIAL_DEFAULTS = {
@@ -335,13 +335,6 @@ const INITIAL_DEFAULTS = {
   gameOverLimit: -20000,
   tickSpeed: 200,
   hoursPerTick: 4,
-  rentTierThresholds: [
-    { name: 'Bargain', maxChurn: 0.02 },
-    { name: 'Cheap', maxChurn: 0.05 },
-    { name: 'Fair', maxChurn: 0.08 },
-    { name: 'Pricey', maxChurn: 0.12 },
-    { name: 'Extortionate', maxChurn: 1.0 }
-  ],
   startingBudgets: {
     nutrition: 0,
     cleanliness: 0,

@@ -41,7 +41,6 @@ router.get('/api/state', (req, res) => {
     config: state.gameConfig,
     recruitmentSlots: calculateRecruitmentSlots(),
     rentTier: calculateRentTier(state.gameState.currentRent),
-    rentTierThresholds: state.gameConfig.rentTierThresholds,
     primitiveConfig: state.primitiveConfig,
     healthConfig: state.healthConfig,
     vibesConfig: state.vibesConfig,

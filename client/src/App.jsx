@@ -2091,7 +2091,7 @@ function App() {
                       startingBudgets: { ...prev.startingBudgets, [item.key]: val }
                     }));
                   }} />
-                  <input type="number" step={item.type === 'coverage' ? '0.01' : '0.001'} style={{width: '70px', marginLeft: '8px'}} value={editConfig?.budgetConfig?.[item.key]?.[item.type === 'coverage' ? 'efficiency' : 'budgetEfficiency'] ?? (item.type === 'coverage' ? 0.5 : 0.005)} onChange={(e) => updateBudgetConfig(item.key, item.type === 'coverage' ? 'efficiency' : 'budgetEfficiency', parseFloat(e.target.value))} />
+                  <input type="number" step={item.type === 'coverage' ? '0.01' : '0.001'} style={{width: '70px', marginLeft: '8px'}} value={editConfig?.budgetConfig?.[item.key]?.[item.type === 'coverage' ? 'supplyPerPound' : 'outflowBoostPerPound'] ?? (item.type === 'coverage' ? 0.5 : 0.005)} onChange={(e) => updateBudgetConfig(item.key, item.type === 'coverage' ? 'supplyPerPound' : 'outflowBoostPerPound', parseFloat(e.target.value))} />
                 </div>
               ))}
             </div>

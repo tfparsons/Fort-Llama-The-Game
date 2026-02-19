@@ -1,9 +1,5 @@
 'use strict';
 
-// Dead code: defined in original but never called (statTo01 is used instead)
-function statToPercentage(stat) {
-  return (stat - 10) * 10;
-}
 
 function statTo01(stat) {
   return Math.max(0, Math.min(1, (stat - 1) / 19));
@@ -54,7 +50,6 @@ function baseline(value, weight) {
 }
 
 module.exports = {
-  statToPercentage,
   statTo01,
   deepMergePrimitives,
   log2CoverageScore,

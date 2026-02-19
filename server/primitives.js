@@ -17,11 +17,6 @@ function getTierOutputMult(tier) {
   return mults[Math.min(tier, mults.length - 1)];
 }
 
-// Dead code: defined in original but never called
-function getTierHealthMult(tier) {
-  const mults = state.tierConfig.healthMults || [1.0, 1.1, 1.2, 1.35, 1.5, 1.7];
-  return mults[Math.min(tier, mults.length - 1)];
-}
 
 function getBuildingCapacity(buildingId) {
   const b = state.gameState.buildings.find(bld => bld.id === buildingId);
@@ -113,7 +108,7 @@ function calculatePrimitives() {
   const nCfg = state.primitiveConfig.nutrition;
   const nutritionServed = Math.min(N, capKitch);
   const nutritionSupply = nutritionServed * nCfg.outputRate * tierOutputMult * kQ * getBuildingMult('kitchen', 'foodMult') * (1 + nCfg.skillMult * cookSkill);
-  let nutritionEfficiency = state.budgetConfig.nutrition.efficiency || 0;
+  let nutritionEfficiency = state.budgetConfig.nutrition.supplyPerPound || 0;
   if (state.gameState.activePolicies.includes('ocado')) {
     const ocadoBoost = (state.techConfig.ocado?.effectPercent || 15) / 100;
     nutritionEfficiency *= (1 + ocadoBoost);
@@ -128,7 +123,7 @@ function calculatePrimitives() {
 
   const cCfg = state.primitiveConfig.cleanliness;
   const messIn = cCfg.messPerResident * N * overcrowdingPenalty(N / capUtil, 'cleanliness');
-  const cleanBudgetBoost = 1 + (state.gameState.budgets.cleanliness || 0) * (state.budgetConfig.cleanliness.budgetEfficiency || 0);
+  const cleanBudgetBoost = 1 + (state.gameState.budgets.cleanliness || 0) * (state.budgetConfig.cleanliness.outflowBoostPerPound || 0);
   let cleanOut = cCfg.cleanBase * bathQ * getBuildingMult('bathroom', 'cleanMult') * (1 + cCfg.skillMult * tidiness) * cleanBudgetBoost;
   if (state.gameState.activeFixedCosts.includes('cleaner')) {
     const cleanerBoost = (state.techConfig.cleaner?.effectPercent || 20) / 100;
@@ -141,7 +136,7 @@ function calculatePrimitives() {
 
   const mCfg = state.primitiveConfig.maintenance;
   const wearIn = mCfg.wearPerResident * N * overcrowdingPenalty(N / capUtil, 'maintenance');
-  const maintBudgetBoost = 1 + (state.gameState.budgets.maintenance || 0) * (state.budgetConfig.maintenance.budgetEfficiency || 0);
+  const maintBudgetBoost = 1 + (state.gameState.budgets.maintenance || 0) * (state.budgetConfig.maintenance.outflowBoostPerPound || 0);
   let repairOut = mCfg.repairBase * uQ * getBuildingMult('utility_closet', 'repairMult') * (1 + mCfg.recoveryRate * handiness + (mCfg.tidinessCoeff ?? 0.2) * tidiness) * maintBudgetBoost;
   const netWear = wearIn - repairOut;
   const dampedWear = netWear < 0 ? netWear * recoveryDamping : netWear;
@@ -149,10 +144,10 @@ function calculatePrimitives() {
   const maintenance = Math.min(100, Math.max(0, oldMaint + dampedWear * 0.5));
 
   const fCfg = state.primitiveConfig.fatigue;
-  const exertion = fCfg.exertBase * (1 + fCfg.workMult * workEthic + fCfg.socioMult * sociability) / N;
-  const fatigueBudgetBoost = 1 + (state.gameState.budgets.fatigue || 0) * (state.budgetConfig.fatigue.budgetEfficiency || 0);
+  const exertion = fCfg.exertBase * (1 + fCfg.workMult * workEthic + fCfg.socioMult * sociability);
+  const fatigueBudgetBoost = 1 + (state.gameState.budgets.fatigue || 0) * (state.budgetConfig.fatigue.outflowBoostPerPound || 0);
   const recoveryOCDamp = 1 / overcrowdingPenalty(rBed, 'fatigue');
-  const recovery = fCfg.recoverBase * (1 + 0.3 * partyStamina) * getBuildingMult('bedroom', 'recoveryMult') * bQ / N * fatigueBudgetBoost * recoveryOCDamp;
+  const recovery = fCfg.recoverBase * (1 + 0.3 * partyStamina) * getBuildingMult('bedroom', 'recoveryMult') * bQ * fatigueBudgetBoost * recoveryOCDamp;
   const netFatigue = exertion - recovery;
   const dampedFatigue = netFatigue < 0 ? netFatigue * recoveryDamping : netFatigue;
   const oldFatigue = state.gameState.primitives.fatigue || 0;
@@ -175,7 +170,7 @@ function calculatePrimitives() {
   if (hotTubBuilding && hotTubBuilding.count > 0) {
     funSupply += hotTubBuilding.count * (hotTubBuilding.funOutput || 2) * Math.min(N, hotTubBuilding.count * hotTubBuilding.capacity);
   }
-  const funEfficiency = state.budgetConfig.fun.efficiency || 0;
+  const funEfficiency = state.budgetConfig.fun.supplyPerPound || 0;
   const funBudgetBoost = (state.gameState.budgets.fun || 0) * funEfficiency;
   const totalFunWithBuildings = funSupply + funBudgetBoost;
   const funDemand = N * funCfg.consumptionRate;
@@ -189,7 +184,7 @@ function calculatePrimitives() {
     const starlinkBoost = (state.techConfig.starlink?.effectPercent || 15) / 100;
     driveSupply *= (1 + starlinkBoost);
   }
-  const driveEfficiency = state.budgetConfig.drive.efficiency || 0;
+  const driveEfficiency = state.budgetConfig.drive.supplyPerPound || 0;
   const driveBudgetBoost = (state.gameState.budgets.drive || 0) * driveEfficiency;
   const totalDriveSupply = driveSupply + driveBudgetBoost;
   const driveDemand = N * dCfg.slackRate;
@@ -210,7 +205,6 @@ function calculatePrimitives() {
 module.exports = {
   getPopulationTier,
   getTierOutputMult,
-  getTierHealthMult,
   getBuildingCapacity,
   getBuildingQuality,
   getBuildingMult,
