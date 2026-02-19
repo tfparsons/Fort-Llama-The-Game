@@ -1611,9 +1611,14 @@ function App() {
                   onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, productivity: {...editConfig.health?.productivity, driveWeight: parseFloat(e.target.value)}}})} />
               </div>
               <div className="config-field">
-                <label>Fatigue damp</label>
-                <input type="number" step="0.1" value={editConfig?.health?.productivity?.fatigueWeight ?? 0.55} 
-                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, productivity: {...editConfig.health?.productivity, fatigueWeight: parseFloat(e.target.value)}}})} />
+                <label>Base fatigue wt</label>
+                <input type="number" step="0.05" value={editConfig?.health?.baseFatigueWeight ?? 0.5}
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, baseFatigueWeight: parseFloat(e.target.value)}})} />
+              </div>
+              <div className="config-field">
+                <label>Fatigue swing</label>
+                <input type="number" step="0.05" value={editConfig?.health?.fatigueWeightSwing ?? 0.5}
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, fatigueWeightSwing: parseFloat(e.target.value)}})} />
               </div>
               <div className="config-field">
                 <label>Noise damp</label>
@@ -1670,16 +1675,6 @@ function App() {
                 <label>Fun wt</label>
                 <input type="number" step="0.1" value={editConfig?.health?.partytime?.funWeight ?? 1.0} 
                   onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, partytime: {...editConfig.health?.partytime, funWeight: parseFloat(e.target.value)}}})} />
-              </div>
-              <div className="config-field">
-                <label>Fatigue damp</label>
-                <input type="number" step="0.1" value={editConfig?.health?.partytime?.fatigueWeight ?? 0.45} 
-                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, partytime: {...editConfig.health?.partytime, fatigueWeight: parseFloat(e.target.value)}}})} />
-              </div>
-              <div className="config-field">
-                <label>Noise boost</label>
-                <input type="number" step="0.01" value={editConfig?.health?.partytime?.noiseBoostScale ?? 0.08} 
-                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, partytime: {...editConfig.health?.partytime, noiseBoostScale: parseFloat(e.target.value)}}})} />
               </div>
               <div className="section-divider-line"></div>
               <div className="config-field">
@@ -2076,11 +2071,11 @@ function App() {
               </div>
               {[
                 { key: 'nutrition', label: 'Ingredients', type: 'coverage' },
-                { key: 'cleanliness', label: 'Cleaning', type: 'stock' },
+                { key: 'cleanliness', label: 'Cleaning', type: 'outflow' },
                 { key: 'fun', label: 'Party supplies', type: 'coverage' },
                 { key: 'drive', label: 'Internet', type: 'coverage' },
-                { key: 'maintenance', label: 'Handiman', type: 'stock' },
-                { key: 'fatigue', label: 'Wellness', type: 'stock' }
+                { key: 'maintenance', label: 'Handiman', type: 'outflow' },
+                { key: 'fatigue', label: 'Wellness', type: 'outflow' }
               ].map(item => (
                 <div key={item.key} className="config-field" style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
                   <label style={{flex: 1}}>{item.label}</label>
@@ -2091,7 +2086,7 @@ function App() {
                       startingBudgets: { ...prev.startingBudgets, [item.key]: val }
                     }));
                   }} />
-                  <input type="number" step="0.01" style={{width: '70px', marginLeft: '8px'}} value={editConfig?.budgetConfig?.[item.key]?.[item.type === 'coverage' ? 'efficiency' : 'reductionRate'] ?? (item.type === 'coverage' ? 0.5 : 0.02)} onChange={(e) => updateBudgetConfig(item.key, item.type === 'coverage' ? 'efficiency' : 'reductionRate', parseFloat(e.target.value))} />
+                  <input type="number" step={item.type === 'coverage' ? '0.01' : '0.001'} style={{width: '70px', marginLeft: '8px'}} value={editConfig?.budgetConfig?.[item.key]?.[item.type === 'coverage' ? 'efficiency' : 'budgetEfficiency'] ?? (item.type === 'coverage' ? 0.5 : 0.005)} onChange={(e) => updateBudgetConfig(item.key, item.type === 'coverage' ? 'efficiency' : 'budgetEfficiency', parseFloat(e.target.value))} />
                 </div>
               ))}
             </div>
@@ -2342,8 +2337,14 @@ function App() {
                 <h2>Productivity</h2>
                 <div className="formula-section">
                   <h4>Raw Formula</h4>
-                  <code>PR_raw = baseline(Drive) × damp(Fatigue) × damp(Noise) × damp(Crowding)</code>
-                  <p>Drive provides the baseline. Fatigue, Noise, and Crowding are dampeners.</p>
+                  <code>PR_raw = baseline(Drive) × damp(Fatigue, w_PR) × damp(Noise) × damp(Crowding)</code>
+                  <p>Drive provides the baseline. Noise and Crowding are fixed dampeners. Fatigue weight is dynamic: communes leaning toward productivity get hit harder by fatigue.</p>
+                </div>
+                <div className="formula-section">
+                  <h4>Dynamic Fatigue Weight</h4>
+                  <code>prShare = PR_preFatigue / (PR_preFatigue + PT_preFatigue)</code>
+                  <code>w_PR = baseFatigueWeight + (prShare − 0.5) × fatigueWeightSwing</code>
+                  <p>When the commune is more productive than party-oriented, fatigue dampens PR more. Configured via Base fatigue wt and Fatigue swing.</p>
                 </div>
                 <div className="formula-section">
                   <h4>Scoring (0-100)</h4>
@@ -2355,7 +2356,7 @@ function App() {
                   <h4>Primitives Used</h4>
                   <ul>
                     <li><strong>Drive</strong> (baseline × driveWeight) - Motivation from workspace</li>
-                    <li><strong>Fatigue</strong> (dampener × fatigueWeight) - Tiredness reduces output</li>
+                    <li><strong>Fatigue</strong> (dampener, dynamic weight) - Tiredness reduces output; weight shifts with commune balance</li>
                     <li><strong>Noise</strong> (dampener × noiseWeight) - Distractions reduce focus</li>
                     <li><strong>Crowding</strong> (dampener × crowdingWeight) - Overcrowding hurts focus</li>
                   </ul>
@@ -2387,8 +2388,8 @@ function App() {
                 <h2>Partytime</h2>
                 <div className="formula-section">
                   <h4>Raw Formula</h4>
-                  <code>PT_raw = baseline(Fun) × damp(Fatigue) × (1 + NoiseBonus)</code>
-                  <p>Fun provides the baseline. Fatigue is a dampener. Noise provides a bonus (noiseBoostScale × noise / 100)!</p>
+                  <code>PT_raw = baseline(Fun) × damp(Fatigue, w_PT)</code>
+                  <p>Fun provides the baseline. Fatigue is the only dampener. Fatigue weight is dynamic: party-oriented communes get hit harder by fatigue.</p>
                 </div>
                 <div className="formula-section">
                   <h4>Scoring (0-100)</h4>
@@ -2400,8 +2401,7 @@ function App() {
                   <h4>Primitives Used</h4>
                   <ul>
                     <li><strong>Fun</strong> (baseline × funWeight) - Party energy from social activity</li>
-                    <li><strong>Fatigue</strong> (dampener × fatigueWeight) - Too tired to party</li>
-                    <li><strong>Noise</strong> (bonus × noiseBoostScale) - Unlike other metrics, noise HELPS!</li>
+                    <li><strong>Fatigue</strong> (dampener, dynamic weight) - Too tired to party; weight shifts with commune balance</li>
                   </ul>
                 </div>
                 <div className="formula-section">
@@ -2414,9 +2414,9 @@ function App() {
                 <div className="formula-section">
                   <h4>Resident Stats</h4>
                   <ul>
-                    <li><strong>Sociability</strong> - Boosts Fun and increases Noise (both positive here!)</li>
+                    <li><strong>Sociability</strong> - Boosts Fun</li>
                     <li><strong>Party Stamina</strong> - Boosts Fun and Fatigue recovery</li>
-                    <li><strong>Consideration</strong> - Reduces noise (slight negative for Partytime!)</li>
+                    <li><strong>Consideration</strong> - No impact on Partytime</li>
                   </ul>
                 </div>
                 <div className="formula-section effect">
