@@ -86,7 +86,7 @@ Where `budgetBoost = 1 + (budget × outflowBoostPerPound)` and `recoveryOCDamp =
 
 The steep cubic curve makes maintenance a serious late-game constraint, requiring investment in utility infrastructure beyond 40 residents.
 
-**Tidiness on maintenance** (new in v0.5): The `+ 0.2 × tidiness` term in the maintenance outflow means tidy residents contribute to maintenance as well as cleanliness. This broadens the stat-to-outcome web — tidiness is no longer a single-purpose stat.
+**Tidiness on maintenance** (new in v0.5): The `+ 0.05 × tidiness` term in the maintenance outflow means tidy residents contribute to maintenance as well as cleanliness. This broadens the stat-to-outcome web — tidiness is no longer a single-purpose stat.
 
 **Fatigue scaling**: Fatigue exertion and recovery operate at absolute rates (not divided by population). Raw population growth does not dilute fatigue — the score represents the commune's work/rest balance, not a per-capita average. Population pressure on fatigue is introduced specifically via `recoveryOCDamp`: when bedroom occupancy exceeds `penaltyOnset` (0.75), the overcrowding penalty reduces recovery, causing fatigue to build. Building more bedrooms or researching bedroom upgrades directly relieves this. This differs from cleanliness and maintenance, where inflow scales with N directly (more residents = more mess/wear).
 
