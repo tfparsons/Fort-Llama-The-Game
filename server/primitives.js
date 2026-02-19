@@ -41,7 +41,7 @@ function getBuildingMult(buildingId, multKey) {
 function overcrowdingPenalty(ratio, primitiveName = null) {
   let k = state.primitiveConfig.penaltyK;
   let p = state.primitiveConfig.penaltyP;
-  let onset = state.primitiveConfig.penaltyOnset ?? 1.0;
+  let onset = state.primitiveConfig.penaltyOnset ?? 0.75;
   if (primitiveName && state.primitiveConfig[primitiveName]?.useCustomPenalty) {
     k = state.primitiveConfig[primitiveName].penaltyK ?? k;
     p = state.primitiveConfig[primitiveName].penaltyP ?? p;
@@ -140,26 +140,33 @@ function calculatePrimitives() {
   const cleanliness = Math.min(100, Math.max(0, oldClean + dampedMess * 0.5));
 
   const mCfg = state.primitiveConfig.maintenance;
-  const wearIn = mCfg.wearPerResident * N;
+  const wearIn = mCfg.wearPerResident * N * overcrowdingPenalty(N / capUtil, 'maintenance');
   const maintBudgetBoost = 1 + (state.gameState.budgets.maintenance || 0) * (state.budgetConfig.maintenance.budgetEfficiency || 0);
-  let repairOut = mCfg.repairBase * uQ * getBuildingMult('utility_closet', 'repairMult') * (1 + mCfg.recoveryRate * handiness) * maintBudgetBoost;
+  let repairOut = mCfg.repairBase * uQ * getBuildingMult('utility_closet', 'repairMult') * (1 + mCfg.recoveryRate * handiness + (mCfg.tidinessCoeff ?? 0.2) * tidiness) * maintBudgetBoost;
   const netWear = wearIn - repairOut;
   const dampedWear = netWear < 0 ? netWear * recoveryDamping : netWear;
   const oldMaint = state.gameState.primitives.maintenance || 0;
   const maintenance = Math.min(100, Math.max(0, oldMaint + dampedWear * 0.5));
 
   const fCfg = state.primitiveConfig.fatigue;
-  const exertion = (fCfg.exertBase * (1 + fCfg.workMult * workEthic) + fCfg.recoverBase * fCfg.socioMult * sociability) / N;
+  const exertion = fCfg.exertBase * (1 + fCfg.workMult * workEthic + fCfg.socioMult * sociability) / N;
   const fatigueBudgetBoost = 1 + (state.gameState.budgets.fatigue || 0) * (state.budgetConfig.fatigue.budgetEfficiency || 0);
-  const recovery = fCfg.recoverBase * (1 - fCfg.socioMult * sociability) * getBuildingMult('bedroom', 'recoveryMult') * bQ / N * fatigueBudgetBoost;
+  const recoveryOCDamp = 1 / overcrowdingPenalty(rBed, 'fatigue');
+  const recovery = fCfg.recoverBase * (1 + 0.3 * partyStamina) * getBuildingMult('bedroom', 'recoveryMult') * bQ / N * fatigueBudgetBoost * recoveryOCDamp;
   const netFatigue = exertion - recovery;
   const dampedFatigue = netFatigue < 0 ? netFatigue * recoveryDamping : netFatigue;
   const oldFatigue = state.gameState.primitives.fatigue || 0;
   const fatigue = Math.min(100, Math.max(0, oldFatigue + dampedFatigue));
 
+  const fpCfg = state.policyConfig.funPenalty;
+  const activePoliciesCount = state.gameState.activePolicies.length;
+  const policyMult = activePoliciesCount > fpCfg.threshold
+    ? Math.max(0, 1 - fpCfg.K * Math.pow(activePoliciesCount - fpCfg.threshold, fpCfg.P))
+    : 1;
+
   const funCfg = state.primitiveConfig.fun;
-  const funServed = Math.min(N, getBuildingCapacity('living_room'));
-  let funSupply = funServed * funCfg.outputRate * tierOutputMult * lQ * getBuildingMult('living_room', 'funMult') * greatHallFunMult * (1 + funCfg.skillMult * partyStamina);
+  const funServed = Math.min(N, effectiveCapLiv);
+  let funSupply = funServed * funCfg.outputRate * tierOutputMult * lQ * getBuildingMult('living_room', 'funMult') * greatHallFunMult * (1 + funCfg.skillMult * ((sociability + partyStamina) / 2)) * policyMult * (1 - (funCfg.considerationPenalty ?? 0.05) * consideration);
   const heavenBuilding = state.gameState.buildings.find(b => b.id === 'heaven');
   if (heavenBuilding && heavenBuilding.count > 0) {
     funSupply += heavenBuilding.count * (heavenBuilding.funOutput || 3) * Math.min(N, heavenBuilding.count * heavenBuilding.capacity);
@@ -176,7 +183,8 @@ function calculatePrimitives() {
   const fun = log2CoverageScore(funRatio);
 
   const dCfg = state.primitiveConfig.drive;
-  let driveSupply = N * dCfg.outputRate * tierOutputMult * (1 + dCfg.skillMult * workEthic) * greatHallDriveMult;
+  const driveServed = Math.min(N, effectiveCapLiv);
+  let driveSupply = driveServed * dCfg.outputRate * tierOutputMult * lQ * (1 + dCfg.skillMult * workEthic) * greatHallDriveMult;
   if (state.gameState.researchedTechs.includes('starlink')) {
     const starlinkBoost = (state.techConfig.starlink?.effectPercent || 15) / 100;
     driveSupply *= (1 + starlinkBoost);

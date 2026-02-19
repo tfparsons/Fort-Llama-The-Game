@@ -1182,9 +1182,9 @@ function App() {
                       const ls = Math.max(0, Math.min(1, gameState.healthMetrics?.livingStandards || 0.5));
                       const rentMin = config.rentMin || 50;
                       const rentMax = config.rentMax || 500;
-                      const rentCurve = Math.max(0.1, gameState.healthConfig?.livingStandards?.rentCurve || 2);
-                      
-                      const curvedLS = Math.pow(ls, 1 / rentCurve);
+                      const rentTierCurvature = Math.max(0.1, gameState.healthConfig?.livingStandards?.rentTierCurvature ?? 2);
+
+                      const curvedLS = Math.pow(ls, 1 / rentTierCurvature);
                       const maxTolerantRent = rentMin + (rentMax - rentMin) * curvedLS;
                       const tierRatio = rent / maxTolerantRent;
                       
@@ -1572,8 +1572,13 @@ function App() {
               <div className="section-divider-line"></div>
               <div className="config-field">
                 <label>LS Rent Curve</label>
-                <input type="number" step="0.1" value={editConfig?.health?.livingStandards?.rentCurve ?? 0.7} 
+                <input type="number" step="0.1" value={editConfig?.health?.livingStandards?.rentCurve ?? 0.7}
                   onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, livingStandards: {...editConfig.health?.livingStandards, rentCurve: parseFloat(e.target.value)}}})} />
+              </div>
+              <div className="config-field">
+                <label>Rent Tier Curvature</label>
+                <input type="number" step="0.1" value={editConfig?.health?.livingStandards?.rentTierCurvature ?? 2}
+                  onChange={(e) => setEditConfig({...editConfig, health: {...editConfig.health, livingStandards: {...editConfig.health?.livingStandards, rentTierCurvature: parseFloat(e.target.value)}}})} />
               </div>
               <p className="config-hint">Lower curve = steeper progression. At LS=35, £100 is 'Fair'. At LS=100, max tolerable rent ~£500.</p>
               <div className="section-divider-line"></div>
@@ -2327,7 +2332,7 @@ function App() {
                 <div className="formula-section effect">
                   <h4>Game Effect</h4>
                   <p>Higher Living Standards = higher rent tolerance. At LS=35, £100 rent feels 'Fair'. At LS=100, residents tolerate up to £500.</p>
-                  <code>maxTolerantRent = rentMin + (rentMax - rentMin) × LS^(1/rentCurve)</code>
+                  <code>maxTolerantRent = rentMin + (rentMax - rentMin) × LS^(1/rentTierCurvature)</code>
                   <p>Rent level (Bargain→Cheap→Fair→Pricey→Extortionate) depends on where current rent falls relative to maxTolerantRent.</p>
                 </div>
               </>

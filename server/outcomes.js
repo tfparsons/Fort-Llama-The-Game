@@ -164,9 +164,9 @@ function calculateRentTier(rent) {
   const ls = Math.max(0, Math.min(1, state.gameState.healthMetrics?.livingStandards || 0.5));
   const rentMin = state.gameConfig.rentMin || 50;
   const rentMax = state.gameConfig.rentMax || 500;
-  const rentCurve = Math.max(0.1, state.healthConfig.livingStandards?.rentCurve || 2);
+  const rentTierCurvature = Math.max(0.1, state.healthConfig.livingStandards?.rentTierCurvature ?? 2);
 
-  const curvedLS = Math.pow(ls, 1 / rentCurve);
+  const curvedLS = Math.pow(ls, 1 / rentTierCurvature);
   const maxTolerantRent = rentMin + (rentMax - rentMin) * curvedLS;
 
   const tierRatio = rent / maxTolerantRent;

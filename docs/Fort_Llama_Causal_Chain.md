@@ -63,9 +63,11 @@ Coverage budgets add directly to supply. They provide immediate, legible feedbac
 |-----------|----------------------------|--------------------------------------|
 | **Cleanliness** | messPerRes Ã— N Ã— overcrowdPenalty | cleanBase Ã— bathQ Ã— cleanMult Ã— (1 + skillMult Ã— tidiness) Ã— cleanerMult Ã— **budgetBoost** |
 | **Maintenance** | wearPerRes Ã— N Ã— overcrowdPenalty | repairBase Ã— utilQ Ã— repairMult Ã— (1 + 0.5 Ã— handiness + 0.2 Ã— tidiness) Ã— **budgetBoost** |
-| **Fatigue** | N Ã— exertBase Ã— (1 + workMult Ã— workEthic + socioMult Ã— sociability) | N Ã— recoverBase Ã— bedroomQ Ã— recoveryMult Ã— (1 + 0.3 Ã— partyStamina) Ã— **budgetBoost** |
+| **Fatigue** | exertBase Ã— (1 + workMult Ã— workEthic + socioMult Ã— sociability) / N | recoverBase Ã— bedroomQ Ã— recoveryMult Ã— (1 + 0.3 Ã— partyStamina) Ã— **budgetBoost** / N Ã— **recoveryOCDamp** |
 
-Where `budgetBoost = 1 + (budget Ã— budgetEfficiency)`.
+Where `budgetBoost = 1 + (budget Ã— budgetEfficiency)` and `recoveryOCDamp = 1 / overcrowdPenalty(rBed)`.
+
+> **Design note â€ fatigue scaling**: Both fatigue inflow and outflow are divided by N (per-resident normalisation). This is intentional: raw population growth does not drive fatigue up â€ the score represents average resident fatigue, not total commune load. Population pressure on fatigue is introduced specifically via `recoveryOCDamp`: when bedroom occupancy (`rBed = effectiveN / capBed`) exceeds `penaltyOnset` (0.75), the overcrowding penalty reduces recovery, causing fatigue to build. Building more bedrooms or researching bedroom upgrades directly relieves this. This differs from cleanliness and maintenance, where inflow scales with N directly (more residents = more mess/wear regardless of capacity).
 
 Per-tick update:
 

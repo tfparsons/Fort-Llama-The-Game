@@ -222,12 +222,12 @@ const DEFAULT_PRIMITIVE_CONFIG = {
   recoveryDamping: 0.65,
   crowding: { baseMult: 50, weight: 1.0, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
   noise: { baseSocial: 5, baseAmbient: 10, socioMult: 0.1, considMult: 0.3, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
-  nutrition: { outputRate: 5, consumptionRate: 9, skillMult: 0.1, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
-  cleanliness: { messPerResident: 1.2, cleanBase: 3, skillMult: 0.1, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
-  maintenance: { wearPerResident: 1, repairBase: 3, recoveryRate: 0.1, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
-  fatigue: { exertBase: 3, recoverBase: 5, workMult: 0.3, socioMult: 0.2 },
-  fun: { outputRate: 6, consumptionRate: 12, skillMult: 0.1, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
-  drive: { outputRate: 4, slackRate: 8, skillMult: 0.1, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 }
+  nutrition: { outputRate: 7, consumptionRate: 9, skillMult: 0.1, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
+  cleanliness: { messPerResident: 0.4, cleanBase: 3, skillMult: 0.1, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
+  maintenance: { wearPerResident: 0.5, repairBase: 3, recoveryRate: 0.1, tidinessCoeff: 0.2, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
+  fatigue: { exertBase: 5, recoverBase: 4.5, workMult: 0.3, socioMult: 0.2 },
+  fun: { outputRate: 9, consumptionRate: 12, skillMult: 0.1, considerationPenalty: 0.05, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
+  drive: { outputRate: 6, slackRate: 8, skillMult: 0.1, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 }
 };
 
 const DEFAULT_HEALTH_CONFIG = {
@@ -237,6 +237,7 @@ const DEFAULT_HEALTH_CONFIG = {
     crowdingDampen: 0.35,
     maintenanceDampen: 0.35,
     rentCurve: 0.7,
+    rentTierCurvature: 2,
     useCustomScaling: true,
     ref0: 0.5,
     alpha: 0.15,
@@ -327,7 +328,7 @@ const INITIAL_DEFAULTS = {
   rentMin: 50,
   rentMax: 500,
   defaultRent: 100,
-  groundRentBase: 1000,
+  groundRentBase: 800,
   utilitiesBase: 200,
   baseChurnRate: 0.20,
   churnRentMultiplier: 0.0003,
