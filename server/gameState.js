@@ -117,9 +117,12 @@ function initializeGame(config = state.savedDefaults) {
     coverageData: {
       tier: 0,
       tierOutputMult: 1.0,
-      nutrition: { supply: 0, demand: 0, ratio: 1, label: 'Adequate' },
-      fun: { supply: 0, demand: 0, ratio: 1, label: 'Adequate' },
-      drive: { supply: 0, demand: 0, ratio: 1, label: 'Adequate' }
+      nutrition: { supply: 0, demand: 0, ratio: 1, label: 'Starving' },
+      fun: { supply: 0, demand: 0, ratio: 1, label: 'Boring' },
+      drive: { supply: 0, demand: 0, ratio: 1, label: 'Idle' },
+      cleanliness: { label: 'Sparkling' },
+      maintenance: { label: 'Shipshape' },
+      fatigue: { label: 'Fresh' }
     },
     budgets: {
       nutrition: state.gameConfig.startingBudgets?.nutrition || 0,

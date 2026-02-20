@@ -221,13 +221,13 @@ const DEFAULT_PRIMITIVE_CONFIG = {
   penaltyOnset: 0.75,
   recoveryDamping: 0.65,
   crowding: { baseMult: 50, weight: 1.0, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
-  noise: { baseSocial: 5, baseAmbient: 10, socioMult: 0.1, considMult: 0.3, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
-  nutrition: { outputRate: 7, consumptionRate: 9, skillMult: 0.1, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
-  cleanliness: { messPerResident: 0.4, cleanBase: 3, skillMult: 0.1, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
-  maintenance: { wearPerResident: 0.5, repairBase: 3, handinessCoeff: 0.1, tidinessCoeff: 0.05, useCustomPenalty: true, penaltyK: 4, penaltyP: 3 },
-  fatigue: { exertBase: 5, recoverBase: 4.5, workMult: 0.3, socioMult: 0.2 },
-  fun: { outputRate: 9, consumptionRate: 12, skillMult: 0.1, considerationPenalty: 0.05, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
-  drive: { outputRate: 6, slackRate: 8, skillMult: 0.1, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 }
+  noise: { baseSocial: 2.5, baseAmbient: 10, socioMult: 0.1, considMult: 0.3, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
+  nutrition: { outputRate: 7, consumptionRate: 13, skillMult: 0.1, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
+  cleanliness: { messPerResident: 0.10, cleanBase: 0.5, skillMult: 0.1, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
+  maintenance: { wearPerResident: 0.08, repairBase: 0.5, handinessCoeff: 0.1, tidinessCoeff: 0.05, useCustomPenalty: true, penaltyK: 4, penaltyP: 3 },
+  fatigue: { exertBase: 0.5, recoverBase: 0.45, workMult: 0.3, socioMult: 0.2 },
+  fun: { outputRate: 9, consumptionRate: 16, skillMult: 0.1, considerationPenalty: 0.05, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
+  drive: { outputRate: 6, slackRate: 11, skillMult: 0.1, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 }
 };
 
 const DEFAULT_HEALTH_CONFIG = {
@@ -239,7 +239,7 @@ const DEFAULT_HEALTH_CONFIG = {
     rentCurve: 0.7,
     rentTierCurvature: 2,
     useCustomScaling: true,
-    ref0: 0.5,
+    ref0: 0.55,
     alpha: 0.15,
     p: 2,
     tierMult: [1.0, 1.1, 1.2, 1.35, 1.5, 1.7]
@@ -256,14 +256,14 @@ const DEFAULT_HEALTH_CONFIG = {
   },
   partytime: {
     funWeight: 1.0,
-    useCustomScaling: false,
-    ref0: 0.3,
+    useCustomScaling: true,
+    ref0: 0.42,
     alpha: 0.15,
     p: 2,
     tierMult: [1.0, 1.1, 1.2, 1.35, 1.5, 1.7]
   },
   globalScaling: {
-    ref0: 0.3,
+    ref0: 0.35,
     alpha: 0.15,
     p: 2
   },
@@ -294,8 +294,8 @@ const DEFAULT_VIBES_CONFIG = {
     { name: 'Utopia', min: 0.95, max: 1.01 }
   ],
   scaleBreakpoints: [
-    { min: 1, max: 5, tierMin: 3, tierMax: 5 },
-    { min: 6, max: 10, tierMin: 3, tierMax: 6 },
+    { min: 1, max: 5, tierMin: 2, tierMax: 5 },
+    { min: 6, max: 10, tierMin: 2, tierMax: 6 },
     { min: 11, max: 20, tierMin: 2, tierMax: 7 },
     { min: 21, max: 35, tierMin: 1, tierMax: 8 },
     { min: 36, max: 999, tierMin: 0, tierMax: 9 }
@@ -349,6 +349,37 @@ const INITIAL_DEFAULTS = {
   tierConfig: { ...DEFAULT_TIER_CONFIG }
 };
 
+const DEFAULT_PRIMITIVE_LABELS = {
+  coverage: {
+    nutrition: {
+      thresholds: [25, 45, 60, 75, 90],
+      labels: ['Starving', 'Fed', 'Well Fed', 'Feasting', 'Gourmet', 'Michelin Starred']
+    },
+    fun: {
+      thresholds: [25, 45, 60, 75, 90],
+      labels: ['Boring', 'Buzzy', 'Good Times', 'Boomtown', 'Life Changing', 'Legendary']
+    },
+    drive: {
+      thresholds: [25, 45, 60, 75, 90],
+      labels: ['Idle', 'Motivated', 'Driven', 'On Fire', 'Unstoppable', 'World Domination']
+    }
+  },
+  accumulator: {
+    cleanliness: {
+      thresholds: [16, 31, 51, 71, 86],
+      labels: ['Sparkling', 'Lived In', 'Grubby', 'Filthy', 'Tip', 'Biohazard']
+    },
+    maintenance: {
+      thresholds: [16, 31, 51, 71, 86],
+      labels: ['Shipshape', 'Solid Enough', 'Weathered', 'Crumbling', 'Derelict', 'Condemned']
+    },
+    fatigue: {
+      thresholds: [16, 31, 51, 71, 86],
+      labels: ['Fresh', 'Fine', 'Tired', 'Shattered', 'Zombies', 'Comatose']
+    }
+  }
+};
+
 module.exports = {
   DAY_NAMES,
   STARTING_LLAMAS,
@@ -362,5 +393,6 @@ module.exports = {
   DEFAULT_HEALTH_CONFIG,
   DEFAULT_VIBES_CONFIG,
   DEFAULT_BUDGET_CONFIG,
+  DEFAULT_PRIMITIVE_LABELS,
   INITIAL_DEFAULTS
 };

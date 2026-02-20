@@ -1,7 +1,8 @@
 'use strict';
 
 const { state } = require('./state');
-const { statTo01, log2CoverageScore, getCoverageTierLabel } = require('./utils');
+const { statTo01, log2CoverageScore, getPrimitiveTierLabel } = require('./utils');
+const { DEFAULT_PRIMITIVE_LABELS } = require('./config');
 const { getAverageResidentStat, getPolicyAdjustedAvgStat } = require('./residents');
 
 function getPopulationTier(pop) {
@@ -191,12 +192,16 @@ function calculatePrimitives() {
 
   state.gameState.primitives = { crowding, noise, nutrition, cleanliness, maintenance, fatigue, fun, drive };
 
+  const pl = DEFAULT_PRIMITIVE_LABELS;
   state.gameState.coverageData = {
     tier,
     tierOutputMult,
-    nutrition: { supply: totalNutritionSupply, demand: nutritionDemand, ratio: nutritionRatio, label: getCoverageTierLabel(nutrition), budgetBoost: nutritionBudgetBoost },
-    fun: { supply: totalFunWithBuildings, demand: funDemand, ratio: funRatio, label: getCoverageTierLabel(fun), budgetBoost: funBudgetBoost },
-    drive: { supply: totalDriveSupply, demand: driveDemand, ratio: driveRatio, label: getCoverageTierLabel(drive), budgetBoost: driveBudgetBoost }
+    nutrition: { supply: totalNutritionSupply, demand: nutritionDemand, ratio: nutritionRatio, label: getPrimitiveTierLabel(pl.coverage.nutrition, nutrition), budgetBoost: nutritionBudgetBoost },
+    fun: { supply: totalFunWithBuildings, demand: funDemand, ratio: funRatio, label: getPrimitiveTierLabel(pl.coverage.fun, fun), budgetBoost: funBudgetBoost },
+    drive: { supply: totalDriveSupply, demand: driveDemand, ratio: driveRatio, label: getPrimitiveTierLabel(pl.coverage.drive, drive), budgetBoost: driveBudgetBoost },
+    cleanliness: { label: getPrimitiveTierLabel(pl.accumulator.cleanliness, cleanliness) },
+    maintenance: { label: getPrimitiveTierLabel(pl.accumulator.maintenance, maintenance) },
+    fatigue: { label: getPrimitiveTierLabel(pl.accumulator.fatigue, fatigue) }
   };
 }
 

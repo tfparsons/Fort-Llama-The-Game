@@ -5,10 +5,11 @@
   "main": "server/index.js",
   "scripts": {
     "dev": "concurrently \"npm run server\" \"npm run client\"",
-    "server": "node server/index.js",
+    "server": "npx nodemon --watch server server/index.js",
     "client": "vite",
     "build": "vite build",
-    "start": "NODE_ENV=production node server/index.js"
+    "start": "NODE_ENV=production node server/index.js",
+    "simulate": "node tools/simulate.js"
   },
   "keywords": [],
   "author": "",

@@ -1,6 +1,7 @@
 'use strict';
 
 const fs = require('fs');
+const path = require('path');
 const express = require('express');
 const router = express.Router();
 
@@ -64,17 +65,36 @@ router.post('/api/config', (req, res) => {
   res.json({ success: true, config: state.gameConfig, state: state.gameState });
 });
 
+router.post('/api/save-balance-config', (req, res) => {
+  const CONFIG_FILE = path.join(__dirname, 'config.js');
+  const toWrite = [
+    ['DEFAULT_PRIMITIVE_CONFIG', state.primitiveConfig],
+    ['DEFAULT_HEALTH_CONFIG',    state.healthConfig],
+    ['DEFAULT_VIBES_CONFIG',     state.vibesConfig],
+    ['DEFAULT_TIER_CONFIG',      state.tierConfig],
+    ['DEFAULT_BUDGET_CONFIG',    state.budgetConfig],
+    ['DEFAULT_POLICY_CONFIG',    state.policyConfig],
+    ['DEFAULT_TECH_CONFIG',      state.techConfig],
+  ];
+  try {
+    let content = fs.readFileSync(CONFIG_FILE, 'utf8');
+    for (const [name, value] of toWrite) {
+      const pattern = new RegExp(`(const ${name} = )\\{[\\s\\S]*?\\n\\};`);
+      content = content.replace(pattern, `$1${JSON.stringify(value, null, 2)};`);
+    }
+    fs.writeFileSync(CONFIG_FILE, content, 'utf8');
+    console.log('Balance config written to config.js');
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Failed to write balance config to config.js:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.post('/api/save-defaults', (req, res) => {
-  state.savedDefaults = {
-    ...state.gameConfig,
-    primitives: { ...state.primitiveConfig },
-    health: { ...state.healthConfig },
-    vibes: { ...state.vibesConfig },
-    tierConfig: { ...state.tierConfig },
-    budgetConfig: JSON.parse(JSON.stringify(state.budgetConfig)),
-    policyConfig: JSON.parse(JSON.stringify(state.policyConfig)),
-    techConfig: JSON.parse(JSON.stringify(state.techConfig))
-  };
+  // Only persist session settings (treasury, residents, tick speed, etc.) — not balance config.
+  // Balance parameters are always read from config.js on startup.
+  state.savedDefaults = { ...state.gameConfig };
   state.savedLlamaPool = JSON.parse(JSON.stringify(state.llamaPool));
   state.savedBuildingsConfig = state.gameState.buildings.map(b => ({ ...b }));
 
