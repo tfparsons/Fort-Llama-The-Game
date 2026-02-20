@@ -301,8 +301,9 @@ router.post('/api/action/research', (req, res) => {
     return res.status(400).json({ error: 'Must research prerequisite first' });
   }
   const cost = state.techConfig[techId]?.cost || 500;
-  if (state.gameState.treasury < cost) {
-    return res.status(400).json({ error: 'Not enough funds' });
+  const debtLimit = state.gameConfig.gameOverLimit || -5000;
+  if (state.gameState.treasury - cost < debtLimit) {
+    return res.status(400).json({ error: `Would exceed debt limit (£${Math.abs(debtLimit)})` });
   }
 
   state.gameState.treasury -= cost;
@@ -573,8 +574,9 @@ function handleBuildAction(req, res) {
     return;
   }
 
-  if (state.gameState.treasury < building.cost) {
-    res.status(400).json({ error: 'Not enough funds' });
+  const buildDebtLimit = state.gameConfig.gameOverLimit || -5000;
+  if (state.gameState.treasury - building.cost < buildDebtLimit) {
+    res.status(400).json({ error: `Would exceed debt limit (£${Math.abs(buildDebtLimit)})` });
     return;
   }
 

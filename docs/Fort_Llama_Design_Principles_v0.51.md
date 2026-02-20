@@ -162,13 +162,17 @@ Every player action flows through four layers before it affects outcomes. This p
 
 These model supply versus demand. Every resident creates demand; buildings, skills, and budgets create supply. The coverage score uses a logarithmic scale that makes the first unit of supply far more valuable than the last — getting from "Shortfall" to "Adequate" is easier than getting from "Good" to "Superb."
 
-**Design intent:** the baseline coverage state should be undersupplied. Without budget investment or favourable resident stats, coverage ratios should sit below 1.0, producing scores in the "Tight" range. This is the pressure that makes budget allocation a real decision — the player has to choose which coverage gap to close first, because they can't afford to close all of them. Reaching "Adequate" should require active investment; reaching "Good" should require stacking multipliers (tier bonuses, skill bonuses, policies, buildings).
+**Design intent:** the baseline coverage state should be undersupplied. Budget investment is required to maintain even basic supply — at £0 spend, supply is strangled to 50% of its potential (the `floor` parameter on the budget curve). The default starting budget of £10/category restores roughly old-baseline behaviour, but the player sees it costing money and is incentivised to optimise. Reaching "Adequate" requires meaningful budget investment; reaching "Good" requires stacking multipliers (tier bonuses, skill bonuses, policies, buildings) on top of that spend.
 
 #### Accumulator Primitives: Cleanliness, Maintenance, Fatigue
 
 These model debt that builds when inflow exceeds outflow and recovers when the balance reverses. They create memory: neglect has lasting consequences that can't be instantly fixed. Recovery is deliberately slower than accumulation — a week of neglect takes more than a week to undo.
 
-**Design intent:** accumulators should drift negative at baseline. Without investment, debt builds — visible pressure within a weekly cycle that motivates the player to act. Budgets amplify outflow (cleaning output, repair output, fatigue recovery), stacking with resident stats, tech upgrades, and building quality. A moderate budget should slow or halt the drift; stacking multipliers should reverse it. Fatigue specifically should create the intended work/party tension: high drive and high fun both contribute to fatigue, and the dynamic dampening system punishes whichever pillar the player is pushing hardest, pulling them back toward balance.
+**Design intent:** accumulators should drift negative at baseline. Without budget investment, outflow (cleaning, repair, recovery) runs at 50% effectiveness — debt builds rapidly, creating visible pressure that motivates the player to act. The budget funds the outflow process: cleaning supplies, maintenance materials, wellness programmes. Buildings and resident stats multiply whatever the budget provides. A moderate budget should slow or halt the drift; stacking multipliers (budget + tech) should reverse it.
+
+**Fatigue and activity**: Fatigue is unique among accumulators — it's driven not just by a fixed base rate but by what the commune is actually doing. Fun and drive supply both feed into fatigue exertion (`funFatigueCoeff × funSupply/N + driveFatigueCoeff × driveSupply/N`), so pushing harder on Partytime or Productivity directly increases fatigue pressure. This creates a natural cost to ambition: a player who invests heavily in fun and drive must also invest in fatigue recovery (wellness tech + fatigue budget) or face accumulating exhaustion. The dynamic dampening system in health metrics then punishes whichever pillar the player is pushing hardest, pulling them back toward balance. Together, activity fatigue and dynamic dampening create the "work hard OR party hard, but not both for free" tension that the three-pillar design requires.
+
+**Tech progression**: Early tech research is the primary tool for stabilising accumulators. Chores Rota (L1, £500) provides a 15% passive boost to both cleanliness and maintenance outflow — cheap and broadly useful. Cleaner (L2, £1000 + £150/wk fixed cost) adds a powerful 40% cleanliness boost. Wellness (L2, £1000) provides 20% fatigue recovery boost, specifically targeting the activity fatigue pressure. The tech tree creates a clear investment arc: stabilise accumulators early, then redirect budget toward coverage and growth.
 
 #### Instantaneous Primitives: Crowding, Noise
 
@@ -200,25 +204,53 @@ The economy is the pacing mechanism. Get it wrong and every other system breaks,
 
 ### The Starting Economy
 
-> **Target: Break-even requires effort; profitability requires growth.**
+> **Target: Start in debt. Recruit to survive. Profitability requires growth to ~75% capacity.**
 >
-> The starting economy should be tight — close to break-even but not comfortably so. The player needs enough headroom to make small budget investments (this is how they learn what budgets do), but should feel the pressure to grow. Profitability is earned, not given.
+> The player starts with 4 residents, zero treasury, and immediately begins losing money. Fixed costs (ground rent £700 + utilities £250 = £950/week) exceed income (4 × £150 rent = £600). The player must recruit aggressively to close the gap, reaching break-even around N=11 and profitability at N=12 (75% of 16-bed capacity).
 
-**The key constraint:** the player must be able to afford small budget experiments in the early weeks. If the economy is so punishing that any spending accelerates failure, the player has no way to learn the systems. A tight-but-not-negative cash flow gives the minimum breathing room for the early game to function as a tutorial — while still feeling perilous.
+**The Difficulty Squeeze:** Recruiting solves the economy but *worsens the accumulators*. More residents mean more mess, more wear, more fatigue — systems that were manageable at N=4 (cleanliness and maintenance stay at zero with a small group) begin accumulating relentlessly at N=8+. Tech progression is the escape valve: chores_rota and cleaner handle the accumulator pressure that growth creates. The player is always choosing between financial survival (recruit now) and operational stability (invest in tech first).
+
+**The debt model:** There is no starting treasury. The player goes into debt from day one, with game-over at -£5,000. At N=4 with frugal budgets, the burn rate is ~£570/week — giving roughly 9 weeks before bankruptcy. A player who recruits steadily (1/week) troughs around -£2,000 at week 5 and begins climbing out. A player who also invests in tech (£500–£1,000 lump sums) may trough at -£3,000 to -£4,000 — sailing close to the -£5,000 cliff but building the operational capacity to sustain a larger commune.
+
+**The key constraint:** vibes must stay high enough to attract recruits. If the player neglects quality of life to save money, vibes drop, recruitment stalls, and the debt spiral becomes inescapable. Budget investment keeps vibes healthy, which enables recruitment, which enables profitability. Cutting budgets to slow the burn actually accelerates failure.
 
 ### Growth Economics
 
-More residents means more income (rent) but also more demand on every system. Growth is initially the easiest path to profitability (fill the beds), but increasingly constrained as each new resident adds strain that requires capital investment to manage.
+More residents means more income (rent) but also more demand on every system. Growth is the only path to solvency — but each new resident adds accumulator pressure that budget alone cannot contain. The player must pair recruitment with tech investment to avoid trading financial collapse for operational collapse.
 
-Building costs are one-time but increase ongoing costs (ground rent and utilities multipliers). Research costs money now for benefits later. The player is always juggling short-term profitability against long-term capacity — and each population tier brings new bottlenecks that demand new multipliers to overcome.
+| Pop | Income @£150 | Neutral budget | Fixed £950 | Net/week |
+|-----|-------------|---------------|-----------|---------|
+| 4 (start) | £600 | £322 | £950 | **-£672** |
+| 8 | £1,200 | £523 | £950 | -£273 |
+| 12 (75%) | £1,800 | £694 | £950 | **+£156** |
+| 16 (100%) | £2,400 | £849 | £950 | **+£601** |
+
+Building costs are one-time but increase ongoing costs (ground rent and utilities multipliers). Research costs money now for benefits later — and in the debt model, every lump-sum investment pushes the player closer to the -£5,000 cliff. The player is always juggling short-term solvency against long-term capacity.
 
 ### Budget Effectiveness
 
-Budgets are the player's primary weekly tactical lever and the first multiplier mechanic they encounter. They must be impactful enough that the player feels the difference, but not so powerful that they trivialise the underlying pressure. Critically, budgets should exhibit clear diminishing returns: the first £50 allocated to a category should produce a noticeable improvement, the next £50 a smaller one, and so on. This is what makes budget allocation a genuine puzzle — spreading money across multiple categories should generally outperform dumping everything into one, and the player should feel that trade-off.
+Budgets are the player's primary weekly tactical lever and the first multiplier mechanic they encounter. Unlike the old additive model (where budgets topped up supply), **budget now funds base production**. Buildings provide capacity and processing efficiency; resident stats provide skill multipliers; but without budget, there's nothing to process. The kitchen can't cook without ingredients; bathrooms can't be cleaned without supplies.
 
-**For coverage primitives** (nutrition, fun, drive), budgets add directly to supply. Each pound of budget adds a fixed amount of supply (`supplyPerPound`). A moderate budget should visibly improve the coverage ratio — this is the immediate feedback that teaches the player how the system works. Diminishing returns come from the logarithmic scoring: the coverage score uses a log₂ curve, so doubling supply from 0.5 to 1.0 is worth 25 points, but doubling again from 1.0 to 2.0 is only worth another 25. The player is naturally nudged toward diversifying or seeking other multipliers (tech, policies, better residents) rather than brute-forcing a single gap.
+All six budget categories share a single **hyperbolic budget curve** with four key properties:
 
-**For accumulator primitives** (cleanliness, maintenance, fatigue), budgets amplify outflow — the cleaning, repair, or recovery process. Each pound of budget boosts the outflow multiplier (`outflowBoostPerPound`), which means budget effectiveness scales with the underlying outflow rate. A budget is more powerful when paired with good resident stats, tech upgrades, and quality buildings, because they all compound on the same term. A moderate budget should slow or halt the drift; stacking with other multipliers should reverse it. The compounding structure naturally creates diminishing returns: the jump from a 1.0× to 1.5× multiplier is more impactful than from 1.5× to 2.0×, because each increment applies to the same outflow base.
+1. **Zero-spend penalty.** At £0, effectiveness drops to `floor` (default 0.5 = 50%). Supply is strangled, outflow halved. The player can't ignore budgets.
+2. **Diminishing returns.** The curve is hyperbolic — the first £10 has far more impact than the next £10. Spreading budget across categories always outperforms dumping into one.
+3. **Population scaling.** The reference budget (`refBudget`) scales with population: more residents need more total spend. The formula is `refBudget = basePerCapita × N^scaleExp`. Each budget category has its own `basePerCapita` reflecting realistic per-llama weekly costs (e.g. Ingredients £44, Entertainment £26, Cleaning £10).
+4. **Economies of scale.** The `scaleExp` parameter (default 0.7) means per-capita cost *falls* as the commune grows. Communal bulk buying and shared infrastructure mean 12 llamas cost less per head than 4.
+
+The curve formula: `budgetMult = floor + (ceiling − floor) × budget / (budget + refBudget)`
+
+| Category | basePerCapita | Neutral @N=4 | Neutral @N=12 | Feel |
+|---|---|---|---|---|
+| Ingredients | £44 | £116 | £250 | £3/day/llama bulk cooking |
+| Cleaning supplies | £10 | £26 | £57 | Communal cleaning products |
+| Repairs & tools | £18 | £48 | £102 | Parts, tools, maintenance |
+| Wellness | £10 | £26 | £57 | Rest supplies, activities |
+| Entertainment | £26 | £69 | £148 | Games, outings, events |
+| Internet & workspace | £14 | £37 | £80 | Broadband, equipment |
+| **Total** | **£122** | **£322** | **£694** | |
+
+The budget multiplier applies uniformly to both coverage and accumulator primitives. For coverage, it multiplies base supply (so buildings and skills amplify the budget's effect). For accumulators, it multiplies outflow (so tidy residents and building quality make each cleaning £ go further). This creates the intended stacking design: budget is necessary but insufficient alone — the player must also invest in buildings, research, and recruit skilled residents.
 
 ---
 
@@ -230,9 +262,9 @@ The game's progression follows a repeating cycle: the baseline state creates pre
 
 ### The Early Game (Weeks 1–4)
 
-The player starts with a small commune, basic buildings, no tech, and a tight budget. The baseline state is hostile: accumulators are drifting negative, coverage is undersupplied, the economy squeezes. The goal of this phase is to learn the core systems by feeling the pressure and discovering that budgets and early decisions can address it.
+The player starts with 4 residents, basic buildings, no tech, and mounting debt. The commune itself is manageable — with only 4 llamas, cleanliness and maintenance accumulators stay near zero and the place feels like a "Showhome." But the books don't balance: £600 income vs £950+ costs means ~£570/week burn. The goal of this phase is to recruit urgently while maintaining vibes high enough to attract new residents.
 
-**Target experience:** Vibes at "Rough" to "Scrappy" (15–35). Coverage primitives are "Tight." Economy is close to break-even — tight enough to feel the pinch, loose enough for small budget experiments. Cleanliness and maintenance are visibly building but manageable with early investment. The player's first research completes by week 3–4, opening up the next wave of multipliers.
+**Target experience:** Vibes at "Scrappy" (25–30) — surprisingly decent for a small group. Coverage primitives are "Tight" but not collapsing. Fatigue is the only accumulator building (~7–9/week). The economy is clearly unsustainable — the player sees debt growing and feels the urgency to recruit. First tech research (chores_rota, £500) completes by week 3–4, preparing for the accumulator pressure that growth will bring.
 
 ### The Mid Game (Weeks 5–12)
 
@@ -256,10 +288,10 @@ These are the specific commitments that should guide every numerical tuning deci
 
 | Principle | Target |
 |-----------|--------|
-| **Economy** | Tight. Close to break-even at starting conditions; requires growth or smart budgeting to generate surplus. |
+| **Economy** | In debt from day one. ~£570/week burn at N=4. Break-even at N=11, profitable at N=12 (75% capacity). Game-over at -£5,000 (~9 weeks passive). |
 | **Coverage primitives** | Undersupplied at baseline (score ~35–45, "Tight"). Budget investment or good resident stats needed to reach "Adequate." |
 | **Accumulator drift** | Negative without investment. Visible pressure within a weekly cycle — enough to motivate action, not enough to collapse before the player can respond. |
-| **Fatigue** | Slightly positive net exertion so fatigue builds slowly, creating the work/party tension. |
+| **Fatigue** | Slightly positive net exertion plus activity fatigue from fun/drive. Builds meaningfully (~7/week without wellness tech). Wellness tech + budget stabilises it. |
 | **Churn** | 1–2 residents per week at starting conditions, not 3+. |
 | **Recruitment** | 1 slot base, with Partytime able to earn a second slot through moderate investment. |
 | **Vibes tier** | "Rough" to "Scrappy" (15–35), with a clear upward path for engaged players. |

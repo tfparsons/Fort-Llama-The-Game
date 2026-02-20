@@ -50,7 +50,10 @@ Before making balance changes, read the relevant docs:
 node tools/simulate.js --weeks=8 --strategy=passive --log=day
 
 # With budget strategy and CSV output
-node tools/simulate.js --weeks=12 --strategy=balanced --budget=150 --rent=120 --csv
+node tools/simulate.js --weeks=12 --strategy=balanced --budget=215 --csv
+
+# With pre-researched techs (test tech impact without playing through)
+node tools/simulate.js --weeks=12 --strategy=balanced --techs=chores_rota,wellness,cleaner --log=week
 
 # With config overrides (test parameter changes without editing files)
 node tools/simulate.js --weeks=6 --strategy=passive --overrides='{"primitives":{"fatigue":{"exertBase":0.5}}}'
@@ -65,16 +68,17 @@ node tools/simulate.js --weeks=12 --strategy=balanced --log=week
 |------|--------|---------|-------------|
 | `--weeks=N` | 1–50 | 8 | Weeks to simulate |
 | `--strategy=X` | passive, balanced, ls-focus, pt-focus, pr-focus | passive | Budget allocation pattern |
-| `--budget=N` | any | 200 | Total weekly budget (ignored for passive) |
-| `--rent=N` | any | 100 | Weekly rent per resident |
+| `--budget=N` | any | 215 | Total weekly budget (ignored for passive) |
+| `--rent=N` | any | 150 | Weekly rent per resident |
 | `--log=X` | tick, day, week | day | Snapshot frequency |
 | `--csv` | flag | table | Output as CSV |
 | `--overrides=JSON` | JSON string | none | Config overrides (same structure as config.js) |
+| `--techs=X` | comma-separated | none | Pre-research techs, e.g. `chores_rota,wellness,cleaner` |
 
 ### Strategies
 
 - **passive**: Zero budgets. Tests pure baseline drift — how fast things decay without intervention.
-- **balanced**: Even spread across all 6 budget categories. Tests whether investment can stabilise the system.
+- **balanced**: Proportional spread across all 6 budget categories (weighted by basePerCapita). Tests whether investment can stabilise the system.
 - **ls-focus**: Heavy Living Standards investment (nutrition, cleanliness, maintenance).
 - **pt-focus**: Heavy Partytime investment (fun-weighted).
 - **pr-focus**: Heavy Productivity investment (drive, fatigue-weighted).
@@ -114,16 +118,28 @@ All tunable values live in `server/config.js`. Key sections:
 - `DEFAULT_PRIMITIVE_CONFIG` (line ~180): Accumulator rates, coverage ratios, capacity, noise
 - `DEFAULT_HEALTH_CONFIG` (line ~233): Health metric scaling, fatigue weights, churn/recruitment params
 - `DEFAULT_VIBES_CONFIG` (line ~281): Vibes thresholds, tier names, balance settings
-- `DEFAULT_BUDGET_CONFIG` (line ~313): Budget effectiveness curves
+- `DEFAULT_BUDGET_CONFIG` (line ~313): Budget curve (floor, ceiling, basePerCapita, scaleExp) and category labels
 - `DEFAULT_POLICY_CONFIG` (line ~350+): Policy definitions and effects
 - `DEFAULT_TECH_CONFIG` (line ~500+): Tech tree definitions
 
-## Known Issues (v0.51)
+## Economy Model (v0.52)
 
-- **Accumulator rates too aggressive**: The `/N` population division was removed from accumulators but base rates weren't retuned. Maintenance, fatigue, and cleanliness all accumulate ~10x too fast, causing unavoidable death spirals by week 2–3.
-- **Economy imbalanced**: Treasury bleeds even with reasonable rent and modest budgets. Income/expense ratio needs separate tuning pass after accumulators are fixed.
-- **Starting vibes too high**: Initial vibes ~43 ("Fine") vs design target of 15–35 ("Rough to Scrappy").
+The game uses a **debt-driven startup model**. The player starts with 4 residents, zero treasury, and immediately goes into debt. Growth is the only path to solvency.
+
+- **Fixed costs**: Ground rent £700 + utilities £250 = £950/week
+- **Rent**: £150/resident/week
+- **Game over**: -£5,000 (the "overdraft limit")
+- **Break-even**: ~N=11 at neutral budget. Profitable at N=12 (75% of 16-bed capacity)
+- **Starting burn**: ~£570/week at N=4 with frugal budgets
+
+**The Difficulty Squeeze**: Recruiting fixes the economy but worsens accumulators. At N=4, cleanliness and maintenance stay at zero (small group, manageable mess). At N=8+, accumulators build relentlessly. Tech progression (chores_rota, cleaner, wellness) is the escape valve.
+
+## Known Issues (v0.52)
+
+- **Accumulator rates tuned**: Budget-as-base model with activity fatigue. Tech investment stabilises accumulators. At N=4, only fatigue accumulates (~7.5/week). At N=12, all three accumulators build without tech.
+- **Starting vibes**: ~29 ("Scrappy") at N=4 — within design target of 15–35.
 - **Client monolithic**: App.jsx is 186K and needs decomposition (future task, not blocking balance work).
+- **saved-defaults.json**: Persistence mechanism that overrides config.js with stale values. Delete the file when config changes aren't reflected in-game.
 
 ## Running the Game
 

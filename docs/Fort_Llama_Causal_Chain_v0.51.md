@@ -39,9 +39,9 @@ Three distinct types, each with a different mechanical shape:
 
 | Primitive | Supply formula | Demand | Key levers |
 |-----------|---------------|--------|------------|
-| **Nutrition** | min(N, kitchenCap) × outputRate × tierMult × kitchenQ × foodMult × (1 + skillMult × cookSkill) + budget × supplyPerPound | N × consumptionRate | Kitchen capacity, cooking skill, ingredients budget |
-| **Fun** | min(N, livCap) × outputRate × tierMult × livQ × funMult × (1 + skillMult × avg(socio, stamina)) × policyMult × considerationDamp + budget + heavenOutput + hotTubOutput | N × consumptionRate | Living room cap/quality, sociability, party supplies budget, heaven/hot tub buildings |
-| **Drive** | min(N, livCap) × outputRate × tierMult × livQ × (1 + skillMult × workEthic) × starlinkMult + budget | N × slackRate | Living room cap/quality, work ethic, internet budget, Starlink |
+| **Nutrition** | min(N, kitchenCap) × outputRate × tierMult × kitchenQ × foodMult × (1 + skillMult × cookSkill) × **budgetMult** | N × consumptionRate | Kitchen capacity, cooking skill, ingredients budget |
+| **Fun** | min(N, livCap) × outputRate × tierMult × livQ × funMult × (1 + skillMult × avg(socio, stamina)) × policyMult × considerationDamp × **budgetMult** + heavenOutput + hotTubOutput | N × consumptionRate | Living room cap/quality, sociability, party supplies budget, heaven/hot tub buildings |
+| **Drive** | min(N, livCap) × outputRate × tierMult × livQ × (1 + skillMult × workEthic) × starlinkMult × **budgetMult** | N × slackRate | Living room cap/quality, work ethic, internet budget, Starlink |
 
 **Great Hall upgrade**: The Great Hall (researched via the Productivity tech tree) replaces the living room. It provides capacity 30 (up from 20) and quality 2.0 (up from 1.0). The quality boost flows through `livQ` in fun, drive, and noise formulas — doubling living-room-based output and halving noise. It is a complete building replacement, not a multiplier on top of the existing room.
 
@@ -63,17 +63,23 @@ The `log2CoverageScore` converts supply/demand ratio to 0–100:
 | 2.00 | 75 | Great |
 | 4.00 | 100 | Superb |
 
-Coverage budgets add directly to supply via `supplyPerPound` (default: 0.5 — so £1 of budget adds 0.5 units of supply). They provide immediate, legible feedback — more budget = better coverage ratio. Diminishing returns come naturally from the logarithmic scoring: the first £50 matters more than the fifth.
+Coverage budgets multiply base supply via the shared budget curve: `budgetMult = floor + (ceiling − floor) × budget / (budget + refBudget)` where `refBudget = basePerCapita × N^scaleExp`. At £0 spend, supply drops to 50% (`floor`). At the default £10/category (N=10), `budgetMult ≈ 1.0` — equivalent to old baseline. The hyperbolic curve provides built-in diminishing returns and population scaling with economies of scale.
 
 #### Accumulator Primitives — debt that builds over time (higher = worse)
 
 | Primitive | Inflow (mess/wear/exertion) | Outflow (cleaning/repair/recovery) |
 |-----------|----------------------------|--------------------------------------|
-| **Cleanliness** | messPerRes × N × overcrowdPenalty(N/capBath) | cleanBase × bathQ × cleanMult × (1 + skillMult × tidiness) × cleanerMult × **budgetBoost** |
-| **Maintenance** | wearPerRes × N × overcrowdPenalty(N/capUtil) [custom K=4, P=3] | repairBase × utilQ × repairMult × (1 + handinessCoeff × handiness + tidinessCoeff × tidiness) × **budgetBoost** |
-| **Fatigue** | exertBase × (1 + workMult × workEthic + socioMult × sociability) | recoverBase × bedroomQ × recoveryMult × (1 + 0.3 × partyStamina) × **budgetBoost** × **recoveryOCDamp** |
+| **Cleanliness** | messPerRes × N × overcrowdPenalty(N/capBath) | cleanBase × bathQ × cleanMult × (1 + skillMult × tidiness) × **choresRotaBoost** × **cleanerBoost** × **budgetMult** |
+| **Maintenance** | wearPerRes × N × overcrowdPenalty(N/capUtil) [custom K=4, P=3] | repairBase × utilQ × repairMult × (1 + handinessCoeff × handiness + tidinessCoeff × tidiness) × **choresRotaBoost** × **budgetMult** |
+| **Fatigue** | exertBase × (1 + workMult × workEthic + socioMult × sociability) + **activityFatigue** | recoverBase × bedroomQ × recoveryMult × (1 + partyCoeff × partyStamina) × **wellnessBoost** × **budgetMult** × **recoveryOCDamp** |
 
-Where `budgetBoost = 1 + (budget × outflowBoostPerPound)` and `recoveryOCDamp = 1 / overcrowdPenalty(rBed)`.
+Where `budgetMult = floor + (ceiling − floor) × budget / (budget + refBudget)` (shared hyperbolic curve; see Budget Effectiveness) and `recoveryOCDamp = 1 / overcrowdPenalty(rBed)`.
+
+**Activity fatigue**: Fun and drive production feed directly into fatigue exertion: `activityFatigue = funFatigueCoeff × (funSupply / N) + driveFatigueCoeff × (driveSupply / N)`. This creates a natural cost to high fun/drive output — partying hard and working hard are both tiring. The coefficients (0.005 each) add roughly 15–25% to base exertion at moderate-to-high budget, making fatigue a genuine concern that the player must actively manage.
+
+**Tech boosts**: `choresRotaBoost = 1 + chores_rota.effectPercent/100` (15%, passive on research); `cleanerBoost = 1 + cleaner.effectPercent/100` (40%, requires fixed cost activation); `wellnessBoost = 1 + wellness.effectPercent/100` (20%, passive on research). These stack multiplicatively with budgetMult.
+
+Note: fatigue exertion (base + activity) is NOT budget-funded — residents get tired regardless of spend. Only recovery uses the budget curve.
 
 **Accumulator overcrowding denominators**: Cleanliness uses bathroom capacity (`capBath`) — more people sharing fewer bathrooms creates more mess, creating an early incentive to build bathrooms. At N=15 with 3 bathrooms (cap 12), ratio=1.25, penalty=1.5 — a 50% inflow increase that building another bathroom directly relieves. Maintenance uses utility closet capacity (`capUtil` = 40) with custom penalty parameters (K=4, P=3). This stays dormant until ~30 residents, then ramps sharply:
 
@@ -104,7 +110,7 @@ debt = clamp(debt + netFlow × tickScale, 0, 100)
 
 Three structural features to note here:
 
-**Budgets boost outflow, not subtract from stock.** Budgets amplify the underlying cleaning/repair/recovery process rather than fighting accumulated results. A cleaning budget is more effective when paired with tidy residents and a cleaner tech upgrade, because they all multiply the same outflow term. This is the intended stacking design — multipliers compound.
+**Budgets fund the outflow process.** Without budget, outflow runs at the `floor` rate (50%). Budget investment raises this via a shared hyperbolic curve that naturally provides diminishing returns and population scaling. A cleaning budget is more effective when paired with tidy residents and a cleaner tech upgrade, because they all multiply the same outflow term. This is the intended stacking design — multipliers compound, with budget providing the base that other multipliers amplify.
 
 **Recovery is slower than accumulation.** The `recoveryDamping` factor (0.65) means that when outflow exceeds inflow, debt goes down at only 65% of the speed it went up. This creates "memory" — neglect has lasting consequences, and prevention is more valuable than cure. The player learns to invest early rather than react late.
 
@@ -326,7 +332,7 @@ The pool skews productive over fun — Work Ethic is the strongest stat (12.6), 
 | **Drive** | 32.2 | Tight | Supply/demand ratio 0.61. Same problem |
 | **Cleanliness** | 0→100 by Day 5 | 🔴 Catastrophic | messIn=12.0 vs cleanOut=3.17. Net +8.83/tick. Runaway |
 | **Maintenance** | 0→100 by Day 7 | 🔴 Catastrophic | wearIn=10.0 vs repairOut=4.16. Net +5.84/tick. Runaway |
-| **Fatigue** | 0 (permanent) | 🟡 Inert | Recovery (55.8) exceeds exertion (38.5). No tension |
+| **Fatigue** | Slow climb | 🟢 Tuned | Base exertion (0.62) + activity fatigue (~0.10) vs recovery (0.51 × budgetMult). Requires wellness tech + budget to stabilise |
 
 ### Prototype Health Metrics (Tick 1)
 
@@ -386,9 +392,9 @@ The prototype had three critical problems and two secondary ones. All are addres
 |-------------|--------|---------|-------|-----------|
 | Cleanliness | 12.0 | 3.17 | **3.79:1** | Hits 100 by Day 5 |
 | Maintenance | 10.0 | 4.16 | **2.40:1** | Hits 100 by Day 7 |
-| Fatigue | 38.5 | 55.8 | **0.69:1** | Permanently zero |
+| Fatigue | 0.62 + ~0.10 activity | 0.51 × budgetMult | **~1.4:1** | Requires wellness tech to reverse |
 
-The design intent is that accumulators should "drift negative at baseline — visible pressure within a weekly cycle that motivates the player to act." A 3.79:1 inflow ratio isn't "visible pressure" — it's a catastrophe. The target is roughly 1.2:1 to 1.4:1. Fatigue had the opposite problem — permanently zero, with the work/party tension non-existent.
+The design intent is that accumulators should "drift negative at baseline — visible pressure within a weekly cycle that motivates the player to act." The original prototype had catastrophic ratios (3.79:1 for cleanliness) and an inert fatigue (0.69:1, permanently zero). After tuning: base rates produce slow drift (~1.2–1.5:1), activity fatigue from fun/drive production makes fatigue a genuine concern, and tech investment (chores_rota, cleaner, wellness) provides the tools to stabilise.
 
 **What was fixed**: Accumulator base rates retuned (messPerRes: 1.2→0.4, wearPerRes: 1.0→0.5, exertBase: 3→5, recoverBase: 5→4.5). Budgets now boost outflow (stacking with multipliers) instead of subtracting from stock. Asymmetric recovery adds "memory." Dynamic fatigue dampening creates work/party tension even at moderate fatigue.
 
@@ -443,19 +449,19 @@ These are the tuning values currently in the codebase. They were set based on th
 
 Target: unbudgeted inflow:outflow ratio of roughly 1.2:1 to 1.4:1.
 
-| Accumulator | Inflow param | Value | Outflow param | Value | Approx ratio |
+| Accumulator | Inflow param | Value | Outflow param | Value | Approx ratio (at budgetMult=1.0) |
 |-------------|-------------|-------|---------------|-------|--------------|
-| **Cleanliness** | messPerRes | 0.4 | cleanBase | 3 | ~1.26:1 |
-| **Maintenance** | wearPerRes | 0.5 | repairBase | 3 | ~1.20:1 |
-| **Fatigue** | exertBase | 5 | recoverBase | 4.5 | ~1.11:1 |
+| **Cleanliness** | messPerRes | 0.10 | cleanBase | 0.52 | ~1.92:1 |
+| **Maintenance** | wearPerRes | 0.08 | repairBase | 0.54 | ~1.48:1 |
+| **Fatigue** | exertBase | 0.62 | recoverBase | 0.51 | ~1.22:1 (base only) |
 
-Fatigue's tighter ratio is deliberate — it creates a slow background pressure noticed over 2–3 weeks, with the dynamic dampening system making even moderate fatigue create meaningful PR/PT trade-offs.
+Fatigue's base ratio looks tight, but **activity fatigue** from fun/drive production adds roughly 15–25% to exertion at moderate budget, pushing the effective ratio to ~1.4–1.5:1. This makes fatigue the primary accumulator pressure in an actively managed commune — the player can stabilise cleanliness and maintenance with budget + tech, but fatigue requires dedicated investment via the wellness tech and fatigue budget.
 
-**Budget interaction (cleanliness example)**: Unbudgeted net flow is +0.83/tick (slowly building). With £75 cleaning budget, outflow becomes 3.17 × 1.375 = 4.36, net flow becomes −0.36/tick × 0.65 (recovery damping) = −0.23/tick. Drift halted and slowly reversing.
+**Budget interaction (cleanliness example)**: At £0 budget, budgetMult=0.5, so outflow is halved — net flow strongly positive, cleanliness deteriorates rapidly. At the default £10/category (N=10), budgetMult≈1.0, restoring baseline behaviour (slow positive drift). At £30/category, budgetMult≈1.25, outflow exceeds inflow, drift halts and slowly reverses via recovery damping.
 
-**Budget interaction (fatigue example)**: With £100 wellness budget, recovery gets a 1.5× multiplier. Net flow reverses, but recovery damping means it takes roughly 50% longer to recover than it took to accumulate. This is the "prevention over cure" lesson.
+**Budget interaction (fatigue example)**: At £0 budget, recovery runs at 50%, fatigue builds fast. At £20/category (N=10), budgetMult≈1.17, recovery nearly matches base exertion — but activity fatigue from fun/drive still pushes the balance negative. The player needs both budget AND the wellness tech (+20% recovery) to stabilise fatigue at moderate investment levels.
 
-**Fatigue tuning note**: The `exertBase` and `recoverBase` values were originally calibrated against a `/N` formula that divided both by population. That division has been removed (see Pre_Merge_Cleanup.md, Change 1). These base rates will need retuning during the first play-testing pass — expect them to need significant reduction (likely dividing by roughly 10 for a 10-resident starting state).
+**Tech interaction**: Chores Rota (+15%) is a cheap L1 tech that boosts both cleanliness and maintenance outflow. Stacked with Cleaner (+40%, L2 fixed expense), cleanliness becomes fully recoverable at moderate budget. Wellness (+20%, L2 culture) targets fatigue recovery specifically, offsetting the activity fatigue penalty. The tech tree creates a clear progression: early research stabilises accumulators, freeing budget for coverage investment.
 
 ### Coverage Base Ratios
 
@@ -471,16 +477,17 @@ Fun and Drive score slightly lower than Nutrition. This is deliberate — Nutrit
 
 ### Economy Starting Point
 
-Target: break-even at starting config (10 residents, £100 rent), with ~£100–200/week headroom.
+Target: slight deficit at starting config (10 residents, £100 rent, default budgets), requiring growth or optimisation to break even.
 
 | Item | Amount |
 |------|--------|
 | Income (10 × £100) | £1,000 |
 | Ground rent | **£800** |
 | Utilities | £200 |
-| **Net (before budgets)** | **£0** |
+| Default budgets (6 × £10) | £60 |
+| **Net** | **−£60/week** |
 
-The player can afford a £75–100 budget in one category if they accept a small weekly loss, or prioritise growing to 12 residents first (giving £200/week surplus for budget experiments).
+The player starts with a small deficit. This is deliberate — budgets are now mandatory operating costs (not optional boosts), and the deficit creates immediate growth pressure. Growing to 12 residents covers the gap; optimising budgets (reducing underperforming categories, investing in high-impact ones) teaches the core mechanic.
 
 With the LS → rent tolerance mechanic active, a player who invests in LS earns the ability to raise rent without spiking churn. This creates a positive feedback loop: invest in quality → tolerate higher rent → more income → invest further. The starting economy needs to be tight enough that this loop feels earned, not automatic.
 
@@ -490,15 +497,22 @@ With the LS → rent tolerance mechanic active, a player who invests in LS earns
 |-----------|-------|---------|
 | penaltyOnset | 0.75 | Overcrowding penalty starts at 75% capacity |
 | recoveryDamping | 0.65 | Debt recovers at 65% of accumulation speed |
-| outflowBoostPerPound | 0.005 | £1 budget → 0.005 added to outflow multiplier (accumulators) |
-| supplyPerPound | 0.5 | £1 budget → 0.5 added to supply (coverage) |
+| budgetCurve.basePerCapita | 2.0 | Reference budget per capita (£ per resident at neutral) |
+| budgetCurve.scaleExp | 0.7 | Economies of scale — sublinear growth with population |
+| budgetCurve.floor | 0.5 | Effectiveness at £0 (scrounging / volunteer effort) |
+| budgetCurve.ceiling | 1.5 | Asymptotic max effectiveness (diminishing returns cap) |
 | baseFatigueWeight | 0.5 | Centre point for dynamic fatigue dampening |
 | fatigueWeightSwing | 0.5 | Range of fatigue weight shift (0.3–0.7) |
 | rentCurve | 0.7 | LS influence on rent tolerance |
 | rentTierCurvature | 2 | Curved LS scaling for rent tier display labels |
-| handinessCoeff | 0.1 | Handiness contribution to maintenance outflow (primary) |
-| tidinessCoeff | 0.05 | Tidiness contribution to maintenance outflow (secondary) |
-| considerationPenalty | 0.05 | Max 5% fun reduction from consideration |
+| funFatigueCoeff | 0.005 | Fun supply per-capita contribution to fatigue exertion |
+| driveFatigueCoeff | 0.005 | Drive supply per-capita contribution to fatigue exertion |
+| chores_rota.effectPercent | 15 | Passive cleanliness + maintenance outflow boost on research |
+| cleaner.effectPercent | 40 | Cleanliness outflow boost (fixed expense) |
+| wellness.effectPercent | 20 | Passive fatigue recovery boost on research |
+| handinessCoeff | 0.25 | Handiness contribution to maintenance outflow (primary) |
+| tidinessCoeff | 0.12 | Tidiness contribution to maintenance outflow (secondary) |
+| considerationPenalty | 0.12 | Fun reduction from consideration |
 | funPenalty.threshold | 3 | Policies above this count reduce fun |
 | funPenalty.K | 0.15 | Policy fun penalty severity |
 | funPenalty.P | 1.5 | Policy fun penalty curvature |
@@ -537,8 +551,9 @@ After all structural changes and tuning, the ideal week-by-week experience:
 | Dampener | `(1 − value/100)^weight` |
 | Baseline | `(value/100)^weight` |
 | Sigmoid | `100 × x^p / (1 + x^p)` where `x = raw / mRef` |
-| Budget boost (coverage) | `budget × supplyPerPound` (added to supply) |
-| Budget boost (accum.) | `1 + budget × outflowBoostPerPound` (multiplied into outflow) |
+| Budget multiplier | `floor + (ceiling − floor) × budget / (budget + refBudget)` where `refBudget = basePerCapita × N^scaleExp` |
+| Activity fatigue | `funFatigueCoeff × funSupply/N + driveFatigueCoeff × driveSupply/N` |
+| Fatigue exertion | `exertBase × (1 + workMult × workEthic + socioMult × sociability) + activityFatigue` |
 | Recovery damping | `netFlow × recoveryDamping` (when netFlow < 0) |
 | Rent tolerance | `1 + rentCurve × (50 − LS) / 50` |
 | Policy fun penalty | `max(0, 1 − K × (policies − threshold)^P)` when policies > threshold |
@@ -557,7 +572,7 @@ All tunable values are in modular files under `server/`:
 | `DEFAULT_POLICY_CONFIG` | `server/config.js` | Policy effect scaling: `excludePercent`, `funPenalty` (threshold, K, P) |
 | `DEFAULT_HEALTH_CONFIG` | `server/config.js` | Health metric weights, sigmoid parameters, churn/recruit thresholds, `baseFatigueWeight`, `fatigueWeightSwing`, `rentCurve` |
 | `DEFAULT_VIBES_CONFIG` | `server/config.js` | Tier labels, balance thresholds, branch labels |
-| `DEFAULT_BUDGET_CONFIG` | `server/config.js` | Budget `supplyPerPound` (coverage), `outflowBoostPerPound` (accumulators) |
+| `DEFAULT_BUDGET_CONFIG` | `server/config.js` | Budget curve parameters (`floor`, `ceiling`, `basePerCapita`, `scaleExp`), category labels |
 | `DEFAULT_TIER_CONFIG` | `server/config.js` | Population brackets, output/health multipliers, quality caps |
 | `DEFAULT_TECH_CONFIG` | `server/config.js` | Tech costs, weekly costs, effect percentages |
 | `INITIAL_DEFAULTS` | `server/config.js` | Economy: treasury, rent, ground rent, utilities, churn rates |
@@ -600,3 +615,6 @@ All six structural changes from the original spec are implemented, plus three ad
 | Dead code removal | ✅ Done | `getTierHealthMult`, `statToPercentage` |
 | Legacy config removal | ✅ Done | `rentTierThresholds` from INITIAL_DEFAULTS |
 | Budget naming | ✅ Done | `efficiency` → `supplyPerPound`, `budgetEfficiency` → `outflowBoostPerPound` |
+| Budget as base rate | ✅ Done | Replaced additive/multiplicative budget model with unified hyperbolic `budgetEffectiveness` curve. Budget now funds base production; buildings multiply. Zero-spend penalty, population scaling, economies of scale, diminishing returns. Default starting budgets £10/category. |
+| Activity fatigue | ✅ Done | Fun/drive supply feeds fatigue exertion via `funFatigueCoeff` and `driveFatigueCoeff` (0.005 each). Calculation order restructured: fun/drive supply computed before fatigue. |
+| Tech effects wired | ✅ Done | Chores Rota (+15% cleanliness & maintenance outflow), Cleaner (20→40%), Wellness (+20% fatigue recovery). Passive techs check `researchedTechs`. |
