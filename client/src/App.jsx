@@ -100,7 +100,8 @@ function App() {
     }
   }, [gameState?.researchCompletedThisWeek]);
 
-  const showWeeklyPanel = gameState?.isPausedForWeeklyDecision && !gameState?.isGameOver;
+  const isPaused = gameState?.isPausedForWeeklyDecision && !gameState?.isGameOver;
+  const showWeeklyPanel = gameState != null && !gameState?.isGameOver;
 
   // Store current pause state in ref so animation can read fresh value
   const isPausedRef = useRef(true);
@@ -110,7 +111,7 @@ function App() {
   useEffect(() => {
     if (gameState?.budgets && gameState?.week !== undefined) {
       const syncKey = `${gameState.week}-${gameState.day}`;
-      if (budgetSyncedWeek.current !== syncKey && showWeeklyPanel) {
+      if (budgetSyncedWeek.current !== syncKey && isPaused) {
         budgetSyncedWeek.current = syncKey;
         setBudgetInputs({ ...gameState.budgets });
       }
@@ -124,7 +125,7 @@ function App() {
         setRecruitedInfo(null);
       }
     }
-  }, [gameState?.week, gameState?.day, showWeeklyPanel]);
+  }, [gameState?.week, gameState?.day, isPaused]);
 
   // Keep refs in sync with state
   useEffect(() => {
@@ -632,6 +633,7 @@ function App() {
 
   const handleSaveDefaults = async () => {
     await pushAllDevToolConfigs();
+    await fetch(`${API_BASE}/api/save-balance-config`, { method: 'POST' });
     await fetch(`${API_BASE}/api/save-defaults`, { method: 'POST' });
     budgetSyncedWeek.current = null;
     fetchState();
@@ -985,8 +987,8 @@ function App() {
           <div className="card pressure-card">
               <div className="pressure-gauges">
                 {[
-                  { key: 'crowding', label: 'Crowding', icon: '👥', tiers: ['Comfortable', 'Tight', 'Crowded', 'Unliveable'] },
-                  { key: 'noise', label: 'Noise', icon: '🔊', tiers: ['Quiet', 'Buzzing', 'Loud', 'Chaos'] }
+                  { key: 'crowding', label: 'Crowding', icon: '👥', tiers: ['Spacious', 'Comfortable', 'Crowded', 'Sardines'] },
+                  { key: 'noise', label: 'Noise', icon: '🔊', tiers: ['Quiet', 'Lively', 'Loud', 'Circus'] }
                 ].map(p => {
                   const val = Math.round(gameState.primitives?.[p.key] || 0);
                   const tierIndex = val < 25 ? 0 : val < 50 ? 1 : val < 75 ? 2 : 3;
@@ -1057,6 +1059,8 @@ function App() {
                 ].map(p => {
                   const val = Math.round(gameState.primitives?.[p.key] || 0);
                   const fillColor = val < 30 ? '#48bb78' : val < 60 ? '#ed8936' : '#f56565';
+                  const tierLabel = gameState.coverageData?.[p.key]?.label;
+                  const tierLabelColor = val < 16 ? '#48bb78' : val < 31 ? '#68d391' : val < 51 ? '#ed8936' : val < 71 ? '#f56565' : '#e53e3e';
                   return (
                     <div key={p.key} className="stock-tank">
                       <div className="tank-container">
@@ -1067,6 +1071,7 @@ function App() {
                         <span className="tank-icon">{p.icon}</span>
                         <span>{p.label}</span>
                       </div>
+                      {tierLabel && <span className="coverage-tier" style={{ color: tierLabelColor }}>{tierLabel}</span>}
                     </div>
                   );
                 })}
@@ -1083,12 +1088,15 @@ function App() {
                 const ratio = coverage?.ratio || 1;
                 const tierLabel = coverage?.label || 'Adequate';
                 const tierColors = {
-                  'Shortfall': '#f56565',
-                  'Tight': '#ed8936',
-                  'Adequate': '#ecc94b',
-                  'Good': '#68d391',
-                  'Great': '#48bb78',
-                  'Superb': '#38b2ac'
+                  // Nutrition
+                  'Starving': '#f56565', 'Fed': '#ed8936', 'Well Fed': '#ecc94b',
+                  'Feasting': '#68d391', 'Gourmet': '#48bb78', 'Michelin Starred': '#38b2ac',
+                  // Fun
+                  'Boring': '#f56565', 'Buzzy': '#ed8936', 'Good Times': '#ecc94b',
+                  'Boomtown': '#68d391', 'Life Changing': '#48bb78', 'Legendary': '#38b2ac',
+                  // Drive
+                  'Idle': '#f56565', 'Motivated': '#ed8936', 'Driven': '#ecc94b',
+                  'On Fire': '#68d391', 'Unstoppable': '#48bb78', 'World Domination': '#38b2ac'
                 };
                 const labelColor = tierColors[tierLabel] || '#805ad5';
                 return (
@@ -1282,9 +1290,11 @@ function App() {
               </div>
 
               <div className="sidebar-divider" />
-              <button className="panel-confirm" onClick={handleDismissWeekly}>
-                Start Week
-              </button>
+              {isPaused && (
+                <button className="panel-confirm" onClick={handleDismissWeekly}>
+                  Start Week
+                </button>
+              )}
               <button 
                 className="btn-restart"
                 onClick={() => {

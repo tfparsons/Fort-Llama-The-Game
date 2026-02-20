@@ -51,13 +51,15 @@ const state = {
   savedDefaults,
   savedLlamaPool: loadedData.llamaPool,
   savedBuildingsConfig: loadedData.buildings,
-  primitiveConfig: savedDefaults.primitives ? { ...savedDefaults.primitives } : { ...DEFAULT_PRIMITIVE_CONFIG },
-  healthConfig: savedDefaults.health ? { ...savedDefaults.health } : { ...DEFAULT_HEALTH_CONFIG },
-  vibesConfig: savedDefaults.vibes ? { ...savedDefaults.vibes } : { ...DEFAULT_VIBES_CONFIG },
-  tierConfig: savedDefaults.tierConfig ? { ...savedDefaults.tierConfig } : { ...DEFAULT_TIER_CONFIG },
-  budgetConfig: savedDefaults.budgetConfig ? JSON.parse(JSON.stringify(savedDefaults.budgetConfig)) : JSON.parse(JSON.stringify(DEFAULT_BUDGET_CONFIG)),
-  policyConfig: savedDefaults.policyConfig ? JSON.parse(JSON.stringify(savedDefaults.policyConfig)) : JSON.parse(JSON.stringify(DEFAULT_POLICY_CONFIG)),
-  techConfig: savedDefaults.techConfig ? JSON.parse(JSON.stringify(savedDefaults.techConfig)) : JSON.parse(JSON.stringify(DEFAULT_TECH_CONFIG))
+  // Balance parameters always come from config.js — never from saved-defaults.json.
+  // Edit config.js to change game balance; saved-defaults.json only stores session settings.
+  primitiveConfig: { ...DEFAULT_PRIMITIVE_CONFIG },
+  healthConfig: { ...DEFAULT_HEALTH_CONFIG },
+  vibesConfig: { ...DEFAULT_VIBES_CONFIG },
+  tierConfig: { ...DEFAULT_TIER_CONFIG },
+  budgetConfig: JSON.parse(JSON.stringify(DEFAULT_BUDGET_CONFIG)),
+  policyConfig: JSON.parse(JSON.stringify(DEFAULT_POLICY_CONFIG)),
+  techConfig: JSON.parse(JSON.stringify(DEFAULT_TECH_CONFIG))
 };
 
 module.exports = { state, SAVED_DEFAULTS_FILE };

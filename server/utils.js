@@ -39,6 +39,13 @@ function getCoverageTierLabel(score) {
   return 'Superb';
 }
 
+function getPrimitiveTierLabel(labelDef, score) {
+  for (let i = 0; i < labelDef.thresholds.length; i++) {
+    if (score < labelDef.thresholds[i]) return labelDef.labels[i];
+  }
+  return labelDef.labels[labelDef.labels.length - 1];
+}
+
 function dampener(value, weight) {
   const norm = value / 100;
   return Math.pow(1 - norm, weight);
@@ -54,6 +61,7 @@ module.exports = {
   deepMergePrimitives,
   log2CoverageScore,
   getCoverageTierLabel,
+  getPrimitiveTierLabel,
   dampener,
   baseline
 };
