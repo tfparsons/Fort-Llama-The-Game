@@ -46,6 +46,20 @@ function getPrimitiveTierLabel(labelDef, score) {
   return labelDef.labels[labelDef.labels.length - 1];
 }
 
+/**
+ * Budget effectiveness curve — hyperbolic with population scaling.
+ *
+ *   budgetMult(0)   = floor            (neglect penalty, e.g. 0.25)
+ *   budgetMult(ref) ≈ midpoint         (neutral — old-baseline-equivalent)
+ *   budgetMult(∞)  → ceiling           (asymptotic cap, e.g. 1.5)
+ *
+ * refBudget = basePerCapita × N^scaleExp   (economies of scale)
+ */
+function budgetEffectiveness(budget, population, curveCfg) {
+  const ref = curveCfg.basePerCapita * Math.pow(Math.max(1, population), curveCfg.scaleExp);
+  return curveCfg.floor + (curveCfg.ceiling - curveCfg.floor) * budget / (budget + ref);
+}
+
 function dampener(value, weight) {
   const norm = value / 100;
   return Math.pow(1 - norm, weight);
@@ -62,6 +76,7 @@ module.exports = {
   log2CoverageScore,
   getCoverageTierLabel,
   getPrimitiveTierLabel,
+  budgetEffectiveness,
   dampener,
   baseline
 };

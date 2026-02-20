@@ -878,7 +878,7 @@ function App() {
                 const count = residents.length;
                 const calcPct = (statKey) => {
                   const avg = residents.reduce((sum, r) => sum + (r.stats[statKey] || 10), 0) / count;
-                  return Math.round((avg - 10) * 10);
+                  return Math.round((avg - 10) * 3);
                 };
                 const stats = [
                   { key: 'sharingTolerance', label: 'Sharing' },
@@ -1846,7 +1846,7 @@ function App() {
               </div>
               {expandedPrimitives.nutrition && (
                 <div className="primitive-body">
-                  <div className="formula-display">supply = min(N,cap) × outputRate × levelMult × quality × (1 + skillMult × cookSkill)</div>
+                  <div className="formula-display">supply = min(N,cap) × outputRate × levelMult × quality × (1 + skillMult × cookSkill) × budgetMult</div>
                   <div className="coverage-stats">
                     <span>Supply: {gameState?.coverageData?.nutrition?.supply?.toFixed(1) || 0}</span>
                     <span>Demand: {gameState?.coverageData?.nutrition?.demand?.toFixed(1) || 0}</span>
@@ -1884,7 +1884,7 @@ function App() {
               </div>
               {expandedPrimitives.fun && (
                 <div className="primitive-body">
-                  <div className="formula-display">supply = min(N,cap) × outputRate × levelMult × quality × (1 + skillMult × avgSocioStamina)</div>
+                  <div className="formula-display">supply = min(N,cap) × outputRate × levelMult × quality × (1 + skillMult × avgSocioStamina) × policyMult × budgetMult</div>
                   <div className="coverage-stats">
                     <span>Supply: {gameState?.coverageData?.fun?.supply?.toFixed(1) || 0}</span>
                     <span>Demand: {gameState?.coverageData?.fun?.demand?.toFixed(1) || 0}</span>
@@ -1922,7 +1922,7 @@ function App() {
               </div>
               {expandedPrimitives.drive && (
                 <div className="primitive-body">
-                  <div className="formula-display">supply = min(N,cap) × outputRate × levelMult × quality × (1 + skillMult × workEthic)</div>
+                  <div className="formula-display">supply = min(N,cap) × outputRate × levelMult × quality × (1 + skillMult × workEthic) × budgetMult</div>
                   <div className="coverage-stats">
                     <span>Supply: {gameState?.coverageData?.drive?.supply?.toFixed(1) || 0}</span>
                     <span>Demand: {gameState?.coverageData?.drive?.demand?.toFixed(1) || 0}</span>
@@ -1961,8 +1961,8 @@ function App() {
               {expandedPrimitives.cleanliness && (
                 <div className="primitive-body">
                   <div className="formula-display">messIn = messPerResident × N × overcrowdingPenalty</div>
-                  <div className="formula-display">cleanOut = cleanBase × bathQuality × cleanMult × (1 + skillMult × tidiness)</div>
-                  <div className="formula-display">debt += (messIn - cleanOut) × 0.5 - budgetReduction</div>
+                  <div className="formula-display">cleanOut = cleanBase × bathQ × cleanMult × (1 + skillMult × tidiness) × budgetMult × techBoosts</div>
+                  <div className="formula-display">debt += (messIn - cleanOut) × 0.5</div>
                   <div className="primitive-controls">
                     <div className="config-field">
                       <label>messPerResident</label>
@@ -1995,7 +1995,7 @@ function App() {
               </div>
               {expandedPrimitives.maintenance && (
                 <div className="primitive-body">
-                  <div className="formula-display">accumulates: wearIn × penalty - repairOut</div>
+                  <div className="formula-display">accumulates: (wearIn × penalty - repairOut × budgetMult × techBoosts) × 0.5</div>
                   <div className="primitive-controls">
                     <div className="config-field">
                       <label>wearPerResident</label>
@@ -2044,27 +2044,39 @@ function App() {
               </div>
               {expandedPrimitives.fatigue && (
                 <div className="primitive-body">
-                  <div className="formula-display">accumulates: (exertion - recovery) / N</div>
+                  <div className="formula-display">exertion = exertBase × (1 + workMult × workEthic + socioMult × sociability) + funFatigueCoeff × funSupply/N + driveFatigueCoeff × driveSupply/N</div>
+                  <div className="formula-display">recovery = recoverBase × bedroomQ × recoveryMult × (1 + partyCoeff × partyStamina) × budgetMult × wellnessBoost</div>
+                  <div className="formula-display">accumulates: exertion - recovery</div>
                   <div className="primitive-controls">
                     <div className="config-field">
                       <label>exertBase</label>
-                      <input type="number" step="0.5" value={editConfig?.primitives?.fatigue?.exertBase ?? 3}
+                      <input type="number" step="0.01" value={editConfig?.primitives?.fatigue?.exertBase ?? 0.62}
                         onChange={(e) => updatePrimitiveConfig('fatigue', 'exertBase', parseFloat(e.target.value))} />
                     </div>
                     <div className="config-field">
                       <label>recoverBase</label>
-                      <input type="number" step="0.5" value={editConfig?.primitives?.fatigue?.recoverBase ?? 5}
+                      <input type="number" step="0.01" value={editConfig?.primitives?.fatigue?.recoverBase ?? 0.51}
                         onChange={(e) => updatePrimitiveConfig('fatigue', 'recoverBase', parseFloat(e.target.value))} />
                     </div>
                     <div className="config-field">
                       <label>workMult</label>
-                      <input type="number" step="0.1" value={editConfig?.primitives?.fatigue?.workMult ?? 0.3}
+                      <input type="number" step="0.01" value={editConfig?.primitives?.fatigue?.workMult ?? 0.25}
                         onChange={(e) => updatePrimitiveConfig('fatigue', 'workMult', parseFloat(e.target.value))} />
                     </div>
                     <div className="config-field">
                       <label>socioMult</label>
-                      <input type="number" step="0.1" value={editConfig?.primitives?.fatigue?.socioMult ?? 0.2}
+                      <input type="number" step="0.01" value={editConfig?.primitives?.fatigue?.socioMult ?? 0.25}
                         onChange={(e) => updatePrimitiveConfig('fatigue', 'socioMult', parseFloat(e.target.value))} />
+                    </div>
+                    <div className="config-field">
+                      <label>funFatigueCoeff</label>
+                      <input type="number" step="0.001" value={editConfig?.primitives?.fatigue?.funFatigueCoeff ?? 0.005}
+                        onChange={(e) => updatePrimitiveConfig('fatigue', 'funFatigueCoeff', parseFloat(e.target.value))} />
+                    </div>
+                    <div className="config-field">
+                      <label>driveFatigueCoeff</label>
+                      <input type="number" step="0.001" value={editConfig?.primitives?.fatigue?.driveFatigueCoeff ?? 0.005}
+                        onChange={(e) => updatePrimitiveConfig('fatigue', 'driveFatigueCoeff', parseFloat(e.target.value))} />
                     </div>
                   </div>
                   <div className="linked-buildings">
@@ -2080,28 +2092,53 @@ function App() {
           <div className="dev-tools-grid three-col">
             <div className="config-section">
               <h3>Budgets</h3>
-              <div style={{display: 'flex', justifyContent: 'flex-end', gap: '8px', marginBottom: '4px', fontSize: '0.7rem', color: '#a0aec0'}}>
-                <span style={{width: '70px', textAlign: 'center'}}>Start (£)</span>
-                <span style={{width: '70px', textAlign: 'center'}}>{'{eff/red}'}</span>
-              </div>
+              <div style={{fontSize: '0.7rem', color: '#a0aec0', marginBottom: '6px'}}>Starting £/week per category (+ £/capita neutral point)</div>
               {[
-                { key: 'nutrition', label: 'Ingredients', type: 'coverage' },
-                { key: 'cleanliness', label: 'Cleaning', type: 'outflow' },
-                { key: 'fun', label: 'Party supplies', type: 'coverage' },
-                { key: 'drive', label: 'Internet', type: 'coverage' },
-                { key: 'maintenance', label: 'Handiman', type: 'outflow' },
-                { key: 'fatigue', label: 'Wellness', type: 'outflow' }
+                { key: 'nutrition', label: 'Ingredients', def: 50, bpc: 15 },
+                { key: 'cleanliness', label: 'Cleaning supplies', def: 15, bpc: 5 },
+                { key: 'maintenance', label: 'Repairs & tools', def: 25, bpc: 8 },
+                { key: 'fatigue', label: 'Wellness', def: 15, bpc: 5 },
+                { key: 'fun', label: 'Entertainment', def: 30, bpc: 10 },
+                { key: 'drive', label: 'Internet & workspace', def: 15, bpc: 5 }
               ].map(item => (
-                <div key={item.key} className="config-field" style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
-                  <label style={{flex: 1}}>{item.label}</label>
-                  <input type="number" step="10" min="0" max="500" style={{width: '70px'}} value={editConfig.startingBudgets?.[item.key] ?? 0} onChange={(e) => {
+                <div key={item.key} className="config-field" style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px'}}>
+                  <label style={{flex: 1, fontSize: '0.7rem'}}>{item.label}</label>
+                  <input type="number" step="5" min="0" max="500" style={{width: '55px'}} value={editConfig.startingBudgets?.[item.key] ?? item.def} onChange={(e) => {
                     const val = Math.max(0, Math.min(500, parseInt(e.target.value) || 0));
                     setEditConfig(prev => ({
                       ...prev,
                       startingBudgets: { ...prev.startingBudgets, [item.key]: val }
                     }));
                   }} />
-                  <input type="number" step={item.type === 'coverage' ? '0.01' : '0.001'} style={{width: '70px', marginLeft: '8px'}} value={editConfig?.budgetConfig?.[item.key]?.[item.type === 'coverage' ? 'supplyPerPound' : 'outflowBoostPerPound'] ?? (item.type === 'coverage' ? 0.5 : 0.005)} onChange={(e) => updateBudgetConfig(item.key, item.type === 'coverage' ? 'supplyPerPound' : 'outflowBoostPerPound', parseFloat(e.target.value))} />
+                  <input type="number" step="1" min="1" max="50" style={{width: '40px', fontSize: '0.65rem', opacity: 0.7}} title="basePerCapita" value={editConfig?.budgetConfig?.[item.key]?.basePerCapita ?? item.bpc} onChange={(e) => {
+                    const val = Math.max(1, parseFloat(e.target.value) || 1);
+                    setEditConfig(prev => ({
+                      ...prev,
+                      budgetConfig: {
+                        ...prev.budgetConfig,
+                        [item.key]: { ...prev.budgetConfig?.[item.key], basePerCapita: val }
+                      }
+                    }));
+                  }} />
+                </div>
+              ))}
+              <div style={{fontSize: '0.7rem', color: '#a0aec0', marginTop: '8px', marginBottom: '4px'}}>Budget curve</div>
+              {[
+                { field: 'scaleExp', label: 'Scale exp', step: 0.05, def: 0.7 },
+                { field: 'floor', label: 'Floor (£0)', step: 0.05, def: 0.5 },
+                { field: 'ceiling', label: 'Ceiling', step: 0.05, def: 1.5 }
+              ].map(p => (
+                <div key={p.field} className="config-field" style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
+                  <label style={{flex: 1}}>{p.label}</label>
+                  <input type="number" step={p.step} style={{width: '70px'}} value={editConfig?.budgetConfig?.curve?.[p.field] ?? p.def} onChange={(e) => {
+                    setEditConfig(prev => ({
+                      ...prev,
+                      budgetConfig: {
+                        ...prev.budgetConfig,
+                        curve: { ...prev.budgetConfig?.curve, [p.field]: parseFloat(e.target.value) }
+                      }
+                    }));
+                  }} />
                 </div>
               ))}
             </div>
@@ -2485,9 +2522,9 @@ function App() {
                 <button 
                   className="action-button"
                   onClick={() => setBuildConfirm(building)}
-                  disabled={gameState.treasury < building.cost || (gameState.buildsThisWeek || 0) >= (gameState.config?.buildsPerWeek ?? 1)}
+                  disabled={gameState.treasury - building.cost < (gameState.config?.gameOverLimit ?? -5000) || (gameState.buildsThisWeek || 0) >= (gameState.config?.buildsPerWeek ?? 1)}
                 >
-                  {(gameState.buildsThisWeek || 0) >= (gameState.config?.buildsPerWeek ?? 1) ? 'Limit reached' : gameState.treasury < building.cost ? 'Not enough funds' : 'Build'}
+                  {(gameState.buildsThisWeek || 0) >= (gameState.config?.buildsPerWeek ?? 1) ? 'Limit reached' : gameState.treasury - building.cost < (gameState.config?.gameOverLimit ?? -5000) ? 'Debt limit' : 'Build'}
                 </button>
               </div>
             ))}
@@ -2728,15 +2765,15 @@ function App() {
                     availableTechs.map(tech => {
                       const cfg = gameState.techConfig?.[tech.id] || {};
                       const cost = cfg.cost || 500;
-                      const canAfford = gameState.treasury >= cost;
+                      const canAfford = gameState.treasury - cost >= (gameState.config?.gameOverLimit ?? -5000);
                       const isThisResearching = gameState.researchingTech === tech.id;
                       const typeLabel = tech.type === 'fixed_expense' ? 'Fixed Cost' : tech.type === 'building' ? 'Building' : tech.type === 'culture' ? 'Culture' : tech.type === 'upgrade' ? 'Upgrade' : 'Policy';
                       let effectText = '';
                       if (tech.type === 'fixed_expense') effectText = `+${cfg.effectPercent || 0}% boost, £${cfg.weeklyCost || 0}/wk`;
-                      else if (tech.type === 'policy') effectText = tech.id === 'chores_rota' ? 'Unlocks Cooking & Cleaning Rota' : tech.id === 'ocado' ? `+${cfg.effectPercent || 0}% ingredient efficiency` : tech.description;
+                      else if (tech.type === 'policy') effectText = tech.id === 'chores_rota' ? `+${cfg.effectPercent || 15}% cleanliness & maintenance + unlocks rotas` : tech.id === 'ocado' ? `+${cfg.effectPercent || 0}% ingredient efficiency` : tech.description;
                       else if (tech.type === 'building') effectText = tech.id === 'blanket_fort' ? 'Unlocks Heaven building' : tech.id === 'outdoor_plumbing' ? 'Unlocks Hot Tub building' : tech.description;
                       else if (tech.type === 'upgrade') effectText = 'Living Room upgrade (see Buildings)';
-                      else if (tech.type === 'culture') effectText = 'Unlocks next level technologies';
+                      else if (tech.type === 'culture') effectText = tech.id === 'wellness' ? `+${cfg.effectPercent || 20}% fatigue recovery` : 'Unlocks next level technologies';
                       
                       if (isThisResearching) return null;
                       

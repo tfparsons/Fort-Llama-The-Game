@@ -15,6 +15,7 @@
  *   --log=X          Log level: 'tick', 'day', 'week' (default: day)
  *   --csv            Output as CSV (default: table)
  *   --overrides=JSON JSON string of config overrides, e.g. '{"primitives":{"fatigue":{"exertBase":0.5}}}'
+ *   --techs=X        Comma-separated tech IDs to pre-research, e.g. 'chores_rota,wellness,cleaner'
  */
 
 // Parse CLI args
@@ -28,10 +29,11 @@ process.argv.slice(2).forEach(arg => {
 
 const WEEKS = parseInt(args.weeks) || 8;
 const STRATEGY = args.strategy || 'passive';
-const BUDGET = parseInt(args.budget) || 200;
-const RENT = parseInt(args.rent) || 100;
+const BUDGET = parseInt(args.budget) || 215;
+const RENT = parseInt(args.rent) || 150;
 const LOG_LEVEL = args.log || 'day';
 const AS_CSV = !!args.csv;
+const TECHS = args.techs ? args.techs.split(',').map(t => t.trim()) : [];
 
 // Parse config overrides
 let overrides = {};
@@ -58,20 +60,20 @@ console.log = _origLog;
 const STRATEGIES = {
   passive: {},  // No budgets
   balanced: {
-    nutrition: 0.2, cleanliness: 0.2, maintenance: 0.2,
-    fatigue: 0.1, fun: 0.15, drive: 0.15
+    nutrition: 0.36, cleanliness: 0.08, maintenance: 0.15,
+    fatigue: 0.08, fun: 0.21, drive: 0.12
   },
   'ls-focus': {
-    nutrition: 0.35, cleanliness: 0.3, maintenance: 0.3,
-    fatigue: 0.05, fun: 0, drive: 0
+    nutrition: 0.40, cleanliness: 0.20, maintenance: 0.25,
+    fatigue: 0.05, fun: 0.05, drive: 0.05
   },
   'pt-focus': {
-    nutrition: 0.1, cleanliness: 0.1, maintenance: 0.1,
-    fatigue: 0.1, fun: 0.5, drive: 0.1
+    nutrition: 0.10, cleanliness: 0.05, maintenance: 0.05,
+    fatigue: 0.10, fun: 0.55, drive: 0.15
   },
   'pr-focus': {
-    nutrition: 0.1, cleanliness: 0.1, maintenance: 0.1,
-    fatigue: 0.2, fun: 0.1, drive: 0.4
+    nutrition: 0.10, cleanliness: 0.05, maintenance: 0.05,
+    fatigue: 0.20, fun: 0.10, drive: 0.50
   }
 };
 
@@ -136,6 +138,9 @@ function applyStrategy(strategy, budget) {
 
 console.error(`\nFort Llama Headless Simulator`);
 console.error(`  Weeks: ${WEEKS} | Strategy: ${STRATEGY} | Budget: £${BUDGET} | Rent: £${RENT} | Log: ${LOG_LEVEL}`);
+if (TECHS.length > 0) {
+  console.error(`  Pre-researched techs: ${TECHS.join(', ')}`);
+}
 if (Object.keys(overrides).length > 0) {
   console.error(`  Overrides: ${JSON.stringify(overrides)}`);
 }
@@ -148,6 +153,20 @@ state.savedBuildingsConfig = null;
 // Initialize with clean defaults, deep-merged with any CLI overrides
 initializeGame(overrides);
 state.gameState.currentRent = RENT;
+
+// Pre-research techs if specified via --techs flag
+if (TECHS.length > 0) {
+  // Techs with type 'fixed_cost' need to go into activeFixedCosts as well
+  for (const techId of TECHS) {
+    if (!state.gameState.researchedTechs.includes(techId)) {
+      state.gameState.researchedTechs.push(techId);
+    }
+    const techDef = state.techConfig[techId];
+    if (techDef && techDef.type === 'fixed_cost' && !state.gameState.activeFixedCosts.includes(techId)) {
+      state.gameState.activeFixedCosts.push(techId);
+    }
+  }
+}
 
 // Apply budget strategy
 applyStrategy(STRATEGY, BUDGET);

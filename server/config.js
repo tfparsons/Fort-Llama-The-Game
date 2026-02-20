@@ -126,15 +126,46 @@ const DEFAULT_BUILDINGS = [
 ];
 
 const DEFAULT_TIER_CONFIG = {
-  brackets: [6, 12, 20, 50, 100],
-  outputMults: [1.0, 1.15, 1.3, 1.5, 1.75, 2.0],
-  healthMults: [1.0, 1.1, 1.2, 1.35, 1.5, 1.7],
-  qualityCaps: [2, 3, 4, 5, 5, 5]
+  "brackets": [
+    6,
+    12,
+    20,
+    50,
+    100
+  ],
+  "outputMults": [
+    1,
+    1.15,
+    1.3,
+    1.5,
+    1.75,
+    2
+  ],
+  "healthMults": [
+    1,
+    1.1,
+    1.2,
+    1.35,
+    1.5,
+    1.7
+  ],
+  "qualityCaps": [
+    2,
+    3,
+    4,
+    5,
+    5,
+    5
+  ]
 };
 
 const DEFAULT_POLICY_CONFIG = {
-  excludePercent: 0.25,
-  funPenalty: { threshold: 3, K: 0.15, P: 1.5 }
+  "excludePercent": 0.25,
+  "funPenalty": {
+    "threshold": 3,
+    "K": 0.15,
+    "P": 1.5
+  }
 };
 
 const POLICY_DEFINITIONS = [
@@ -192,156 +223,409 @@ const TECH_TREE = [
 ];
 
 const DEFAULT_TECH_CONFIG = {
-  chores_rota: { cost: 500 },
-  cleaner: { cost: 1000, weeklyCost: 150, effectPercent: 20 },
-  ocado: { cost: 1000, effectPercent: 15 },
-  wellness: { cost: 1000 },
-  great_hall: { cost: 1000 },
-  starlink: { cost: 500, weeklyCost: 100, effectPercent: 15 },
-  blanket_fort: { cost: 500 },
-  always_be_escalating: { cost: 1000 },
-  outdoor_plumbing: { cost: 1000 },
-  laundry_room: { cost: 2000 },
-  ukrainian_cleaner: { cost: 2000 },
-  competitive_cooking: { cost: 2000 },
-  majestic_guvnor: { cost: 2000 },
-  group_yoga: { cost: 2000 },
-  sauna: { cost: 2000 },
-  call_rooms: { cost: 2000 },
-  adderall: { cost: 2000, weeklyCost: 200, effectPercent: 25 },
-  party_planning: { cost: 2000 },
-  psychedelics: { cost: 2000, weeklyCost: 200, effectPercent: 20 },
-  polyamory: { cost: 2000 },
-  advanced_blanket_fort: { cost: 2000 }
+  "chores_rota": {
+    "cost": 500,
+    "effectPercent": 15
+  },
+  "cleaner": {
+    "cost": 1000,
+    "weeklyCost": 150,
+    "effectPercent": 40
+  },
+  "ocado": {
+    "cost": 1000,
+    "effectPercent": 15
+  },
+  "wellness": {
+    "cost": 1000,
+    "effectPercent": 20
+  },
+  "great_hall": {
+    "cost": 1000
+  },
+  "starlink": {
+    "cost": 500,
+    "weeklyCost": 100,
+    "effectPercent": 15
+  },
+  "blanket_fort": {
+    "cost": 500
+  },
+  "always_be_escalating": {
+    "cost": 1000
+  },
+  "outdoor_plumbing": {
+    "cost": 1000
+  },
+  "laundry_room": {
+    "cost": 2000
+  },
+  "ukrainian_cleaner": {
+    "cost": 2000
+  },
+  "competitive_cooking": {
+    "cost": 2000
+  },
+  "majestic_guvnor": {
+    "cost": 2000
+  },
+  "group_yoga": {
+    "cost": 2000
+  },
+  "sauna": {
+    "cost": 2000
+  },
+  "call_rooms": {
+    "cost": 2000
+  },
+  "adderall": {
+    "cost": 2000,
+    "weeklyCost": 200,
+    "effectPercent": 25
+  },
+  "party_planning": {
+    "cost": 2000
+  },
+  "psychedelics": {
+    "cost": 2000,
+    "weeklyCost": 200,
+    "effectPercent": 20
+  },
+  "polyamory": {
+    "cost": 2000
+  },
+  "advanced_blanket_fort": {
+    "cost": 2000
+  }
 };
 
 const DEFAULT_PRIMITIVE_CONFIG = {
-  penaltyK: 2,
-  penaltyP: 2,
-  penaltyOnset: 0.75,
-  recoveryDamping: 0.65,
-  crowding: { baseMult: 50, weight: 1.0, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
-  noise: { baseSocial: 2.5, baseAmbient: 10, socioMult: 0.1, considMult: 0.3, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
-  nutrition: { outputRate: 7, consumptionRate: 13, skillMult: 0.1, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
-  cleanliness: { messPerResident: 0.10, cleanBase: 0.5, skillMult: 0.1, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
-  maintenance: { wearPerResident: 0.08, repairBase: 0.5, handinessCoeff: 0.1, tidinessCoeff: 0.05, useCustomPenalty: true, penaltyK: 4, penaltyP: 3 },
-  fatigue: { exertBase: 0.5, recoverBase: 0.45, workMult: 0.3, socioMult: 0.2 },
-  fun: { outputRate: 9, consumptionRate: 16, skillMult: 0.1, considerationPenalty: 0.05, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 },
-  drive: { outputRate: 6, slackRate: 11, skillMult: 0.1, useCustomPenalty: false, penaltyK: 2, penaltyP: 2 }
+  "penaltyK": 2,
+  "penaltyP": 2,
+  "penaltyOnset": 0.75,
+  "recoveryDamping": 0.65,
+  "crowding": {
+    "baseMult": 43,
+    "shareTolCoeff": 0.25,
+    "weight": 1,
+    "useCustomPenalty": false,
+    "penaltyK": 2,
+    "penaltyP": 2
+  },
+  "noise": {
+    "baseSocial": 2.25,
+    "baseAmbient": 10,
+    "socioMult": 0.25,
+    "considMult": 0.25,
+    "useCustomPenalty": false,
+    "penaltyK": 2,
+    "penaltyP": 2
+  },
+  "nutrition": {
+    "outputRate": 7.3,
+    "consumptionRate": 13,
+    "skillMult": 0.25,
+    "useCustomPenalty": false,
+    "penaltyK": 2,
+    "penaltyP": 2
+  },
+  "cleanliness": {
+    "messPerResident": 0.1,
+    "cleanBase": 0.52,
+    "skillMult": 0.25,
+    "useCustomPenalty": false,
+    "penaltyK": 2,
+    "penaltyP": 2
+  },
+  "maintenance": {
+    "wearPerResident": 0.08,
+    "repairBase": 0.54,
+    "handinessCoeff": 0.25,
+    "tidinessCoeff": 0.12,
+    "useCustomPenalty": true,
+    "penaltyK": 4,
+    "penaltyP": 3
+  },
+  "fatigue": {
+    "exertBase": 0.59,
+    "recoverBase": 0.51,
+    "workMult": 0.25,
+    "socioMult": 0.25,
+    "partyCoeff": 0.25,
+    "funFatigueCoeff": 0.005,
+    "driveFatigueCoeff": 0.005
+  },
+  "fun": {
+    "outputRate": 9.2,
+    "consumptionRate": 16,
+    "skillMult": 0.25,
+    "considerationPenalty": 0.12,
+    "useCustomPenalty": false,
+    "penaltyK": 2,
+    "penaltyP": 2
+  },
+  "drive": {
+    "outputRate": 6.3,
+    "slackRate": 11,
+    "skillMult": 0.25,
+    "useCustomPenalty": false,
+    "penaltyK": 2,
+    "penaltyP": 2
+  }
 };
 
 const DEFAULT_HEALTH_CONFIG = {
-  livingStandards: {
-    nutritionWeight: 0.5,
-    cleanlinessDampen: 0.35,
-    crowdingDampen: 0.35,
-    maintenanceDampen: 0.35,
-    rentCurve: 0.7,
-    rentTierCurvature: 2,
-    useCustomScaling: true,
-    ref0: 0.55,
-    alpha: 0.15,
-    p: 2,
-    tierMult: [1.0, 1.1, 1.2, 1.35, 1.5, 1.7]
+  "livingStandards": {
+    "nutritionWeight": 0.5,
+    "cleanlinessDampen": 0.35,
+    "crowdingDampen": 0.35,
+    "maintenanceDampen": 0.35,
+    "rentCurve": 0.7,
+    "rentTierCurvature": 2,
+    "useCustomScaling": true,
+    "ref0": 0.55,
+    "alpha": 0.15,
+    "p": 2,
+    "tierMult": [
+      1,
+      1.1,
+      1.2,
+      1.35,
+      1.5,
+      1.7
+    ]
   },
-  productivity: {
-    driveWeight: 1.0,
-    noiseWeight: 0.35,
-    crowdingWeight: 0.25,
-    useCustomScaling: false,
-    ref0: 0.3,
-    alpha: 0.15,
-    p: 2,
-    tierMult: [1.0, 1.1, 1.2, 1.35, 1.5, 1.7]
+  "productivity": {
+    "driveWeight": 1,
+    "noiseWeight": 0.35,
+    "crowdingWeight": 0.25,
+    "useCustomScaling": false,
+    "ref0": 0.3,
+    "alpha": 0.15,
+    "p": 2,
+    "tierMult": [
+      1,
+      1.1,
+      1.2,
+      1.35,
+      1.5,
+      1.7
+    ]
   },
-  partytime: {
-    funWeight: 1.0,
-    useCustomScaling: true,
-    ref0: 0.42,
-    alpha: 0.15,
-    p: 2,
-    tierMult: [1.0, 1.1, 1.2, 1.35, 1.5, 1.7]
+  "partytime": {
+    "funWeight": 1,
+    "useCustomScaling": true,
+    "ref0": 0.42,
+    "alpha": 0.15,
+    "p": 2,
+    "tierMult": [
+      1,
+      1.1,
+      1.2,
+      1.35,
+      1.5,
+      1.7
+    ]
   },
-  globalScaling: {
-    ref0: 0.35,
-    alpha: 0.15,
-    p: 2
+  "globalScaling": {
+    "ref0": 0.35,
+    "alpha": 0.15,
+    "p": 2
   },
-  pop0: 2,
-  tierBrackets: [6, 12, 20, 50, 100],
-  baseFatigueWeight: 0.5,
-  fatigueWeightSwing: 0.5,
-  churnBaselinePR: 35,
-  churnScalePerPoint: 0.01,
-  recruitBaselinePT: 35,
-  recruitScalePerSlot: 15,
-  baseRecruitSlots: 1
+  "pop0": 2,
+  "tierBrackets": [
+    6,
+    12,
+    20,
+    50,
+    100
+  ],
+  "baseFatigueWeight": 0.5,
+  "fatigueWeightSwing": 0.5,
+  "churnBaselinePR": 24,
+  "churnScalePerPoint": 0.01,
+  "recruitBaselinePT": 35,
+  "recruitScalePerSlot": 15,
+  "baseRecruitSlots": 1
 };
 
 const DEFAULT_VIBES_CONFIG = {
-  balancedThreshold: 0.18,
-  strongImbalanceThreshold: 0.30,
-  tierThresholds: [
-    { name: 'Shambles', min: 0, max: 0.15 },
-    { name: 'Rough', min: 0.15, max: 0.25 },
-    { name: 'Scrappy', min: 0.25, max: 0.35 },
-    { name: 'Fine', min: 0.35, max: 0.45 },
-    { name: 'Good', min: 0.45, max: 0.55 },
-    { name: 'Lovely', min: 0.55, max: 0.65 },
-    { name: 'Thriving', min: 0.65, max: 0.75 },
-    { name: 'Wonderful', min: 0.75, max: 0.85 },
-    { name: 'Glorious', min: 0.85, max: 0.95 },
-    { name: 'Utopia', min: 0.95, max: 1.01 }
+  "balancedThreshold": 0.18,
+  "strongImbalanceThreshold": 0.3,
+  "tierThresholds": [
+    {
+      "name": "Shambles",
+      "min": 0,
+      "max": 0.15
+    },
+    {
+      "name": "Rough",
+      "min": 0.15,
+      "max": 0.25
+    },
+    {
+      "name": "Scrappy",
+      "min": 0.25,
+      "max": 0.35
+    },
+    {
+      "name": "Fine",
+      "min": 0.35,
+      "max": 0.45
+    },
+    {
+      "name": "Good",
+      "min": 0.45,
+      "max": 0.55
+    },
+    {
+      "name": "Lovely",
+      "min": 0.55,
+      "max": 0.65
+    },
+    {
+      "name": "Thriving",
+      "min": 0.65,
+      "max": 0.75
+    },
+    {
+      "name": "Wonderful",
+      "min": 0.75,
+      "max": 0.85
+    },
+    {
+      "name": "Glorious",
+      "min": 0.85,
+      "max": 0.95
+    },
+    {
+      "name": "Utopia",
+      "min": 0.95,
+      "max": 1.01
+    }
   ],
-  scaleBreakpoints: [
-    { min: 1, max: 5, tierMin: 2, tierMax: 5 },
-    { min: 6, max: 10, tierMin: 2, tierMax: 6 },
-    { min: 11, max: 20, tierMin: 2, tierMax: 7 },
-    { min: 21, max: 35, tierMin: 1, tierMax: 8 },
-    { min: 36, max: 999, tierMin: 0, tierMax: 9 }
+  "scaleBreakpoints": [
+    {
+      "min": 1,
+      "max": 5,
+      "tierMin": 2,
+      "tierMax": 5
+    },
+    {
+      "min": 6,
+      "max": 10,
+      "tierMin": 2,
+      "tierMax": 6
+    },
+    {
+      "min": 11,
+      "max": 20,
+      "tierMin": 2,
+      "tierMax": 7
+    },
+    {
+      "min": 21,
+      "max": 35,
+      "tierMin": 1,
+      "tierMax": 8
+    },
+    {
+      "min": 36,
+      "max": 999,
+      "tierMin": 0,
+      "tierMax": 9
+    }
   ],
-  branchLabels: {
-    highPartytime: { mild: 'Party House', strong: 'Party Mansion' },
-    highProductivity: { mild: 'Grind House', strong: 'Sweat Shop' },
-    highLivingStandards: { mild: 'Showhome', strong: 'Dolls House' },
-    lowLivingStandards: { mild: 'Shanty Town', strong: 'Slum' },
-    lowProductivity: { mild: 'Decadent', strong: 'Chaotic' },
-    lowPartytime: { mild: 'Low Energy', strong: 'Dead' }
+  "branchLabels": {
+    "highPartytime": {
+      "mild": "Party House",
+      "strong": "Party Mansion"
+    },
+    "highProductivity": {
+      "mild": "Grind House",
+      "strong": "Sweat Shop"
+    },
+    "highLivingStandards": {
+      "mild": "Showhome",
+      "strong": "Dolls House"
+    },
+    "lowLivingStandards": {
+      "mild": "Shanty Town",
+      "strong": "Slum"
+    },
+    "lowProductivity": {
+      "mild": "Decadent",
+      "strong": "Chaotic"
+    },
+    "lowPartytime": {
+      "mild": "Low Energy",
+      "strong": "Dead"
+    }
   }
 };
 
 const DEFAULT_BUDGET_CONFIG = {
-  nutrition:   { key: 'nutrition',   label: 'Ingredients',        type: 'coverage', supplyPerPound: 0.5,         investment: 0 },
-  cleanliness: { key: 'cleanliness', label: 'Cleaning materials', type: 'outflow',  outflowBoostPerPound: 0.005, investment: 0 },
-  maintenance: { key: 'maintenance', label: 'Handiman',           type: 'outflow',  outflowBoostPerPound: 0.005, investment: 0 },
-  fatigue:     { key: 'fatigue',     label: 'Wellness',           type: 'outflow',  outflowBoostPerPound: 0.005, investment: 0 },
-  fun:         { key: 'fun',         label: 'Party supplies',     type: 'coverage', supplyPerPound: 0.5,         investment: 0 },
-  drive:       { key: 'drive',       label: 'Internet',           type: 'coverage', supplyPerPound: 0.5,         investment: 0 }
+  "curve": {
+    "basePerCapita": 2,
+    "scaleExp": 0.7,
+    "floor": 0.5,
+    "ceiling": 1.5
+  },
+  "nutrition": {
+    "key": "nutrition",
+    "label": "Ingredients",
+    "basePerCapita": 44
+  },
+  "cleanliness": {
+    "key": "cleanliness",
+    "label": "Cleaning supplies",
+    "basePerCapita": 10
+  },
+  "maintenance": {
+    "key": "maintenance",
+    "label": "Repairs & tools",
+    "basePerCapita": 18
+  },
+  "fatigue": {
+    "key": "fatigue",
+    "label": "Wellness",
+    "basePerCapita": 10
+  },
+  "fun": {
+    "key": "fun",
+    "label": "Entertainment",
+    "basePerCapita": 26
+  },
+  "drive": {
+    "key": "drive",
+    "label": "Internet & workspace",
+    "basePerCapita": 14
+  }
 };
 
 const INITIAL_DEFAULTS = {
   startingTreasury: 0,
-  startingResidents: 10,
+  startingResidents: 4,
   buildsPerWeek: 1,
   policyChangesPerWeek: 1,
   researchActionsPerWeek: 1,
   rentMin: 50,
   rentMax: 500,
-  defaultRent: 100,
-  groundRentBase: 800,
-  utilitiesBase: 200,
-  baseChurnRate: 0.20,
+  defaultRent: 150,
+  groundRentBase: 700,
+  utilitiesBase: 250,
+  baseChurnRate: 0.07,
   churnRentMultiplier: 0.0003,
-  gameOverLimit: -20000,
+  gameOverLimit: -5000,
   tickSpeed: 200,
   hoursPerTick: 4,
   startingBudgets: {
-    nutrition: 0,
-    cleanliness: 0,
-    maintenance: 0,
-    fatigue: 0,
-    fun: 0,
-    drive: 0
+    nutrition: 75,
+    cleanliness: 20,
+    maintenance: 30,
+    fatigue: 20,
+    fun: 45,
+    drive: 25
   },
   primitives: { ...DEFAULT_PRIMITIVE_CONFIG },
   health: { ...DEFAULT_HEALTH_CONFIG },
