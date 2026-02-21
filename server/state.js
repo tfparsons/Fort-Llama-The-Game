@@ -10,7 +10,8 @@ const {
   DEFAULT_TIER_CONFIG,
   DEFAULT_BUDGET_CONFIG,
   DEFAULT_POLICY_CONFIG,
-  DEFAULT_TECH_CONFIG
+  DEFAULT_TECH_CONFIG,
+  DEFAULT_SCORE_CONFIG
 } = require('./config');
 
 const SAVED_DEFAULTS_FILE = path.join(__dirname, 'saved-defaults.json');
@@ -59,7 +60,8 @@ const state = {
   tierConfig: { ...DEFAULT_TIER_CONFIG },
   budgetConfig: JSON.parse(JSON.stringify(DEFAULT_BUDGET_CONFIG)),
   policyConfig: JSON.parse(JSON.stringify(DEFAULT_POLICY_CONFIG)),
-  techConfig: JSON.parse(JSON.stringify(DEFAULT_TECH_CONFIG))
+  techConfig: JSON.parse(JSON.stringify(DEFAULT_TECH_CONFIG)),
+  scoreConfig: JSON.parse(JSON.stringify(DEFAULT_SCORE_CONFIG))
 };
 
 module.exports = { state, SAVED_DEFAULTS_FILE };

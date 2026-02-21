@@ -25,6 +25,11 @@ const {
   calculateGroundRent,
   calculateUtilities
 } = require('./outcomes');
+const {
+  calculateWeeklyScore,
+  checkMilestones,
+  updateScoringTrackers
+} = require('./scoring');
 
 function initializeGame(config = state.savedDefaults) {
   state.gameConfig = { ...INITIAL_DEFAULTS, ...config };
@@ -113,6 +118,16 @@ function initializeGame(config = state.savedDefaults) {
       branchLabel: null,
       isBalanced: true,
       scaleTier: 1
+    },
+    scoring: {
+      totalScore: 0,
+      weeklyTotal: 0,
+      milestoneTotal: 0,
+      weeklyScores: [],
+      earnedMilestones: [],
+      peakPopulation: state.gameConfig.startingResidents,
+      peakVibes: 0,
+      zeroChurnStreak: 0
     },
     coverageData: {
       tier: 0,
@@ -276,6 +291,11 @@ function processWeekEnd() {
   } else {
     state.gameState.researchCompletedThisWeek = null;
   }
+
+  // Scoring runs after tech completion so new techs count this week
+  updateScoringTrackers(churnCount);
+  calculateWeeklyScore();
+  checkMilestones();
 
   const prevPolicies = [...(state.gameState.previousPolicies || [])];
   const currPolicies = [...(state.gameState.activePolicies || [])];

@@ -720,6 +720,7 @@ function App() {
               <div className="vibes-field"><span className="vibes-label">Vibe</span> <span className="vibes-val vibes-val-vibe">{gameState.vibes?.tierName || 'Decent'}</span></div>
               <div className="vibes-field"><span className="vibes-label">Reputation</span> <span className="vibes-val vibes-val-rep">{gameState.vibes?.branchLabel || gameState.vibes?.reputation || 'Obscure'}</span></div>
               <div className="vibes-field"><span className="vibes-label">Level</span> <span className="vibes-val vibes-val-level">{(gameState.coverageData?.tier || 0) + 1}</span></div>
+              <div className="vibes-field"><span className="vibes-label">Score</span> <span className="vibes-val vibes-val-score">{(gameState.scoring?.totalScore || 0).toLocaleString()}</span></div>
             </div>
           </div>
 
@@ -2171,6 +2172,139 @@ function App() {
                   })}
                 </tbody>
               </table>
+            </div>
+          </div>
+
+          <h3 className="section-divider">Scoring</h3>
+          <div className="dev-tools-grid three-col">
+            <div className="config-section">
+              <h3>Weekly Formula</h3>
+              <div style={{fontSize: '0.75rem', color: '#a0aec0'}}>
+                {(() => {
+                  const s = gameState.scoring || {};
+                  const vibes = Math.round((gameState.vibes?.overallLevel || 0) * 1000) / 10;
+                  const hm = gameState.healthMetrics || {};
+                  const maxH = Math.max(hm.livingStandards || 0, hm.productivity || 0, hm.partytime || 0);
+                  const minH = Math.min(hm.livingStandards || 0, hm.productivity || 0, hm.partytime || 0);
+                  const harmony = maxH > 0 ? Math.round((0.7 + 0.3 * (minH / maxH)) * 1000) / 1000 : 0.7;
+                  const N = gameState.residents || 0;
+                  const popScale = N <= 4 ? 1.0 : N <= 8 ? 1.5 : N <= 12 ? 2.0 : 3.0;
+                  const projPts = Math.floor(vibes * popScale * harmony * 10);
+                  const lastWeek = (s.weeklyScores || []).slice(-1)[0];
+                  return (
+                    <div>
+                      <div style={{marginBottom: '6px'}}><strong style={{color: '#e2e8f0'}}>Current snapshot</strong></div>
+                      <div>Vibes: <strong>{vibes}</strong></div>
+                      <div>Pop scale: <strong>×{popScale}</strong> (N={N})</div>
+                      <div>Harmony: <strong>{harmony}</strong> (min/max = {maxH > 0 ? (minH / maxH).toFixed(2) : '—'})</div>
+                      <div>Projected weekly: <strong>{projPts.toLocaleString()}</strong> pts</div>
+                      {lastWeek && <div style={{marginTop: '6px', borderTop: '1px solid #4a5568', paddingTop: '4px'}}>Last week (W{lastWeek.week}): <strong>{lastWeek.points.toLocaleString()}</strong> pts</div>}
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+
+            <div className="config-section">
+              <h3>Score Totals</h3>
+              <div style={{fontSize: '0.75rem', color: '#a0aec0'}}>
+                {(() => {
+                  const s = gameState.scoring || {};
+                  return (
+                    <div>
+                      <div>Weekly total: <strong style={{color: '#4fd1c5'}}>{(s.weeklyTotal || 0).toLocaleString()}</strong></div>
+                      <div>Milestone total: <strong style={{color: '#ecc94b'}}>{(s.milestoneTotal || 0).toLocaleString()}</strong></div>
+                      <div style={{marginTop: '4px', borderTop: '1px solid #4a5568', paddingTop: '4px', fontSize: '0.85rem'}}>Overall: <strong style={{color: '#e2e8f0'}}>{(s.totalScore || 0).toLocaleString()}</strong></div>
+                      <div style={{marginTop: '8px', color: '#718096'}}>Peak vibes: {s.peakVibes || 0}</div>
+                      <div style={{color: '#718096'}}>Peak population: {s.peakPopulation || 0}</div>
+                      <div style={{color: '#718096'}}>Churn-free streak: {s.zeroChurnStreak || 0}w</div>
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+
+            <div className="config-section">
+              <h3>Earned Milestones</h3>
+              <div style={{fontSize: '0.7rem', color: '#a0aec0', maxHeight: '200px', overflowY: 'auto'}}>
+                {(gameState.scoring?.earnedMilestones || []).length === 0
+                  ? <div style={{color: '#718096'}}>None yet</div>
+                  : (gameState.scoring.earnedMilestones || []).map(m => (
+                    <div key={m.id} style={{display: 'flex', justifyContent: 'space-between', padding: '2px 0', borderBottom: '1px solid #2d3748'}}>
+                      <span>{m.badgeName} <span style={{color: '#718096'}}>({m.category})</span></span>
+                      <span style={{color: '#ecc94b'}}>+{m.points} <span style={{color: '#718096'}}>W{m.week}</span></span>
+                    </div>
+                  ))
+                }
+              </div>
+            </div>
+          </div>
+          <div className="dev-tools-grid">
+            <div className="config-section" style={{gridColumn: '1 / -1'}}>
+              <h3>Unearned Milestones</h3>
+              <div style={{fontSize: '0.7rem', color: '#718096', maxHeight: '160px', overflowY: 'auto'}}>
+                {(() => {
+                  const earned = new Set((gameState.scoring?.earnedMilestones || []).map(m => m.id));
+                  const milestones = [
+                    {id:'pop_5',cat:'population',name:'Open Doors',pts:100,hint:'N >= 5'},
+                    {id:'pop_8',cat:'population',name:'Growing',pts:200,hint:'N >= 8'},
+                    {id:'pop_12',cat:'population',name:'Established',pts:400,hint:'N >= 12'},
+                    {id:'pop_16',cat:'population',name:'Full House',pts:750,hint:'N >= 16'},
+                    {id:'zero_churn_4',cat:'population',name:'Stable Community',pts:300,hint:'0 churn 4 weeks'},
+                    {id:'vibes_25',cat:'vibes',name:'Scrappy',pts:50,hint:'Vibes >= 25'},
+                    {id:'vibes_35',cat:'vibes',name:'Fine',pts:100,hint:'Vibes >= 35'},
+                    {id:'vibes_45',cat:'vibes',name:'Good',pts:200,hint:'Vibes >= 45'},
+                    {id:'vibes_55',cat:'vibes',name:'Lovely',pts:400,hint:'Vibes >= 55'},
+                    {id:'vibes_65',cat:'vibes',name:'Thriving',pts:600,hint:'Vibes >= 65'},
+                    {id:'vibes_75',cat:'vibes',name:'Wonderful',pts:800,hint:'Vibes >= 75'},
+                    {id:'vibes_85',cat:'vibes',name:'Glorious',pts:1000,hint:'Vibes >= 85'},
+                    {id:'vibes_95',cat:'vibes',name:'Utopia',pts:2000,hint:'Vibes >= 95'},
+                    {id:'rep_reputable',cat:'reputation',name:'Reputable',pts:150,hint:'Reputation'},
+                    {id:'rep_aspirational',cat:'reputation',name:'Aspirational',pts:400,hint:'Reputation'},
+                    {id:'rep_famous',cat:'reputation',name:'Famous',pts:800,hint:'Reputation'},
+                    {id:'rep_mythical',cat:'reputation',name:'Mythical',pts:2000,hint:'Reputation'},
+                    {id:'econ_breakeven',cat:'economic',name:'Breaking Even',pts:150,hint:'Delta >= 0'},
+                    {id:'econ_black',cat:'economic',name:'Out of the Red',pts:300,hint:'Treasury >= 0'},
+                    {id:'econ_2k',cat:'economic',name:'Rainy Day Fund',pts:500,hint:'Treasury >= 2k'},
+                    {id:'econ_5k',cat:'economic',name:'Flush',pts:750,hint:'Treasury >= 5k'},
+                    {id:'build_first',cat:'building',name:'Expanding',pts:100,hint:'Build anything'},
+                    {id:'build_heaven',cat:'building',name:'Pillow Paradise',pts:250,hint:'Build Heaven'},
+                    {id:'build_hot_tub',cat:'building',name:'Bubbles',pts:250,hint:'Build Hot Tub'},
+                    {id:'branch_showhome',cat:'branch',name:'Showhome',pts:100,hint:'Branch label'},
+                    {id:'branch_party_house',cat:'branch',name:'Party House',pts:100,hint:'Branch label'},
+                    {id:'branch_grind_house',cat:'branch',name:'Grind House',pts:100,hint:'Branch label'},
+                    {id:'branch_dolls_house',cat:'branch',name:'Dolls House',pts:200,hint:'Branch label'},
+                    {id:'branch_party_mansion',cat:'branch',name:'Party Mansion',pts:200,hint:'Branch label'},
+                    {id:'branch_sweat_shop',cat:'branch',name:'Sweat Shop',pts:200,hint:'Branch label'},
+                    {id:'survive_10',cat:'survival',name:'Still Standing',pts:100,hint:'Week >= 10'},
+                    {id:'survive_25',cat:'survival',name:'Veteran',pts:300,hint:'Week >= 25'},
+                    {id:'survive_52',cat:'survival',name:'One Year',pts:750,hint:'Week >= 52'}
+                  ];
+                  const unearned = milestones.filter(m => !earned.has(m.id));
+                  const techUnearned = (gameState.techTree || []).filter(t => !earned.has('tech_' + t.id));
+                  return (
+                    <div>
+                      {unearned.map(m => (
+                        <div key={m.id} style={{display: 'flex', justifyContent: 'space-between', padding: '1px 0'}}>
+                          <span>{m.name} <span style={{color: '#4a5568'}}>({m.cat})</span></span>
+                          <span>+{m.pts} <span style={{color: '#4a5568'}}>{m.hint}</span></span>
+                        </div>
+                      ))}
+                      {techUnearned.length > 0 && (
+                        <div style={{marginTop: '4px', borderTop: '1px solid #2d3748', paddingTop: '4px'}}>
+                          <div style={{marginBottom: '2px'}}>Tech badges ({techUnearned.length} remaining)</div>
+                          {techUnearned.map(t => (
+                            <div key={t.id} style={{display: 'flex', justifyContent: 'space-between', padding: '1px 0'}}>
+                              <span>{t.name} <span style={{color: '#4a5568'}}>(culture)</span></span>
+                              <span>+{t.level === 1 ? 100 : t.level === 2 ? 250 : 500}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+              </div>
             </div>
           </div>
 
