@@ -1009,6 +1009,9 @@ function App({ mode = 'player' }) {
         layout={layout}
         narrowTab={narrowTab}
         onNarrowTab={setNarrowTab}
+        mode={mode}
+        view={view}
+        onViewChange={setView}
       />
 
       {gameState.isGameOver && view === 'dashboard' && (

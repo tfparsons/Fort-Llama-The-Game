@@ -4,7 +4,7 @@ import logoSvg from '../assets/fort-llama-icon.svg';
 
 // Fixed top bar: brand + vibes/score status strip
 // Layout-aware: renders differently for wide, medium, narrow breakpoints
-export function TopBar({ vibes, reputation, level, score, layout, narrowTab, onNarrowTab }) {
+export function TopBar({ vibes, reputation, level, score, layout, narrowTab, onNarrowTab, mode, view, onViewChange }) {
   const stats = [
     { k: 'VIBE', v: vibes },
     { k: 'REP', v: reputation },
@@ -65,7 +65,21 @@ export function TopBar({ vibes, reputation, level, score, layout, narrowTab, onN
     </div>
   );
 
-  /* WIDE: single row — logo | spacer | stats */
+  /* Dev mode pill tabs: inline next to logo */
+  const devTabs = mode === 'dev' && (
+    <div style={{ display: 'flex', gap: '4px' }}>
+      {[{ key: 'dashboard', label: 'Dashboard' }, { key: 'devtools', label: 'Dev Tools' }].map(t => (
+        <span key={t.key} onClick={() => onViewChange(t.key)} style={{
+          fontFamily: FONT, fontSize: FS.body, padding: '4px 10px',
+          background: view === t.key ? T.accent : 'transparent',
+          color: view === t.key ? '#fff' : T.textSecondary,
+          border: `1px solid ${view === t.key ? T.accent : T.panelBorder}`, cursor: 'pointer',
+        }}>{t.label}</span>
+      ))}
+    </div>
+  );
+
+  /* WIDE: single row — logo | tabs | spacer | stats */
   if (layout === 'wide') {
     return (
       <div style={{
@@ -75,13 +89,14 @@ export function TopBar({ vibes, reputation, level, score, layout, narrowTab, onN
         gap: '8px', position: 'relative', zIndex: 1,
       }}>
         {logoRow}
+        {devTabs}
         <div style={{ flex: 1, minWidth: 0 }} />
         {statsRow}
       </div>
     );
   }
 
-  /* MEDIUM: two rows — logo on top, stats below */
+  /* MEDIUM: two rows — logo + tabs on top, stats below */
   if (layout === 'medium') {
     return (
       <div style={{
@@ -89,8 +104,9 @@ export function TopBar({ vibes, reputation, level, score, layout, narrowTab, onN
         background: T.actionBg, borderBottom: `2px solid ${T.panelBorder}`,
         position: 'relative', zIndex: 1,
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', padding: '6px 14px', height: '42px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', padding: '6px 14px', height: '42px', gap: '12px' }}>
           {logoRow}
+          {devTabs}
         </div>
         <div style={{ padding: '0 14px 6px' }}>
           {statsRow}
@@ -106,8 +122,9 @@ export function TopBar({ vibes, reputation, level, score, layout, narrowTab, onN
       background: T.actionBg, borderBottom: `2px solid ${T.panelBorder}`,
       position: 'relative', zIndex: 1,
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', padding: '6px 14px', height: '42px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', padding: '6px 14px', height: '42px', gap: '12px' }}>
         {logoRow}
+        {devTabs}
       </div>
       <div style={{ padding: '0 14px 6px' }}>
         {statsGrid}
