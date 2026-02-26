@@ -23,3 +23,10 @@ input.fl-rent::-moz-range-thumb { width: 16px; height: 16px; background: #D4A035
   from { transform: translateX(-20%); }
   to   { transform: translateX(110vw); }
 }
+
+/* Noticeboard notification pulse */
+@keyframes fl-notif-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.3; }
+}
+.fl-notif-flash { animation: fl-notif-pulse 1.2s ease-in-out infinite; }
