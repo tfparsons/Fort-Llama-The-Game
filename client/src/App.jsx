@@ -705,7 +705,7 @@ function App({ mode = 'player' }) {
       .map(b => ({
         name: b.name,
         count: b.count || 0,
-        cap: b.capacity || 0,
+        cap: (b.count || 0) * (b.capacity || 0),
         status: gameState.pendingBuildings?.includes(b.id) ? 'pending' : 'active',
       }));
 
