@@ -222,11 +222,23 @@ Build the React app with the game loop running client-side. Start with the essen
 ### Phase 4: Dev Tools
 Port the existing dev tools panel into the new component structure. Wire up live config editing, apply-and-reset, and the config export flow. This is the point where balance tuning can begin on the new codebase.
 
+> **Status correction (2026-07):** this phase was originally marked complete, but only the live config editing was delivered as described — the panel itself was ported *inline into App.jsx*, not into the component structure. The player UI extraction likewise left the info popups and several modals inline. That gap was closed by Phase 7.5 below.
+
 ### Phase 5: Scoring and Game Over
 Implement the Overall Score system (as defined in Design Principles). Build the game-over screen with initials entry. Wire up local leaderboard storage for the dev version.
 
 ### Phase 6 (future): Player Deployment
 Add the minimal server for static hosting and leaderboard API. Set up a deployment pipeline. Ship it.
+
+### Phase 7.5: Client Component Extraction — ✅ Complete (2026-07)
+Remedial phase (numbered per the rebuild plan's "Phase 7: component extraction", which had been overclaimed as complete). Audited App.jsx (3,250 lines at the time), then extracted in behaviour-preserving steps:
+
+- Deleted ~650 lines of dead code: legacy in-App modals superseded by the extracted modal components, unused handlers/state, and orphaned components (`MainDashboard`, `DataPanel`, `ActionPanel` + leaves) left behind by the dashboard reskin.
+- Extracted the dev tools subsystem into `client/src/components/devtools/` — `DevToolsPanel.jsx` root, one component per config section, `TechTreeEditor`/`LlamaPoolEditor`/`BuildingsEditor`, and `InfoPopup` (formula explanations as a content map).
+- Extracted player-UI logic: shared `CompletionModal`, `hooks/useGameClock.js`, `selectors/buildDashboardProps.js`.
+- End state: App.jsx ≈ 650 lines — state polling, view routing, action handlers, modal mounting. Editor state stays lifted in App so dev-tool edits survive view switches.
+
+Guard rails against re-monolithising live in `CLAUDE.md` → "Client Architecture Constraints".
 
 ---
 
