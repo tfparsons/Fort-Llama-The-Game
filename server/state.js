@@ -15,6 +15,7 @@ const {
 } = require('./config');
 
 const SAVED_DEFAULTS_FILE = path.join(__dirname, 'saved-defaults.json');
+const SAVED_GAME_FILE = path.join(__dirname, 'saved-game.json');
 
 function loadSavedDefaults() {
   try {
@@ -64,4 +65,26 @@ const state = {
   scoreConfig: JSON.parse(JSON.stringify(DEFAULT_SCORE_CONFIG))
 };
 
-module.exports = { state, SAVED_DEFAULTS_FILE };
+function saveGame() {
+  try {
+    const snapshot = {
+      gameState: state.gameState,
+      llamaPool: state.llamaPool,
+      gameConfig: state.gameConfig,
+      savedAt: new Date().toISOString()
+    };
+    fs.writeFileSync(SAVED_GAME_FILE, JSON.stringify(snapshot));
+  } catch (err) {
+    console.error('Failed to auto-save game:', err);
+  }
+}
+
+function deleteSave() {
+  try {
+    if (fs.existsSync(SAVED_GAME_FILE)) fs.unlinkSync(SAVED_GAME_FILE);
+  } catch (err) {
+    console.error('Failed to delete save file:', err);
+  }
+}
+
+module.exports = { state, SAVED_DEFAULTS_FILE, SAVED_GAME_FILE, saveGame, deleteSave };

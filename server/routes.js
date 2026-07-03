@@ -5,7 +5,7 @@ const path = require('path');
 const express = require('express');
 const router = express.Router();
 
-const { state, SAVED_DEFAULTS_FILE } = require('./state');
+const { state, SAVED_DEFAULTS_FILE, SAVED_GAME_FILE, saveGame, deleteSave } = require('./state');
 const { POLICY_DEFINITIONS, TECH_TREE, DEFAULT_BUILDINGS, MILESTONE_DEFINITIONS } = require('./config');
 const {
   initializeGame,
@@ -676,6 +676,7 @@ router.post('/api/action/set-budget', (req, res) => {
 
 router.post('/api/reset', (req, res) => {
   stopSimulation();
+  deleteSaveFile();
   initializeGame(state.savedDefaults);
   res.json({ success: true, state: state.gameState });
 });
@@ -698,5 +699,65 @@ router.post('/api/dismiss-weekly', (req, res) => {
   dismissWeeklyPause();
   res.json({ success: true, isRunning: state.gameState.isRunning, isPausedForWeeklyDecision: false });
 });
+
+// ---------------------------------------------------------------------------
+// Game persistence (save/load across browser sessions)
+// ---------------------------------------------------------------------------
+
+const saveGameToFile = saveGame;
+const deleteSaveFile = deleteSave;
+
+router.get('/api/has-save', (req, res) => {
+  const exists = fs.existsSync(SAVED_GAME_FILE);
+  let meta = null;
+  if (exists) {
+    try {
+      const data = JSON.parse(fs.readFileSync(SAVED_GAME_FILE, 'utf8'));
+      meta = {
+        week: data.gameState?.week,
+        residents: data.gameState?.communeResidents?.filter(r => !r.churned).length,
+        vibes: data.gameState?.vibes?.tierName,
+        savedAt: data.savedAt
+      };
+    } catch (_) { /* corrupt save — treat as no save */ }
+  }
+  res.json({ hasSave: exists && meta !== null, meta });
+});
+
+router.post('/api/save-game', (req, res) => {
+  saveGameToFile();
+  res.json({ success: true });
+});
+
+router.post('/api/load-game', (req, res) => {
+  try {
+    if (!fs.existsSync(SAVED_GAME_FILE)) {
+      return res.status(404).json({ error: 'No saved game found' });
+    }
+    const data = JSON.parse(fs.readFileSync(SAVED_GAME_FILE, 'utf8'));
+    stopSimulation();
+    state.gameState = data.gameState;
+    state.llamaPool = data.llamaPool || state.llamaPool;
+    if (data.gameConfig) state.gameConfig = data.gameConfig;
+    state.gameState.isRunning = false;
+    calculatePrimitives();
+    calculateHealthMetrics();
+    calculateVibes();
+    calculateWeeklyProjection();
+    res.json({ success: true, state: state.gameState });
+  } catch (err) {
+    console.error('Failed to load game:', err);
+    res.status(500).json({ error: 'Failed to load saved game' });
+  }
+});
+
+router.post('/api/delete-save', (req, res) => {
+  deleteSaveFile();
+  res.json({ success: true });
+});
+
+// Expose saveGameToFile for auto-save from gameState.js
+router.saveGameToFile = saveGameToFile;
+router.deleteSaveFile = deleteSaveFile;
 
 module.exports = router;

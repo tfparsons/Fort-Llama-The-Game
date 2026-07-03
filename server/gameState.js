@@ -1,6 +1,6 @@
 'use strict';
 
-const { state } = require('./state');
+const { state, saveGame } = require('./state');
 const {
   DAY_NAMES,
   STARTING_LLAMAS,
@@ -33,7 +33,10 @@ const {
   updateScoringTrackers
 } = require('./scoring');
 
+let ticksSinceLastSave = 0;
+
 function initializeGame(config = state.savedDefaults) {
+  ticksSinceLastSave = 0;
   state.gameConfig = { ...INITIAL_DEFAULTS, ...config };
   state.primitiveConfig = deepMergePrimitives(DEFAULT_PRIMITIVE_CONFIG, config.primitives);
   state.healthConfig = deepMergePrimitives(DEFAULT_HEALTH_CONFIG, config.health);
@@ -272,6 +275,13 @@ function processTick() {
   if (state.gameState.treasury <= state.gameConfig.gameOverLimit) {
     state.gameState.isGameOver = true;
     stopSimulation();
+    saveGame();
+  }
+
+  ticksSinceLastSave++;
+  if (ticksSinceLastSave >= 10) {
+    ticksSinceLastSave = 0;
+    saveGame();
   }
 }
 
@@ -416,6 +426,7 @@ function processWeekEnd() {
 
   calculateWeeklyProjection();
   generateWeekCandidates();
+  saveGame();
 }
 
 function startSimulation() {
@@ -439,6 +450,7 @@ function dismissWeeklyPause() {
   if (!state.gameState.isPausedForWeeklyDecision) return;
   state.gameState.isPausedForWeeklyDecision = false;
   calculateWeeklyProjection();
+  saveGame();
   startSimulation();
 }
 

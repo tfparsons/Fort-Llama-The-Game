@@ -1,0 +1,13 @@
+# Cursor indexing ignore - skip large/generated dirs
+node_modules/
+.specstory/
+dist/
+build/
+.next/
+.cache/
+.parcel-cache/
+coverage/
+*.tsbuildinfo
+package-lock.json
+# Don't index SpecStory auto-save files, but allow explicit context inclusion via @ references
+.specstory/**

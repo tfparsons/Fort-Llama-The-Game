@@ -1,5 +1,21 @@
 # Fort Llama – Claude Code Context
 
+**Best practice, industry standard, always.**
+
+## Team
+- **tfparsons** (GitHub: @tfparsons) - Owner
+- **Alex Foster** (GitHub: @alexfosterinvisible) - Collaborator
+
+## Development Workflow
+- **Trunk-based development**: atomic PRs, one issue per branch per PR with identical names. Small, frequent PRs - only combine changes where they don't make sense apart. Code must work and tests must pass for every PR. PRs must always be linked to their issue (use `Closes #N` in PR body).
+
+## Issue / Suggestion / Decision Conventions
+
+- **new issue** → create a new GitHub issue
+- **suggestion** → add as a comment on the relevant issue
+- **debate** → open a GitHub Discussion linked from the issue; agents adversarially debate approaches, converge on a recommendation (marked green ✅ — unblocks dev), then a human verifies (marked blue 🔵) afterwards. Decisions must not block agent development.
+- **build-ahead development**: agents build ahead on the green decision. All decisions are commit-tied (noted in the commit message referencing the issue/discussion) so they can be reverted cleanly if the human overrides. Maximum speed, minimum review, without excessive compounding error risk.
+
 ## What This Is
 
 Fort Llama is a single-player browser-based city management simulation. Players run a communal living facility for anthropomorphic llamas, balancing economics, social systems, and resident wellbeing. The game models a four-layer pipeline:

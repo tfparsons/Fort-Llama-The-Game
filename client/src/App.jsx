@@ -316,6 +316,7 @@ function App({ mode = 'player' }) {
     clockStartRef.current = { hour: 9, day: 1, realStartTime: Date.now(), synced: false };
     wasPausedRef.current = true;
     fetchState();
+    if (mode === 'player') setScreen('landing');
   };
 
   const handleDismissWeekly = async () => {
@@ -954,8 +955,27 @@ function App({ mode = 'player' }) {
   const projectedBudget = gameState.projectedBudget ?? Object.values(budgetInputs).reduce((s, v) => s + v, 0);
   const weeklyDelta = gameState.weeklyDelta ?? (projectedIncome - projectedGroundRent - projectedUtilities - projectedBudget);
 
+  const handleStartNewGame = async () => {
+    await fetch(`${API_BASE}/api/reset`, { method: 'POST' });
+    clockStartRef.current = { hour: 9, day: 1, realStartTime: Date.now(), synced: false };
+    wasPausedRef.current = true;
+    fetchState();
+    setScreen('game');
+  };
+
+  const handleContinueGame = async () => {
+    await fetch(`${API_BASE}/api/load-game`, { method: 'POST' });
+    fetchState();
+    setScreen('game');
+  };
+
   if (screen === 'landing') {
-    return <FortLlamaLanding onStartGame={() => setScreen('game')} />;
+    return (
+      <FortLlamaLanding
+        onStartGame={handleStartNewGame}
+        onContinueGame={handleContinueGame}
+      />
+    );
   }
 
   return (

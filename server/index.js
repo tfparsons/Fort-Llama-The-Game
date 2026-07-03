@@ -1,10 +1,15 @@
 'use strict';
 
+const fs = require('fs');
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
 
 const { initializeGame } = require('./gameState');
+const { state, SAVED_GAME_FILE } = require('./state');
+const { calculatePrimitives } = require('./primitives');
+const { calculateHealthMetrics } = require('./healthMetrics');
+const { calculateVibes, calculateWeeklyProjection } = require('./outcomes');
 const routes = require('./routes');
 
 const app = express();
@@ -25,7 +30,31 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
-initializeGame();
+// Restore saved game if one exists, otherwise start fresh
+let loadedSave = false;
+try {
+  if (fs.existsSync(SAVED_GAME_FILE)) {
+    const data = JSON.parse(fs.readFileSync(SAVED_GAME_FILE, 'utf8'));
+    if (data.gameState && data.gameConfig) {
+      state.gameState = data.gameState;
+      state.gameConfig = data.gameConfig;
+      if (data.llamaPool) state.llamaPool = data.llamaPool;
+      state.gameState.isRunning = false;
+      calculatePrimitives();
+      calculateHealthMetrics();
+      calculateVibes();
+      calculateWeeklyProjection();
+      loadedSave = true;
+      console.log(`Restored saved game (week ${data.gameState.week}, saved ${data.savedAt})`);
+    }
+  }
+} catch (err) {
+  console.error('Failed to restore saved game, starting fresh:', err);
+}
+
+if (!loadedSave) {
+  initializeGame();
+}
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Fort Llama server running on port ${PORT}`);

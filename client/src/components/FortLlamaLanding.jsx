@@ -482,12 +482,25 @@ function LeaderboardModal({ onClose }) {
 /* ═══════════════════════════════════════════
    MAIN LANDING PAGE
    ═══════════════════════════════════════════ */
-export default function FortLlamaLanding({ onStartGame }) {
+export default function FortLlamaLanding({ onStartGame, onContinueGame }) {
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [hovCTA, setHovCTA] = useState(false);
+  const [hovContinue, setHovContinue] = useState(false);
   const [hovLB, setHovLB] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [wide, setWide] = useState(typeof window !== "undefined" ? window.innerWidth >= 640 : true);
+  const [saveMeta, setSaveMeta] = useState(null);
+  const [checkingState, setCheckingState] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/has-save')
+      .then(r => r.json())
+      .then(data => {
+        if (data.hasSave) setSaveMeta(data.meta);
+      })
+      .catch(() => {})
+      .finally(() => setCheckingState(false));
+  }, []);
 
   useEffect(() => {
     const t = setTimeout(() => setLoaded(true), 100);
@@ -847,27 +860,80 @@ export default function FortLlamaLanding({ onStartGame }) {
           gap: 16,
         }}>
 
+          {/* Continue Game button — shown when a save exists */}
+          {saveMeta && (
+            <button
+              onMouseEnter={() => setHovContinue(true)}
+              onMouseLeave={() => setHovContinue(false)}
+              onClick={onContinueGame}
+              style={{
+                fontFamily: FONT,
+                fontSize: "clamp(10px, 2vw, 14px)",
+                letterSpacing: "3px",
+                color: hovContinue ? "#fff" : T.bg,
+                background: hovContinue
+                  ? `linear-gradient(to bottom, #E8B84A, #D4A035)`
+                  : `linear-gradient(to bottom, #D4A035, #B8882A)`,
+                border: `3px solid ${hovContinue ? "#E8B84A" : T.accent}`,
+                padding: "16px 48px",
+                cursor: "pointer",
+                textShadow: hovContinue ? "0 0 10px rgba(255,255,255,0.4)" : "none",
+                boxShadow: hovContinue
+                  ? "0 0 30px rgba(212,160,53,0.5), inset 0 1px 0 rgba(255,255,255,0.2)"
+                  : "0 4px 0 #8B6B20, 0 6px 12px rgba(0,0,0,0.3)",
+                transform: hovContinue ? "translateY(-2px)" : "translateY(0)",
+                transition: "all 0.15s ease-out",
+                position: "relative",
+              }}
+            >
+              CONTINUE GAME
+              <span style={{
+                display: "block",
+                fontFamily: FONT,
+                fontSize: "clamp(5px, 0.9vw, 7px)",
+                letterSpacing: "1px",
+                color: hovContinue ? "rgba(255,255,255,0.7)" : "rgba(48,48,48,0.6)",
+                marginTop: 4,
+              }}>
+                WEEK {saveMeta.week} · {saveMeta.residents} RESIDENTS · {(saveMeta.vibes || '').toUpperCase()}
+              </span>
+            </button>
+          )}
+
           {/* Start New Game button */}
           <button
             onMouseEnter={() => setHovCTA(true)}
             onMouseLeave={() => setHovCTA(false)}
-            onClick={onStartGame}
+            onClick={() => {
+              if (saveMeta) {
+                if (!window.confirm('This will erase your saved game. Are you sure?')) return;
+              }
+              onStartGame();
+            }}
             style={{
               fontFamily: FONT,
-              fontSize: "clamp(10px, 2vw, 14px)",
-              letterSpacing: "3px",
-              color: hovCTA ? "#fff" : T.bg,
-              background: hovCTA
-                ? `linear-gradient(to bottom, #E8B84A, #D4A035)`
-                : `linear-gradient(to bottom, #D4A035, #B8882A)`,
-              border: `3px solid ${hovCTA ? "#E8B84A" : T.accent}`,
-              padding: "16px 48px",
+              fontSize: saveMeta ? "clamp(7px, 1.3vw, 10px)" : "clamp(10px, 2vw, 14px)",
+              letterSpacing: saveMeta ? "2px" : "3px",
+              color: saveMeta
+                ? (hovCTA ? T.accent : T.textSecondary)
+                : (hovCTA ? "#fff" : T.bg),
+              background: saveMeta
+                ? "transparent"
+                : (hovCTA
+                    ? `linear-gradient(to bottom, #E8B84A, #D4A035)`
+                    : `linear-gradient(to bottom, #D4A035, #B8882A)`),
+              border: saveMeta
+                ? `1px solid ${hovCTA ? T.accentBorder : T.panelBorder}`
+                : `3px solid ${hovCTA ? "#E8B84A" : T.accent}`,
+              padding: saveMeta ? "8px 24px" : "16px 48px",
               cursor: "pointer",
-              textShadow: hovCTA ? "0 0 10px rgba(255,255,255,0.4)" : "none",
-              boxShadow: hovCTA
-                ? "0 0 30px rgba(212,160,53,0.5), inset 0 1px 0 rgba(255,255,255,0.2)"
-                : "0 4px 0 #8B6B20, 0 6px 12px rgba(0,0,0,0.3)",
-              transform: hovCTA ? "translateY(-2px)" : "translateY(0)",
+              textShadow: !saveMeta && hovCTA ? "0 0 10px rgba(255,255,255,0.4)" : "none",
+              boxShadow: saveMeta
+                ? "none"
+                : (hovCTA
+                    ? "0 0 30px rgba(212,160,53,0.5), inset 0 1px 0 rgba(255,255,255,0.2)"
+                    : "0 4px 0 #8B6B20, 0 6px 12px rgba(0,0,0,0.3)"),
+              transform: !saveMeta && hovCTA ? "translateY(-2px)" : "translateY(0)",
               transition: "all 0.15s ease-out",
               position: "relative",
             }}

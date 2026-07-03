@@ -1,7 +1,43 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { T, FONT, FONT_BODY, FS, BUDGET_DISPLAY } from './theme';
 import { PixelIcon } from './PixelIcon';
 import { ActionButton } from './ActionButton';
+
+function RestartToggle({ onRestart }) {
+  const [revealed, setRevealed] = useState(false);
+  const timerRef = useRef(null);
+
+  const handleReveal = () => {
+    setRevealed(true);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => setRevealed(false), 5000);
+  };
+
+  if (!revealed) {
+    return (
+      <div
+        onClick={handleReveal}
+        style={{
+          marginTop: '4px', padding: '4px 6px', textAlign: 'center',
+          cursor: 'pointer', opacity: 0.3,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}
+      >
+        <span style={{ fontFamily: FONT, fontSize: '6px', color: T.textMuted, letterSpacing: '1px' }}>···</span>
+      </div>
+    );
+  }
+
+  return (
+    <div onClick={onRestart} style={{
+      background: 'rgba(160,70,70,0.35)', border: '2px solid rgba(196,126,126,0.5)',
+      marginTop: '4px', padding: '7px 6px', textAlign: 'center', cursor: 'pointer',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+    }}>
+      <span style={{ fontFamily: FONT, fontSize: FS.label, color: T.negative, letterSpacing: '1px' }}>Restart</span>
+    </div>
+  );
+}
 
 // Left sidebar: clock, action buttons, rent slider, budgets accordion, game controls
 export function ActionPanel({
@@ -178,13 +214,7 @@ export function ActionPanel({
         }}>
           <span style={{ fontFamily: FONT, fontSize: FS.heading, color: '#fff', letterSpacing: '1px' }}>Start Week</span>
         </div>
-        <div onClick={onRestart} style={{
-          background: 'rgba(160,70,70,0.35)', border: '2px solid rgba(196,126,126,0.5)',
-          marginTop: '4px', padding: '7px 6px', textAlign: 'center', cursor: 'pointer',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          <span style={{ fontFamily: FONT, fontSize: FS.label, color: T.negative, letterSpacing: '1px' }}>Restart</span>
-        </div>
+        <RestartToggle onRestart={onRestart} />
       </div>
     </div>
   );
