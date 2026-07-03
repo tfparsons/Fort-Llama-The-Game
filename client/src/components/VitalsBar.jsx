@@ -43,20 +43,25 @@ export function VitalsBar({
     gapSm: isWide ? '12px' : '10px',
   };
 
+  const isMedium = !isWide && !isNarrow;
+
   const sectionStyle = (key) => ({
     padding: sz.sectionPad,
     cursor: 'pointer',
     background: expanded === key ? 'rgba(212,160,53,0.08)' : 'transparent',
     borderBottom: expanded === key ? `2px solid ${T.accent}` : '2px solid transparent',
     transition: 'background 0.15s',
-    position: 'relative',
+    position: isNarrow ? 'static' : 'relative',
     flexShrink: 0,
+    ...(isNarrow ? { borderRight: `1px solid ${T.panelBorder}` } : {}),
   });
 
   const dropdownStyle = (anchor) => ({
     position: 'absolute',
     top: '100%',
-    ...(anchor === 'right' ? { right: 0 } : { left: 0 }),
+    ...(isNarrow
+      ? { left: 0, right: 0 }
+      : (anchor === 'right' ? { right: 0 } : { left: 0 })),
     background: T.actionBg,
     border: `2px solid ${T.panelBorder}`,
     borderTop: `2px solid ${T.accent}`,
@@ -64,7 +69,7 @@ export function VitalsBar({
     zIndex: 20,
     boxShadow: '0 6px 20px rgba(0,0,0,0.5)',
     overflow: 'visible',
-    minWidth: '280px',
+    ...(isNarrow ? {} : { minWidth: '280px' }),
   });
 
   const dropdownScrollStyle = (anchor) => ({
@@ -77,7 +82,7 @@ export function VitalsBar({
 
   return (
     <div style={{ flexShrink: 0, background: T.actionBg, borderBottom: `2px solid ${T.panelBorder}`, position: 'relative', zIndex: 4, overflow: 'visible' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0', overflowX: isNarrow ? 'auto' : 'visible' }} className="fl-scroll">
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0', flexWrap: 'wrap' }}>
 
         {/* ── Treasury ── */}
         <div style={sectionStyle('treasury')} onClick={() => toggle('treasury')}>
@@ -99,7 +104,7 @@ export function VitalsBar({
           )}
         </div>
 
-        <div style={{ width: '1px', height: sz.divider, background: T.panelBorder, flexShrink: 0 }} />
+        {!isNarrow && <div style={{ width: '1px', height: sz.divider, background: T.panelBorder, flexShrink: 0 }} />}
 
         {/* ── Culture / Health Metrics ── */}
         <div style={sectionStyle('culture')} onClick={() => toggle('culture')}>
@@ -144,10 +149,11 @@ export function VitalsBar({
           )}
         </div>
 
-        <div style={{ width: '1px', height: sz.divider, background: T.panelBorder, flexShrink: 0 }} />
+        {/* Row break: Residents/Policies/Buildings drop to row 2 via order */}
+        {!isNarrow && <div style={{ flexBasis: '100%', height: 0, order: 1 }} />}
 
         {/* ── Residents ── */}
-        <div style={sectionStyle('residents')} onClick={() => toggle('residents')}>
+        <div style={{ ...sectionStyle('residents'), ...(!isNarrow && { order: 2 }) }} onClick={() => toggle('residents')}>
           <div style={{ display: 'flex', alignItems: 'center', gap: sz.gap }}>
             <span style={{ fontFamily: FONT, fontSize: sz.sectionLabel, color: T.accent, letterSpacing: '1px' }}>{isNarrow ? 'RES' : 'RESIDENTS'}</span>
             <span style={{ fontFamily: FONT_BODY, fontSize: sz.valueSm, color: T.textPrimary }}>{population}/{capacity}</span>
@@ -188,14 +194,14 @@ export function VitalsBar({
           )}
         </div>
 
-        <div style={{ width: '1px', height: sz.divider, background: T.panelBorder, flexShrink: 0 }} />
+        {!isNarrow && <div style={{ width: '1px', height: sz.divider, background: T.panelBorder, flexShrink: 0, ...(!isNarrow && { order: 2 }) }} />}
 
         {/* ── Policies ── */}
         {(() => {
           const activeCount = policies ? policies.filter(p => p.active !== false).length : 0;
           const maxPolicies = 3;
           return (
-            <div style={sectionStyle('policies')} onClick={() => toggle('policies')}>
+            <div style={{ ...sectionStyle('policies'), ...(!isNarrow && { order: 2 }) }} onClick={() => toggle('policies')}>
               <div style={{ display: 'flex', alignItems: 'center', gap: sz.gap }}>
                 <span style={{ fontFamily: FONT, fontSize: sz.sectionLabel, color: T.accent, letterSpacing: '1px' }}>{isNarrow ? 'POL' : 'POLICIES'}</span>
                 <span style={{ fontFamily: FONT_BODY, fontSize: sz.valueSm, color: T.textPrimary }}>{activeCount}/{maxPolicies}</span>
@@ -217,16 +223,16 @@ export function VitalsBar({
           );
         })()}
 
-        <div style={{ width: '1px', height: sz.divider, background: T.panelBorder, flexShrink: 0 }} />
+        {!isNarrow && <div style={{ width: '1px', height: sz.divider, background: T.panelBorder, flexShrink: 0, ...(!isNarrow && { order: 2 }) }} />}
 
         {/* ── Buildings ── */}
         {(() => {
           const builtCount = buildings ? buildings.filter(b => b.status !== 'pending').length : 0;
           const pendingCount = buildings ? buildings.filter(b => b.status === 'pending').length : 0;
           const totalCount = builtCount + pendingCount;
-          const overCap = buildings?.some(b => population > (b.count || 0) * (b.capacity || 1));
+          const overCap = buildings?.some(b => b.status !== 'pending' && b.cap != null && population > b.cap);
           return (
-            <div style={sectionStyle('buildings')} onClick={() => toggle('buildings')}>
+            <div style={{ ...sectionStyle('buildings'), ...(!isNarrow && { order: 2 }) }} onClick={() => toggle('buildings')}>
               <div style={{ display: 'flex', alignItems: 'center', gap: sz.gap }}>
                 <span style={{ fontFamily: FONT, fontSize: sz.sectionLabel, color: T.accent, letterSpacing: '1px' }}>{isNarrow ? 'BLDG' : 'BUILDINGS'}</span>
                 <span style={{ fontFamily: FONT_BODY, fontSize: sz.valueSm, color: T.textPrimary }}>{totalCount}</span>
@@ -257,18 +263,23 @@ export function VitalsBar({
           );
         })()}
 
-        {/* Spacer pushes noticeboard to far right */}
-        <div style={{ flex: 1, minWidth: '8px' }} />
+        {/* Spacer pushes noticeboard to far right (not on narrow — wraps instead) */}
+        {!isNarrow && <div style={{ flex: 1, minWidth: '8px' }} />}
 
-        <div style={{ width: '1px', height: sz.divider, background: T.panelBorder, flexShrink: 0 }} />
+        {!isNarrow && <div style={{ width: '1px', height: sz.divider, background: T.panelBorder, flexShrink: 0 }} />}
 
         {/* ── Noticeboard ── */}
         <div style={sectionStyle('noticeboard')} onClick={() => toggle('noticeboard')}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', position: 'relative' }}
-               className={events && events.length > 0 && expanded !== 'noticeboard' ? 'fl-notif-flash' : ''}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', position: 'relative' }}>
             <PixelIcon type="mail" size={16} color={expanded === 'noticeboard' ? T.accent : events && events.length > 0 ? T.accentBright : T.textMuted} />
+            {events && events.length > 0 && expanded !== 'noticeboard' && (
+              <span className="fl-notif-flash" style={{
+                fontFamily: FONT, fontSize: isWide ? '14px' : '12px', color: T.accentBright,
+                letterSpacing: '2px',
+              }}>!!</span>
+            )}
             {events && events.length > 0 && (
-              <span style={{ fontFamily: FONT, fontSize: '7px', color: expanded === 'noticeboard' ? T.accent : T.accentBright }}>{Math.min(events.length, 99)}</span>
+              <span style={{ fontFamily: FONT, fontSize: FS.micro, color: expanded === 'noticeboard' ? T.accent : T.accentBright }}>{events.length}</span>
             )}
           </div>
           {expanded === 'noticeboard' && (

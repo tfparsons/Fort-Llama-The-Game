@@ -30,7 +30,7 @@ function App({ mode = 'player' }) {
   const layout = winWidth >= 850 ? 'wide' : winWidth >= 600 ? 'medium' : 'narrow';
   const [screen, setScreen] = useState(mode === 'player' ? 'landing' : 'game');
   const [view, setView] = useState('dashboard');
-  const [narrowTab, setNarrowTab] = useState('actions');
+  // narrowTab removed — vitals + actions always visible at all breakpoints
   const [gameState, setGameState] = useState(null);
   const [config, setConfig] = useState(null);
   const [editConfig, setEditConfig] = useState(null);
@@ -966,8 +966,6 @@ function App({ mode = 'player' }) {
         level={dashboardProps?.level}
         score={dashboardProps?.score}
         layout={layout}
-        narrowTab={narrowTab}
-        onNarrowTab={setNarrowTab}
         mode={mode}
         view={view}
         onViewChange={setView}

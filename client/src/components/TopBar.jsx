@@ -4,7 +4,7 @@ import logoSvg from '../assets/fort-llama-icon.svg';
 
 // Fixed top bar: brand + vibes/score status strip
 // Layout-aware: renders differently for wide, medium, narrow breakpoints
-export function TopBar({ vibes, reputation, level, score, layout, narrowTab, onNarrowTab, mode, view, onViewChange }) {
+export function TopBar({ vibes, reputation, level, score, layout, mode, view, onViewChange }) {
   const stats = [
     { k: 'VIBE', v: vibes },
     { k: 'REP', v: reputation },
@@ -20,11 +20,12 @@ export function TopBar({ vibes, reputation, level, score, layout, narrowTab, onN
   );
 
   /* Single-row stats bar (used in wide + medium) */
+  const isWide = layout === 'wide';
   const statsRow = (
     <div style={{
-      display: 'flex', alignItems: 'center', gap: '10px', padding: '4px 12px',
+      display: 'flex', alignItems: 'center', gap: isWide ? '14px' : '10px', padding: isWide ? '5px 14px' : '4px 12px',
       background: 'transparent', border: `1px solid ${T.accent}`,
-      ...(layout === 'wide' ? { flexShrink: 1, minWidth: 0, overflow: 'hidden' } : {}),
+      ...(isWide ? { flexShrink: 1, minWidth: 0, overflow: 'hidden' } : {}),
     }}>
       {stats.map((item, i, arr) => (
         <React.Fragment key={item.k}>
@@ -32,14 +33,14 @@ export function TopBar({ vibes, reputation, level, score, layout, narrowTab, onN
             display: 'flex', alignItems: 'baseline', gap: '4px',
             flexShrink: item.k === 'SCORE' ? 0 : 1, minWidth: 0,
           }}>
-            <span style={{ fontFamily: FONT, fontSize: FS.micro, color: T.textMuted, letterSpacing: '1px' }}>{item.k}</span>
+            <span style={{ fontFamily: FONT, fontSize: isWide ? FS.label : FS.micro, color: T.textMuted, letterSpacing: '1px' }}>{item.k}</span>
             <span style={{
-              fontFamily: FONT, fontSize: FS.body, color: '#fff',
+              fontFamily: FONT, fontSize: isWide ? FS.heading : FS.body, color: '#fff',
               whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
               ...(item.k === 'SCORE' ? { minWidth: '52px', textAlign: 'right' } : {}),
             }}>{item.v}</span>
           </div>
-          {i < arr.length - 1 && <div style={{ width: '1px', height: '14px', background: T.accent, flexShrink: 0 }} />}
+          {i < arr.length - 1 && <div style={{ width: '1px', height: isWide ? '18px' : '14px', background: T.accent, flexShrink: 0 }} />}
         </React.Fragment>
       ))}
     </div>
@@ -115,7 +116,7 @@ export function TopBar({ vibes, reputation, level, score, layout, narrowTab, onN
     );
   }
 
-  /* NARROW: logo row, 2x2 stats grid, then Actions/Vitals tabs */
+  /* NARROW: logo row + 2x2 stats grid */
   return (
     <div style={{
       display: 'flex', flexDirection: 'column', flexShrink: 0,
@@ -128,20 +129,6 @@ export function TopBar({ vibes, reputation, level, score, layout, narrowTab, onN
       </div>
       <div style={{ padding: '0 14px 6px' }}>
         {statsGrid}
-      </div>
-      <div style={{ display: 'flex', borderTop: `1px solid ${T.panelBorder}` }}>
-        {[{ key: 'actions', label: 'Actions' }, { key: 'vitals', label: 'Vitals' }].map(t => (
-          <div key={t.key} onClick={() => onNarrowTab(t.key)} style={{
-            flex: 1, padding: '8px', textAlign: 'center', cursor: 'pointer',
-            background: narrowTab === t.key ? T.panelBg : 'transparent',
-            borderBottom: narrowTab === t.key ? `2px solid ${T.accent}` : '2px solid transparent',
-          }}>
-            <span style={{
-              fontFamily: FONT, fontSize: FS.body,
-              color: narrowTab === t.key ? T.accent : T.textSecondary, letterSpacing: '1px',
-            }}>{t.label}</span>
-          </div>
-        ))}
       </div>
     </div>
   );

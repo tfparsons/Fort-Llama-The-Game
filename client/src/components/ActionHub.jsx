@@ -73,7 +73,7 @@ export function ActionHub({
   };
 
   return (
-    <div style={{ background: T.actionBg, border: `2px solid ${T.panelBorder}`, position: 'relative', zIndex: 4, boxShadow: '0 4px 20px rgba(0,0,0,0.4)', display: 'inline-flex', flexDirection: 'column' }}>
+    <div style={{ background: T.actionBg, border: `2px solid ${T.panelBorder}`, position: 'relative', zIndex: 4, boxShadow: '0 4px 20px rgba(0,0,0,0.4)', display: 'inline-flex', flexDirection: 'column', maxWidth: '100%' }}>
 
       {/* ── Expanded Budget + Systems panel (above hub) ── */}
       {budgetsOpen && (
@@ -150,14 +150,14 @@ export function ActionHub({
       )}
 
       {/* ── Clock ticker ── */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: sz.clockGap, padding: sz.clockPad, borderBottom: `1px solid ${T.panelBorder}`, background: 'rgba(0,0,0,0.15)' }}>
-        <span style={{ fontFamily: FONT, fontSize: sz.clockWk, color: T.accent, letterSpacing: '2px' }}>WK {week}</span>
-        <span style={{ fontFamily: FONT_BODY, fontSize: sz.clockDay, color: T.textPrimary }}>{day}</span>
-        <span style={{ fontFamily: FONT_BODY, fontSize: sz.clockTime, color: '#fff', letterSpacing: '2px' }}>{time}</span>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: sz.clockGap, padding: sz.clockPad, borderBottom: `1px solid ${T.panelBorder}`, background: 'rgba(0,0,0,0.15)' }}>
+        <span style={{ fontFamily: FONT_BODY, fontSize: isWide ? '15px' : '13px', color: T.accent }}>WK {week}</span>
+        <span style={{ fontFamily: FONT_BODY, fontSize: isWide ? '15px' : '13px', color: T.textSecondary }}>{day}</span>
+        <span style={{ fontFamily: FONT_BODY, fontSize: isWide ? '17px' : '15px', color: '#fff', letterSpacing: '1px' }}>{time}</span>
       </div>
 
       {/* ── Main hub row ── */}
-      <div style={{ display: 'flex', alignItems: 'stretch', gap: '0', padding: sz.hubPad, flexWrap: isNarrow ? 'wrap' : 'nowrap' }}>
+      <div style={{ display: 'flex', alignItems: 'stretch', gap: '0', padding: sz.hubPad, flexWrap: 'wrap' }}>
         {/* Start Week + Restart */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flexShrink: 0, padding: '0 8px 0 0', borderRight: `1px solid ${T.panelBorder}` }}>
           <div onClick={isPaused ? onStartWeek : undefined} style={{
@@ -177,7 +177,7 @@ export function ActionHub({
         </div>
 
         {/* 4 Action buttons */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px', padding: '0 8px', borderRight: `1px solid ${T.panelBorder}`, flexShrink: 0 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px', padding: '0 8px', borderRight: isNarrow ? 'none' : `1px solid ${T.panelBorder}`, flexShrink: 0 }}>
           {[
             { key: 'recruit', label: 'Recruit', spent: hasRecruitedThisWeek },
             { key: 'build', label: 'Build', spent: buildsThisWeek >= buildsPerWeek },
@@ -188,10 +188,17 @@ export function ActionHub({
           ))}
         </div>
 
+        {/* Rent + Budget wrapper — side-by-side on narrow, inline on wide/medium */}
+        {isNarrow && <div style={{ width: '100%', borderTop: `1px solid ${T.panelBorder}`, marginTop: '6px' }} />}
+
         {/* Rent */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: sz.rentPad, borderRight: `1px solid ${T.panelBorder}`, flexShrink: 0, minWidth: sz.rentMin }}>
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '8px', padding: isNarrow ? '8px 10px' : sz.rentPad,
+          borderRight: `1px solid ${T.panelBorder}`, flexShrink: isNarrow ? 1 : 0,
+          ...(isNarrow ? { flex: 1, minWidth: 0 } : { minWidth: sz.rentMin }),
+        }}>
           <span style={{ fontFamily: FONT, fontSize: sz.rentLabel, color: '#fff' }}>Rent</span>
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px', minWidth: 0 }}>
             <input className="fl-rent" type="range" min={rentMin || 50} max={rentMax || 500} step={rentStep || 10} value={rent}
               onChange={e => onRentChange(Number(e.target.value))} onMouseUp={onRentRelease} onTouchEnd={onRentRelease} />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
@@ -202,7 +209,11 @@ export function ActionHub({
         </div>
 
         {/* Budget toggle with system health dots */}
-        <div onClick={() => setBudgetsOpen(!budgetsOpen)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '3px', padding: sz.budgetPad, cursor: 'pointer', flexShrink: 0, background: budgetsOpen ? 'rgba(212,160,53,0.08)' : 'transparent' }}>
+        <div onClick={() => setBudgetsOpen(!budgetsOpen)} style={{
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '3px',
+          padding: isNarrow ? '8px 10px' : sz.budgetPad, cursor: 'pointer', flexShrink: 0,
+          background: budgetsOpen ? 'rgba(212,160,53,0.08)' : 'transparent',
+        }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span style={{ fontFamily: FONT, fontSize: sz.budgetLabel, color: T.textPrimary }}>Budget</span>
             <span style={{ fontFamily: FONT_BODY, fontSize: sz.budgetVal, color: T.negative }}>-&pound;{totalBudget}/wk</span>
