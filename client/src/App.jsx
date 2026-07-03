@@ -12,6 +12,9 @@ import { PoliciesModal } from './components/PoliciesModal';
 import { ResearchModal } from './components/ResearchModal';
 import { CompletionModal } from './components/CompletionModal';
 import { InfoPopup } from './components/devtools/InfoPopup';
+import { TechTreeEditor } from './components/devtools/TechTreeEditor';
+import { LlamaPoolEditor } from './components/devtools/LlamaPoolEditor';
+import { BuildingsEditor } from './components/devtools/BuildingsEditor';
 import FortLlamaLanding from './components/FortLlamaLanding';
 
 const API_BASE = '';
@@ -61,8 +64,6 @@ function App({ mode = 'player' }) {
   const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   
   const [expandedPrimitives, setExpandedPrimitives] = useState({});
-  const techTreeContainerRef = useRef(null);
-  const [techConnectors, setTechConnectors] = useState({});
   const [activeModal, setActiveModal] = useState(null);
 
   const fetchState = useCallback(async () => {
@@ -233,67 +234,6 @@ function App({ mode = 'player' }) {
     };
   }, []);
 
-  const measureTechTree = useCallback(() => {
-    const container = techTreeContainerRef.current;
-    if (!container) return;
-    requestAnimationFrame(() => {
-      const newConnectors = {};
-      container.querySelectorAll('[data-tree-name]').forEach(treeEl => {
-        const treeName = treeEl.dataset.treeName;
-        const treeRect = treeEl.getBoundingClientRect();
-        const cards = treeEl.querySelectorAll('[data-tech-id]');
-        const rects = {};
-        cards.forEach(card => {
-          const r = card.getBoundingClientRect();
-          rects[card.dataset.techId] = {
-            left: r.left - treeRect.left,
-            right: r.right - treeRect.left,
-            midY: (r.top + r.bottom) / 2 - treeRect.top,
-          };
-        });
-        const paths = [];
-        const root = treeEl.querySelector('[data-tech-level="1"]');
-        const l2s = treeEl.querySelectorAll('[data-tech-level="2"]');
-        if (root) {
-          const rootR = rects[root.dataset.techId];
-          if (rootR) {
-            l2s.forEach(l2El => {
-              const l2R = rects[l2El.dataset.techId];
-              if (l2R) {
-                const midX = (rootR.right + l2R.left) / 2;
-                paths.push(`M ${rootR.right} ${rootR.midY} L ${midX} ${rootR.midY} L ${midX} ${l2R.midY} L ${l2R.left} ${l2R.midY}`);
-              }
-            });
-          }
-        }
-        l2s.forEach(l2El => {
-          const l2Id = l2El.dataset.techId;
-          const l2R = rects[l2Id];
-          if (!l2R) return;
-          const children = treeEl.querySelectorAll(`[data-tech-parent="${l2Id}"]`);
-          children.forEach(l3El => {
-            const l3R = rects[l3El.dataset.techId];
-            if (l3R) {
-              const midX = (l2R.right + l3R.left) / 2;
-              paths.push(`M ${l2R.right} ${l2R.midY} L ${midX} ${l2R.midY} L ${midX} ${l3R.midY} L ${l3R.left} ${l3R.midY}`);
-            }
-          });
-        });
-        newConnectors[treeName] = { paths, width: treeRect.width, height: treeRect.height };
-      });
-      setTechConnectors(newConnectors);
-    });
-  }, []);
-
-  useEffect(() => {
-    if (view !== 'devtools' || !techTreeContainerRef.current) return;
-    const timer = setTimeout(measureTechTree, 100);
-    const container = techTreeContainerRef.current;
-    const ro = new ResizeObserver(() => measureTechTree());
-    if (container) ro.observe(container);
-    return () => { clearTimeout(timer); ro.disconnect(); };
-  }, [view, editConfig, gameState, measureTechTree]);
-
   const handleReset = async () => {
     await fetch(`${API_BASE}/api/reset`, { method: 'POST' });
     clockStartRef.current = { hour: 9, day: 1, realStartTime: Date.now(), synced: false };
@@ -425,6 +365,16 @@ function App({ mode = 'player' }) {
       budgetConfig: {
         ...prev.budgetConfig,
         [itemKey]: { ...prev.budgetConfig?.[itemKey], [field]: value }
+      }
+    }));
+  };
+
+  const updateTechConfig = (techId, field, value) => {
+    setEditConfig(prev => ({
+      ...prev,
+      techConfig: {
+        ...prev.techConfig,
+        [techId]: { ...(prev.techConfig?.[techId] || {}), [field]: value }
       }
     }));
   };
@@ -1910,128 +1860,12 @@ function App({ mode = 'player' }) {
             </div>
           </div>
 
-          <div className="dev-tools-grid">
-            <div className="config-section" style={{gridColumn: '1 / -1'}}>
-              <h3>Tech Tree Configuration</h3>
-              <p style={{color: T.textSecondary, fontSize: '0.75rem', marginBottom: '8px'}}>Configure research costs and effects for each technology. Changes apply on Reset.</p>
-              <div ref={techTreeContainerRef}>
-              {['livingStandards', 'productivity', 'fun'].map(treeName => {
-                const treeLabel = TREE_LABELS[treeName] || treeName;
-                const treeColor = TREE_COLORS[treeName] || T.textMuted;
-                const treeTechs = (gameState.techTree || []).filter(t => t.tree === treeName);
-                return (
-                  <div key={treeName} data-tree-name={treeName} style={{marginBottom: '16px', position: 'relative'}}>
-                    <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', borderBottom: `2px solid ${treeColor}33`, paddingBottom: '4px'}}>
-                      <span style={{background: treeColor, width: '10px', height: '10px', borderRadius: '50%', display: 'inline-block'}}></span>
-                      <span style={{color: treeColor, fontWeight: 600, fontSize: '0.85rem'}}>{treeLabel}</span>
-                    </div>
-                    {(() => {
-                      const l1 = treeTechs.filter(t => t.level === 1);
-                      const l2 = treeTechs.filter(t => t.level === 2);
-                      const l3 = treeTechs.filter(t => t.level === 3);
-                      const renderDevTechNode = (tech) => {
-                        const cfg = editConfig?.techConfig?.[tech.id] || {};
-                        const updateTechCfg = (field, value) => {
-                          setEditConfig(prev => ({
-                            ...prev,
-                            techConfig: {
-                              ...prev.techConfig,
-                              [tech.id]: { ...(prev.techConfig?.[tech.id] || {}), [field]: value }
-                            }
-                          }));
-                        };
-                        const unlockedBuilding = (gameState.buildings || []).find(b => b.techRequired === tech.id);
-                        return (
-                          <div key={tech.id} data-tech-id={tech.id} data-tech-level={tech.level} data-tech-parent={tech.parent || ''} style={{background: T.panelBg, borderRadius: '6px', padding: '8px 10px', border: `1px solid ${tech.available ? treeColor + '44' : T.panelBorder + '33'}`}}>
-                            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px'}}>
-                              <span style={{fontWeight: 600, fontSize: '0.8rem', color: tech.available ? T.textPrimary : T.textMuted}}>{tech.name}</span>
-                              <span style={{fontSize: '0.6rem', background: treeColor + '22', color: treeColor, padding: '1px 6px', borderRadius: '4px', textTransform: 'capitalize'}}>{tech.type.replace('_', ' ')}</span>
-                            </div>
-                            {unlockedBuilding && <div style={{fontSize: '0.65rem', color: T.accentBright, marginBottom: '4px'}}>Unlocks: {unlockedBuilding.name}</div>}
-                            {!unlockedBuilding && (tech.type === 'building' || tech.type === 'upgrade') && <div style={{fontSize: '0.65rem', color: T.textMuted, marginBottom: '4px'}}>Building: TBC</div>}
-                            {!tech.available && <div style={{fontSize: '0.65rem', color: T.textMuted, marginBottom: '6px'}}>Coming Soon</div>}
-                            <div className="config-field" style={{marginBottom: '4px'}}>
-                              <label style={{fontSize: '0.7rem'}}>Cost</label>
-                              <input type="number" step="100" min="0"
-                                value={cfg.cost ?? 500}
-                                onChange={(e) => updateTechCfg('cost', parseInt(e.target.value) || 0)}
-                              />
-                            </div>
-                            {tech.type === 'fixed_expense' && (
-                              <>
-                                <div className="config-field" style={{marginBottom: '4px'}}>
-                                  <label style={{fontSize: '0.7rem'}}>Weekly Cost</label>
-                                  <input type="number" step="10" min="0"
-                                    value={cfg.weeklyCost ?? 0}
-                                    onChange={(e) => updateTechCfg('weeklyCost', parseInt(e.target.value) || 0)}
-                                  />
-                                </div>
-                                <div className="config-field" style={{marginBottom: '0'}}>
-                                  <label style={{fontSize: '0.7rem'}}>Effect %</label>
-                                  <input type="number" step="1" min="0"
-                                    value={cfg.effectPercent ?? 0}
-                                    onChange={(e) => updateTechCfg('effectPercent', parseInt(e.target.value) || 0)}
-                                  />
-                                </div>
-                              </>
-                            )}
-                            {tech.type === 'policy' && tech.id === 'ocado' && (
-                              <div className="config-field" style={{marginBottom: '0'}}>
-                                <label style={{fontSize: '0.7rem'}}>Effect %</label>
-                                <input type="number" step="1" min="0"
-                                  value={cfg.effectPercent ?? 15}
-                                  onChange={(e) => updateTechCfg('effectPercent', parseInt(e.target.value) || 0)}
-                                />
-                              </div>
-                            )}
-                            {tech.type === 'upgrade' && tech.id === 'great_hall' && (
-                              <div style={{fontSize: '0.65rem', color: T.textMuted, marginTop: '4px'}}>
-                                Stats editable in Manage Buildings
-                              </div>
-                            )}
-                          </div>
-                        );
-                      };
-                      const root = l1[0];
-                      const branches = l2.map(l2tech => ({
-                        tech: l2tech,
-                        children: l3.filter(l3tech => l3tech.parent === l2tech.id)
-                      }));
-                      return (
-                        <div style={{display: 'flex', gap: '32px', alignItems: 'flex-start'}}>
-                          <div style={{flex: 1}}>
-                            {root && renderDevTechNode(root)}
-                          </div>
-                          <div style={{flex: 1, display: 'flex', flexDirection: 'column', gap: '8px'}}>
-                            {branches.map(branch => (
-                              <div key={branch.tech.id}>{renderDevTechNode(branch.tech)}</div>
-                            ))}
-                          </div>
-                          <div style={{flex: 1, display: 'flex', flexDirection: 'column', gap: '8px'}}>
-                            {branches.map(branch => (
-                              <div key={branch.tech.id} style={{display: 'flex', flexDirection: 'column', gap: '4px'}}>
-                                {branch.children.map(l3tech => renderDevTechNode(l3tech))}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    })()}
-                    {techConnectors[treeName] && (
-                      <svg style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', overflow: 'visible'}}
-                        viewBox={`0 0 ${techConnectors[treeName].width} ${techConnectors[treeName].height}`}
-                        preserveAspectRatio="none">
-                        {techConnectors[treeName].paths.map((d, i) => (
-                          <path key={i} d={d} fill="none" stroke={T.panelBorder} strokeWidth="2" vectorEffect="non-scaling-stroke" />
-                        ))}
-                      </svg>
-                    )}
-                  </div>
-                );
-              })}
-              </div>
-            </div>
-          </div>
+          <TechTreeEditor
+            techTree={gameState.techTree}
+            buildings={gameState.buildings}
+            techConfig={editConfig?.techConfig}
+            onUpdateTechConfig={updateTechConfig}
+          />
 
 
         </div>
@@ -2083,334 +1917,23 @@ function App({ mode = 'player' }) {
       )}
 
       {showLlamaPoolEditor && (
-        <div className="modal-overlay" onClick={() => setShowLlamaPoolEditor(false)}>
-          <div className="modal llama-pool-modal" onClick={(e) => e.stopPropagation()}>
-            <h2>Manage Llama Pool</h2>
-            <div className="llama-pool-table-container">
-              <table className="llama-pool-table">
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Gender</th>
-                    <th>Age</th>
-                    <th>Bio</th>
-                    <th>Share</th>
-                    <th>Cook</th>
-                    <th>Tidy</th>
-                    <th>Handy</th>
-                    <th>Consid</th>
-                    <th>Social</th>
-                    <th>Party</th>
-                    <th>Work</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {editableLlamas.map(llama => (
-                    <tr key={llama.id} className={gameState.communeResidents?.some(r => r.id === llama.id) ? 'in-commune' : ''}>
-                      <td>
-                        <input 
-                          type="text" 
-                          value={llama.name} 
-                          onChange={(e) => updateLlamaField(llama.id, 'name', e.target.value)}
-                        />
-                      </td>
-                      <td>
-                        <select 
-                          value={llama.gender} 
-                          onChange={(e) => updateLlamaField(llama.id, 'gender', e.target.value)}
-                        >
-                          <option value="F">F</option>
-                          <option value="M">M</option>
-                          <option value="NB">NB</option>
-                        </select>
-                      </td>
-                      <td>
-                        <input 
-                          type="number" 
-                          value={llama.age} 
-                          onChange={(e) => updateLlamaField(llama.id, 'age', e.target.value)}
-                          min="18" max="80"
-                        />
-                      </td>
-                      <td>
-                        <input 
-                          type="text" 
-                          value={llama.bio} 
-                          onChange={(e) => updateLlamaField(llama.id, 'bio', e.target.value)}
-                          className="bio-input"
-                        />
-                      </td>
-                      <td>
-                        <input 
-                          type="number" 
-                          value={llama.stats.sharingTolerance} 
-                          onChange={(e) => updateLlamaField(llama.id, 'stats', {...llama.stats, sharingTolerance: parseInt(e.target.value) || 0})}
-                          min="1" max="20"
-                        />
-                      </td>
-                      <td>
-                        <input 
-                          type="number" 
-                          value={llama.stats.cookingSkill} 
-                          onChange={(e) => updateLlamaField(llama.id, 'stats', {...llama.stats, cookingSkill: parseInt(e.target.value) || 0})}
-                          min="1" max="20"
-                        />
-                      </td>
-                      <td>
-                        <input 
-                          type="number" 
-                          value={llama.stats.tidiness} 
-                          onChange={(e) => updateLlamaField(llama.id, 'stats', {...llama.stats, tidiness: parseInt(e.target.value) || 0})}
-                          min="1" max="20"
-                        />
-                      </td>
-                      <td>
-                        <input 
-                          type="number" 
-                          value={llama.stats.handiness} 
-                          onChange={(e) => updateLlamaField(llama.id, 'stats', {...llama.stats, handiness: parseInt(e.target.value) || 0})}
-                          min="1" max="20"
-                        />
-                      </td>
-                      <td>
-                        <input 
-                          type="number" 
-                          value={llama.stats.consideration} 
-                          onChange={(e) => updateLlamaField(llama.id, 'stats', {...llama.stats, consideration: parseInt(e.target.value) || 0})}
-                          min="1" max="20"
-                        />
-                      </td>
-                      <td>
-                        <input 
-                          type="number" 
-                          value={llama.stats.sociability} 
-                          onChange={(e) => updateLlamaField(llama.id, 'stats', {...llama.stats, sociability: parseInt(e.target.value) || 0})}
-                          min="1" max="20"
-                        />
-                      </td>
-                      <td>
-                        <input 
-                          type="number" 
-                          value={llama.stats.partyStamina} 
-                          onChange={(e) => updateLlamaField(llama.id, 'stats', {...llama.stats, partyStamina: parseInt(e.target.value) || 0})}
-                          min="1" max="20"
-                        />
-                      </td>
-                      <td>
-                        <input 
-                          type="number" 
-                          value={llama.stats.workEthic} 
-                          onChange={(e) => updateLlamaField(llama.id, 'stats', {...llama.stats, workEthic: parseInt(e.target.value) || 0})}
-                          min="1" max="20"
-                        />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <div className="llama-pool-actions">
-              <button className="action-button" onClick={handleSaveLlamaPool}>Apply Changes</button>
-              <button className="modal-close" onClick={() => setShowLlamaPoolEditor(false)}>Cancel</button>
-            </div>
-          </div>
-        </div>
+        <LlamaPoolEditor
+          llamas={editableLlamas}
+          communeResidents={gameState.communeResidents}
+          onUpdateField={updateLlamaField}
+          onSave={handleSaveLlamaPool}
+          onClose={() => setShowLlamaPoolEditor(false)}
+        />
       )}
 
       {showBuildingsEditor && (
-        <div className="modal-overlay" onClick={() => setShowBuildingsEditor(false)}>
-          <div className="modal buildings-modal" onClick={(e) => e.stopPropagation()}>
-            <h2>Manage Buildings</h2>
-            <div className="buildings-table-container">
-              <table className="buildings-table">
-                <thead>
-                  <tr>
-                    <th>Building</th>
-                    <th>Capacity</th>
-                    <th>At Start</th>
-                    <th>Quality</th>
-                    <th>Primitive Mult</th>
-                    <th>Cost</th>
-                    <th>Util Mult</th>
-                    <th>Rent Mult</th>
-                    <th>Dependency</th>
-                    <th>Buildable</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {editableBuildings.filter(b => b.id !== 'great_hall').flatMap(b => {
-                    const greatHall = b.id === 'living_room' ? editableBuildings.find(x => x.id === 'great_hall') : null;
-                    const rows = [b];
-                    if (greatHall) rows.push(greatHall);
-                    return rows;
-                  }).map(b => {
-                    const techName = b.techRequired 
-                      ? (gameState?.techTree || []).find(t => t.id === b.techRequired)?.name || b.techRequired
-                      : null;
-                    const isUpgradeRow = b.isUpgrade;
-                    return (
-                    <tr key={b.id} style={isUpgradeRow ? {background: T.panelBg + '22'} : undefined}>
-                      <td style={isUpgradeRow ? {paddingLeft: '20px'} : undefined}>
-                        {isUpgradeRow && <span style={{color: T.textMuted, fontSize: '0.7rem', marginRight: '4px'}}>↳</span>}
-                        {b.name}
-                        {isUpgradeRow && <span style={{color: T.accentBright, fontSize: '0.65rem', marginLeft: '6px'}}>upgrade</span>}
-                      </td>
-                      <td>
-                        <input 
-                          type="number" 
-                          value={b.capacity ?? ''} 
-                          onChange={(e) => updateBuildingField(b.id, 'capacity', e.target.value)}
-                          min="1"
-                        />
-                      </td>
-                      <td>
-                        <input 
-                          type="number" 
-                          value={b.atStart ?? ''} 
-                          onChange={(e) => updateBuildingField(b.id, 'atStart', e.target.value)}
-                          min="0"
-                        />
-                      </td>
-                      <td>
-                        <input 
-                          type="number" 
-                          value={b.quality ?? 1} 
-                          onChange={(e) => updateBuildingField(b.id, 'quality', e.target.value)}
-                          min="1"
-                          max="3"
-                        />
-                      </td>
-                      <td className="primitive-mult-cell">
-                        {b.id === 'bedroom' && (
-                          <div className="mult-row">
-                            <label>Recovery:</label>
-                            <input type="number" step="0.1" value={b.recoveryMult ?? 1.0} 
-                              onChange={(e) => updateBuildingField(b.id, 'recoveryMult', e.target.value)} />
-                          </div>
-                        )}
-                        {b.id === 'kitchen' && (
-                          <>
-                            <div className="mult-row">
-                              <label>Food:</label>
-                              <input type="number" step="0.1" value={b.foodMult ?? 1.0} 
-                                onChange={(e) => updateBuildingField(b.id, 'foodMult', e.target.value)} />
-                            </div>
-                            <div className="mult-row">
-                              <label>Mess:</label>
-                              <input type="number" step="0.1" value={b.messMult ?? 1.0} 
-                                onChange={(e) => updateBuildingField(b.id, 'messMult', e.target.value)} />
-                            </div>
-                          </>
-                        )}
-                        {b.id === 'bathroom' && (
-                          <>
-                            <div className="mult-row">
-                              <label>Clean:</label>
-                              <input type="number" step="0.1" value={b.cleanMult ?? 1.0} 
-                                onChange={(e) => updateBuildingField(b.id, 'cleanMult', e.target.value)} />
-                            </div>
-                            <div className="mult-row">
-                              <label>Mess:</label>
-                              <input type="number" step="0.1" value={b.messMult ?? 1.0} 
-                                onChange={(e) => updateBuildingField(b.id, 'messMult', e.target.value)} />
-                            </div>
-                          </>
-                        )}
-                        {b.id === 'living_room' && (
-                          <>
-                            <div className="mult-row">
-                              <label>Fun:</label>
-                              <input type="number" step="0.1" value={b.funMult ?? 1.0} 
-                                onChange={(e) => updateBuildingField(b.id, 'funMult', e.target.value)} />
-                            </div>
-                            <div className="mult-row">
-                              <label>Noise:</label>
-                              <input type="number" step="0.1" value={b.noiseMult ?? 1.0} 
-                                onChange={(e) => updateBuildingField(b.id, 'noiseMult', e.target.value)} />
-                            </div>
-                          </>
-                        )}
-                        {b.id === 'great_hall' && (
-                          <>
-                            <div className="mult-row">
-                              <label>Fun:</label>
-                              <input type="number" step="0.1" value={b.funMult ?? 1.3} 
-                                onChange={(e) => updateBuildingField(b.id, 'funMult', e.target.value)} />
-                            </div>
-                            <div className="mult-row">
-                              <label>Noise:</label>
-                              <input type="number" step="0.1" value={b.noiseMult ?? 1.0} 
-                                onChange={(e) => updateBuildingField(b.id, 'noiseMult', e.target.value)} />
-                            </div>
-                            <div className="mult-row">
-                              <label>Drive:</label>
-                              <input type="number" step="0.1" value={b.driveMult ?? 1.2} 
-                                onChange={(e) => updateBuildingField(b.id, 'driveMult', e.target.value)} />
-                            </div>
-                          </>
-                        )}
-                        {b.id === 'utility_closet' && (
-                          <div className="mult-row">
-                            <label>Repair:</label>
-                            <input type="number" step="0.1" value={b.repairMult ?? 1.0} 
-                              onChange={(e) => updateBuildingField(b.id, 'repairMult', e.target.value)} />
-                          </div>
-                        )}
-                        {(b.id === 'heaven' || b.id === 'hot_tub') && (
-                          <div className="mult-row">
-                            <label>Fun Out:</label>
-                            <input type="number" step="0.5" value={b.funOutput ?? 0} 
-                              onChange={(e) => updateBuildingField(b.id, 'funOutput', e.target.value)} />
-                          </div>
-                        )}
-                      </td>
-                      <td>
-                        <input 
-                          type="number" 
-                          value={b.cost ?? ''} 
-                          onChange={(e) => updateBuildingField(b.id, 'cost', e.target.value)}
-                          placeholder="n/a"
-                        />
-                      </td>
-                      <td>
-                        <input 
-                          type="number" 
-                          step="0.01"
-                          value={b.utilitiesMultiplier ?? ''} 
-                          onChange={(e) => updateBuildingField(b.id, 'utilitiesMultiplier', e.target.value)}
-                          placeholder="n/a"
-                        />
-                      </td>
-                      <td>
-                        <input 
-                          type="number" 
-                          step="0.01"
-                          value={b.groundRentMultiplier ?? ''} 
-                          onChange={(e) => updateBuildingField(b.id, 'groundRentMultiplier', e.target.value)}
-                          placeholder="n/a"
-                        />
-                      </td>
-                      <td style={{fontSize: '0.75rem', color: techName ? T.textSecondary : T.panelBorder + '44'}}>
-                        {techName || '—'}
-                      </td>
-                      <td>
-                        <input 
-                          type="checkbox" 
-                          checked={b.buildable} 
-                          onChange={(e) => updateBuildingField(b.id, 'buildable', e.target.checked)}
-                        />
-                      </td>
-                    </tr>
-                  );})}
-                </tbody>
-              </table>
-            </div>
-            <div className="buildings-actions">
-              <button className="action-button" onClick={handleSaveBuildings}>Apply Changes</button>
-              <button className="modal-close" onClick={() => setShowBuildingsEditor(false)}>Cancel</button>
-            </div>
-          </div>
-        </div>
+        <BuildingsEditor
+          buildings={editableBuildings}
+          techTree={gameState?.techTree}
+          onUpdateField={updateBuildingField}
+          onSave={handleSaveBuildings}
+          onClose={() => setShowBuildingsEditor(false)}
+        />
       )}
     </div>
   );
