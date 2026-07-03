@@ -34,18 +34,9 @@ function App({ mode = 'player' }) {
   const [gameState, setGameState] = useState(null);
   const [config, setConfig] = useState(null);
   const [editConfig, setEditConfig] = useState(null);
-  const [showBuildModal, setShowBuildModal] = useState(false);
-  const [buildConfirm, setBuildConfirm] = useState(null);
   const [buildComplete, setBuildComplete] = useState(null);
-  const [showRecruitModal, setShowRecruitModal] = useState(false);
-  const [showPolicyModal, setShowPolicyModal] = useState(false);
-  const [policyConfirm, setPolicyConfirm] = useState(null);
   const [policyComplete, setPolicyComplete] = useState(null);
-  const [showTechModal, setShowTechModal] = useState(false);
-  const [showTechTreeModal, setShowTechTreeModal] = useState(false);
-  const [techConfirm, setTechConfirm] = useState(null);
   const [techComplete, setTechComplete] = useState(null);
-  const [budgetOpen, setBudgetOpen] = useState(false);
   const [showLlamaPoolEditor, setShowLlamaPoolEditor] = useState(false);
   const [showBuildingsEditor, setShowBuildingsEditor] = useState(false);
   const [editableLlamas, setEditableLlamas] = useState([]);
@@ -53,16 +44,12 @@ function App({ mode = 'player' }) {
   const [recruitCandidates, setRecruitCandidates] = useState([]);
   const [buildings, setBuildings] = useState([]);
   const [rentInput, setRentInput] = useState('');
-  const [hoveredResident, setHoveredResident] = useState(null);
-  const [pendingInvite, setPendingInvite] = useState(null);
   const [infoPopup, setInfoPopup] = useState(null);
   const [budgetInputs, setBudgetInputs] = useState({
     nutrition: 0, cleanliness: 0, maintenance: 0,
     fatigue: 0, fun: 0, drive: 0
   });
   const budgetSyncedWeek = useRef(null);
-  const [budgetViewedThisWeek, setBudgetViewedThisWeek] = useState(false);
-  const budgetViewedWeekRef = useRef(null);
   
   const [displayTime, setDisplayTime] = useState({ hour: 9, minute: 0, dayIndex: 0 });
   const clockAnimationRef = useRef(null);
@@ -131,7 +118,6 @@ function App({ mode = 'player' }) {
   }, [gameState?.researchCompletedThisWeek]);
 
   const isPaused = gameState?.isPausedForWeeklyDecision && !gameState?.isGameOver;
-  const showWeeklyPanel = gameState != null && !gameState?.isGameOver;
 
   // Store current pause state in ref so animation can read fresh value
   const isPausedRef = useRef(true);
@@ -148,11 +134,6 @@ function App({ mode = 'player' }) {
       if (budgetSyncedWeek.current === null) {
         budgetSyncedWeek.current = syncKey;
         setBudgetInputs({ ...gameState.budgets });
-      }
-      if (budgetViewedWeekRef.current !== gameState.week) {
-        budgetViewedWeekRef.current = gameState.week;
-        setBudgetViewedThisWeek(false);
-        setRecruitedInfo(null);
       }
     }
   }, [gameState?.week, gameState?.day, isPaused]);
@@ -338,19 +319,6 @@ function App({ mode = 'player' }) {
     return true;
   };
 
-  const handleRentSliderChange = (e) => {
-    setRentInput(e.target.value);
-  };
-
-  const handleRentSliderRelease = () => {
-    handleSetRent(rentInput);
-  };
-
-  const handleBudgetChange = (key, value) => {
-    const numValue = Math.min(500, Math.max(0, Math.round(Number(value) / 10) * 10));
-    setBudgetInputs(prev => ({ ...prev, [key]: numValue }));
-  };
-
   const commitBudgets = async (overrideBudgets) => {
     const toSend = overrideBudgets || budgetInputs;
     await fetch(`${API_BASE}/api/action/set-budget`, {
@@ -368,33 +336,6 @@ function App({ mode = 'player' }) {
     commitBudgets(newBudgets);
   };
 
-  const handleBudgetInputBlur = (key, rawValue) => {
-    const num = parseInt(rawValue, 10);
-    const snapped = isNaN(num) ? 0 : Math.min(500, Math.max(0, Math.round(num / 10) * 10));
-    const newBudgets = { ...budgetInputs, [key]: snapped };
-    setBudgetInputs(newBudgets);
-    commitBudgets(newBudgets);
-  };
-
-  const handleBudgetInputKey = (key, e) => {
-    if (e.key === 'Enter') {
-      e.target.blur();
-    }
-  };
-
-  const handleOpenRecruitment = async () => {
-    try {
-      const res = await fetch(`${API_BASE}/api/recruitment-candidates`);
-      const data = await res.json();
-      setRecruitCandidates(data.candidates || []);
-      setShowRecruitModal(true);
-    } catch (err) {
-      console.error('Failed to fetch candidates:', err);
-    }
-  };
-
-  const [recruitedInfo, setRecruitedInfo] = useState(null);
-
   const handleInvite = async (llamaId) => {
     try {
       const res = await fetch(`${API_BASE}/api/action/invite`, {
@@ -404,23 +345,11 @@ function App({ mode = 'player' }) {
       });
       const data = await res.json();
       if (data.success) {
-        const llama = recruitCandidates.find(c => c.id === llamaId);
-        const rejected = recruitCandidates.filter(c => c.id !== llamaId);
-        setRecruitedInfo({
-          name: data.invited,
-          arrivalDayName: data.arrivalDayName,
-          llama,
-          rejected
-        });
         fetchState();
       }
     } catch (err) {
       console.error('Failed to invite:', err);
     }
-  };
-
-  const handlePassRecruitment = () => {
-    setShowRecruitModal(false);
   };
 
   const handleOpenLlamaPoolEditor = async () => {
@@ -545,7 +474,6 @@ function App({ mode = 'player' }) {
       body: JSON.stringify({ buildingId })
     });
     const data = await res.json();
-    setBuildConfirm(null);
     if (data.success) {
       const building = gameState.buildings?.find(b => b.id === buildingId);
       setBuildComplete({
@@ -559,11 +487,6 @@ function App({ mode = 'player' }) {
     fetchBuildings();
   };
 
-  const handleBuildBedroom = async () => {
-    await handleBuild('bedroom');
-    setShowBuildModal(false);
-  };
-
   const handleTogglePolicy = async (policyId) => {
     const res = await fetch(`${API_BASE}/api/action/toggle-policy`, {
       method: 'POST',
@@ -574,7 +497,6 @@ function App({ mode = 'player' }) {
     if (!res.ok) {
       alert(data.error);
     } else {
-      setPolicyConfirm(null);
       const policy = (gameState.policyDefinitions || []).find(p => p.id === policyId);
       setPolicyComplete({
         name: policy?.name || policyId,
@@ -594,9 +516,6 @@ function App({ mode = 'player' }) {
     const data = await res.json();
     if (!res.ok) {
       alert(data.error);
-    } else {
-      setTechConfirm(null);
-      setShowTechModal(false);
     }
     fetchState();
   };
@@ -607,16 +526,6 @@ function App({ mode = 'player' }) {
       headers: { 'Content-Type': 'application/json' }
     });
     fetchState();
-  };
-
-  const handleToggleFixedCost = async (fixedCostId) => {
-    const res = await fetch(`${API_BASE}/api/action/toggle-fixed-cost`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fixedCostId })
-    });
-    const data = await res.json();
-    if (!res.ok) alert(data.error);
   };
 
   // New dashboard: open modal handler (fetches candidates for recruit)
@@ -804,7 +713,7 @@ function App({ mode = 'player' }) {
       reputation: gameState.vibes?.branchLabel || gameState.vibes?.reputation || 'Obscure',
       level: (gameState.coverageData?.tier || 0) + 1,
       score: gameState.scoring?.totalScore || 0,
-      // ActionPanel
+      // ActionHub
       week: gameState.week,
       day: dayName,
       time: timeStr,
@@ -833,7 +742,7 @@ function App({ mode = 'player' }) {
       rentStep: config.rentStep || 10,
       budgets: budgetInputs,
       isPaused,
-      // DataPanel
+      // VitalsBar
       treasury: Math.round(gameState.treasury || 0),
       income: Math.round(projIncome),
       expenses: Math.round(totalExpenses),
@@ -941,18 +850,6 @@ function App({ mode = 'player' }) {
   if (!gameState || !config) {
     return <div className="app">Loading...</div>;
   }
-
-  const formatCurrency = (val) => {
-    const num = val ?? 0;
-    const prefix = num < 0 ? '-£' : '£';
-    return `${prefix}${Math.abs(Math.round(num)).toLocaleString()}`;
-  };
-
-  const projectedIncome = gameState.projectedIncome ?? (gameState.residents * gameState.currentRent);
-  const projectedGroundRent = gameState.projectedGroundRent ?? config.groundRentBase;
-  const projectedUtilities = gameState.projectedUtilities ?? config.utilitiesBase;
-  const projectedBudget = gameState.projectedBudget ?? Object.values(budgetInputs).reduce((s, v) => s + v, 0);
-  const weeklyDelta = gameState.weeklyDelta ?? (projectedIncome - projectedGroundRent - projectedUtilities - projectedBudget);
 
   if (screen === 'landing') {
     return <FortLlamaLanding onStartGame={() => setScreen('game')} />;
@@ -2289,93 +2186,6 @@ function App({ mode = 'player' }) {
         </div>
       )}
 
-      {showBuildModal && (
-        <div className="modal-overlay" onClick={() => setShowBuildModal(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-              <h2>Build</h2>
-              <span style={{background: (gameState.buildsThisWeek || 0) >= (gameState.config?.buildsPerWeek ?? 1) ? T.negative : T.panelBorder, color: '#fff', padding: '2px 8px', borderRadius: '10px', fontSize: '0.75rem', fontWeight: 600}}>
-                {Math.max(0, (gameState.config?.buildsPerWeek ?? 1) - (gameState.buildsThisWeek || 0))} remaining
-              </span>
-            </div>
-            {(gameState.buildsThisWeek || 0) >= (gameState.config?.buildsPerWeek ?? 1) && (
-              <p style={{color: T.negative, fontSize: '0.85rem', marginBottom: '8px'}}>Build limit reached for this week.</p>
-            )}
-            {gameState.buildings?.filter(b => b.buildable && b.cost !== null && (!b.techRequired || gameState.researchedTechs?.includes(b.techRequired))).map(building => (
-              <div key={building.id} className="building-card">
-                <h3>{building.name.replace(/s$/, '')}</h3>
-                <div className="building-stats">
-                  <div>Cost: £{building.cost?.toLocaleString()}</div>
-                  <div>Capacity: {building.capacity} residents</div>
-                  {building.funOutput != null && (
-                    <div>Fun Output: {building.funOutput}</div>
-                  )}
-                  {building.groundRentMultiplier !== null && (
-                    <div>Ground Rent: +{(building.groundRentMultiplier * 100).toFixed(0)}%</div>
-                  )}
-                  {building.utilitiesMultiplier !== null && (
-                    <div>Utilities: +{(building.utilitiesMultiplier * 100).toFixed(0)}%</div>
-                  )}
-                  <div>Current: {building.count}</div>
-                  {building.id === 'living_room' && gameState.researchedTechs?.includes('great_hall') && (() => {
-                    const gh = gameState.buildings?.find(b => b.id === 'great_hall');
-                    if (!gh) return null;
-                    return (
-                      <div style={{marginTop: '4px', padding: '3px 6px', background: T.pr + '33', borderRadius: '4px', fontSize: '0.75rem', color: T.pr}}>
-                        Great Hall: Cap {gh.capacity}, Fun x{gh.funMult ?? 1.3}, Drive x{gh.driveMult ?? 1.2}
-                      </div>
-                    );
-                  })()}
-                </div>
-                <button 
-                  className="action-button"
-                  onClick={() => setBuildConfirm(building)}
-                  disabled={gameState.treasury - building.cost < (gameState.config?.gameOverLimit ?? -5000) || (gameState.buildsThisWeek || 0) >= (gameState.config?.buildsPerWeek ?? 1)}
-                >
-                  {(gameState.buildsThisWeek || 0) >= (gameState.config?.buildsPerWeek ?? 1) ? 'Limit reached' : gameState.treasury - building.cost < (gameState.config?.gameOverLimit ?? -5000) ? 'Debt limit' : 'Build'}
-                </button>
-              </div>
-            ))}
-            <button className="modal-close" onClick={() => { setShowBuildModal(false); setBuildConfirm(null); }}>
-              Close
-            </button>
-          </div>
-        </div>
-      )}
-
-      {buildConfirm && (
-        <div className="modal-overlay" onClick={() => setBuildConfirm(null)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()} style={{maxWidth: '360px'}}>
-            <h2>Confirm Build</h2>
-            <p style={{color: T.textPrimary, fontSize: '0.9rem', margin: '12px 0'}}>
-              Build a new <span style={{color: T.positive, fontWeight: 600}}>{buildConfirm.name}</span>?
-            </p>
-            <div style={{background: T.bg, borderRadius: '8px', padding: '12px', marginBottom: '16px'}}>
-              <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '6px'}}>
-                <span style={{color: T.textSecondary}}>Cost</span>
-                <span style={{color: T.negative}}>-£{buildConfirm.cost?.toLocaleString()}</span>
-              </div>
-              <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '6px'}}>
-                <span style={{color: T.textSecondary}}>Treasury after</span>
-                <span style={{color: T.textPrimary}}>£{(gameState.treasury - (buildConfirm.cost || 0)).toLocaleString()}</span>
-              </div>
-              <div style={{display: 'flex', justifyContent: 'space-between'}}>
-                <span style={{color: T.textSecondary}}>New count</span>
-                <span style={{color: T.textPrimary}}>{(buildConfirm.count || 0) + 1}</span>
-              </div>
-            </div>
-            <div style={{display: 'flex', gap: '8px'}}>
-              <button className="action-button" style={{flex: 1}} onClick={() => handleBuild(buildConfirm.id)}>
-                Confirm
-              </button>
-              <button className="modal-close" style={{flex: 1}} onClick={() => setBuildConfirm(null)}>
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {buildComplete && (
         <div className="modal-overlay" onClick={() => setBuildComplete(null)}>
           <div className="modal" onClick={(e) => e.stopPropagation()} style={{maxWidth: '360px', textAlign: 'center'}}>
@@ -2405,101 +2215,6 @@ function App({ mode = 'player' }) {
         </div>
       )}
 
-      {showPolicyModal && (() => {
-        const policyLimitActive = (gameState.policiesStableWeeks || 0) >= 1 && (gameState.previousPolicies?.length || 0) >= 3;
-        const maxChanges = gameState.config?.policyChangesPerWeek ?? 1;
-        const changesUsed = gameState.policyChangesThisWeek || 0;
-        const changesRemaining = Math.max(0, maxChanges - changesUsed);
-        const changeLimitReached = policyLimitActive && changesUsed >= maxChanges;
-        return (
-        <div className="modal-overlay" onClick={() => setShowPolicyModal(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-              <h2>Policies</h2>
-              <div style={{display: 'flex', gap: '6px', alignItems: 'center'}}>
-                {policyLimitActive && (
-                  <span style={{background: changeLimitReached ? T.negative : T.panelBorder, color: '#fff', padding: '2px 8px', borderRadius: '10px', fontSize: '0.7rem'}}>
-                    {changesRemaining} change{changesRemaining !== 1 ? 's' : ''} left
-                  </span>
-                )}
-                <span style={{background: (gameState.activePolicies?.length || 0) > 3 ? T.negative : T.panelBorder, color: '#fff', padding: '4px 10px', borderRadius: '12px', fontSize: '0.85rem', fontWeight: 600}}>
-                  {gameState.activePolicies?.length || 0} / 3
-                </span>
-              </div>
-            </div>
-            <p style={{color: T.textSecondary, fontSize: '0.85rem', marginBottom: '12px'}}>
-              Toggle policies to improve your commune. More than 3 active policies will reduce Fun.
-            </p>
-            {changeLimitReached && (
-              <p style={{color: T.negative, fontSize: '0.8rem', marginBottom: '8px'}}>Policy change limit reached for this week.</p>
-            )}
-            <div className="policy-list">
-              {(gameState.policyDefinitions || []).filter(policy => !policy.techRequired || gameState.researchedTechs?.includes(policy.techRequired)).length === 0 && (
-                <p style={{color: T.textSecondary, fontSize: '0.85rem', textAlign: 'center', padding: '20px 0'}}>Research Technologies to unlock Policies for the Fort.</p>
-              )}
-              {(gameState.policyDefinitions || []).filter(policy => !policy.techRequired || gameState.researchedTechs?.includes(policy.techRequired)).map(policy => {
-                const isActive = (gameState.activePolicies || []).includes(policy.id);
-                const ocadoPct = gameState.techConfig?.ocado?.effectPercent || 15;
-                let desc = policy.description.replace('{ocadoPct}', ocadoPct);
-                return (
-                  <div key={policy.id} className={`policy-card ${isActive ? 'active' : ''}`}>
-                    <div className="policy-header">
-                      <h3>{policy.name}</h3>
-                      <span className="policy-primitive">{policy.primitive}</span>
-                    </div>
-                    <p className="policy-desc">{desc}</p>
-                    <button 
-                      className={`policy-toggle ${isActive ? 'active' : ''}`}
-                      onClick={() => setPolicyConfirm({...policy, isActive, desc})}
-                      disabled={changeLimitReached}
-                    >
-                      {changeLimitReached ? 'Limit reached' : isActive ? 'Deactivate' : 'Activate'}
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-            <button className="modal-close" onClick={() => setShowPolicyModal(false)}>
-              Close
-            </button>
-          </div>
-        </div>
-        );
-      })()}
-
-      {policyConfirm && (
-        <div className="modal-overlay" onClick={() => setPolicyConfirm(null)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()} style={{maxWidth: '360px'}}>
-            <h2>Confirm Policy Change</h2>
-            <p style={{color: T.textPrimary, fontSize: '0.9rem', margin: '12px 0'}}>
-              {policyConfirm.isActive ? 'Deactivate' : 'Activate'} <span style={{color: T.positive, fontWeight: 600}}>{policyConfirm.name}</span>?
-            </p>
-            <div style={{background: T.bg, borderRadius: '8px', padding: '12px', marginBottom: '16px'}}>
-              <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '6px'}}>
-                <span style={{color: T.textSecondary}}>Policy</span>
-                <span style={{color: T.textPrimary}}>{policyConfirm.name}</span>
-              </div>
-              <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '6px'}}>
-                <span style={{color: T.textSecondary}}>Affects</span>
-                <span style={{color: T.textPrimary, textTransform: 'capitalize'}}>{policyConfirm.primitive}</span>
-              </div>
-              <div style={{display: 'flex', justifyContent: 'space-between'}}>
-                <span style={{color: T.textSecondary}}>Action</span>
-                <span style={{color: policyConfirm.isActive ? T.negative : T.positive}}>{policyConfirm.isActive ? 'Deactivate' : 'Activate'}</span>
-              </div>
-            </div>
-            <div style={{display: 'flex', gap: '8px'}}>
-              <button className="action-button" style={{flex: 1}} onClick={() => handleTogglePolicy(policyConfirm.id)}>
-                Confirm
-              </button>
-              <button className="modal-close" style={{flex: 1}} onClick={() => setPolicyConfirm(null)}>
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {policyComplete && (
         <div className="modal-overlay" onClick={() => setPolicyComplete(null)}>
           <div className="modal" onClick={(e) => e.stopPropagation()} style={{maxWidth: '360px', textAlign: 'center'}}>
@@ -2519,249 +2234,6 @@ function App({ mode = 'player' }) {
             <button className="action-button" onClick={() => setPolicyComplete(null)}>
               Done
             </button>
-          </div>
-        </div>
-      )}
-
-      {showTechModal && (
-        <div className="modal-overlay" onClick={() => setShowTechModal(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()} style={{maxWidth: '600px'}}>
-            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px'}}>
-              <h2 style={{margin: 0}}>Technology Research</h2>
-              <button 
-                onClick={(e) => { e.stopPropagation(); setShowTechModal(false); setShowTechTreeModal(true); }}
-                style={{display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 14px', background: T.bg, border: `1px solid ${T.panelBorder}`, borderRadius: '6px', color: T.textSecondary, cursor: 'pointer', fontSize: '0.85rem', transition: 'all 0.15s ease'}}
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = T.accent; e.currentTarget.style.color = '#fff'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.borderColor = T.panelBorder; e.currentTarget.style.color = T.textSecondary; }}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={T.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="22" x2="12" y2="8"/><polyline points="8 12 12 8 16 12"/><path d="M12 8a4 4 0 0 0-4-4H4"/><path d="M12 8a4 4 0 0 1 4-4h4"/><line x1="4" y1="2" x2="4" y2="4"/><line x1="20" y1="2" x2="20" y2="4"/></svg>
-                Tech Tree
-              </button>
-            </div>
-            {gameState.researchingTech && (() => {
-              const rTech = (gameState.techTree || []).find(t => t.id === gameState.researchingTech);
-              const rCfg = gameState.techConfig?.[gameState.researchingTech] || {};
-              const rTreeColor = rTech?.tree === 'livingStandards' ? T.ls : rTech?.tree === 'productivity' ? T.pr : T.pt;
-              return (
-                <div style={{background: T.panelBg + '80', borderRadius: '8px', padding: '12px', marginBottom: '12px', borderLeft: `4px solid ${rTreeColor}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                  <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
-                    <div style={{fontSize: '1.2rem', animation: 'spin 2s linear infinite'}}>&#9881;</div>
-                    <div>
-                      <div style={{color: T.textPrimary, fontWeight: 600}}>{rTech?.name}</div>
-                      <div style={{color: rTreeColor, fontSize: '0.75rem'}}>Researching... completes next week</div>
-                    </div>
-                  </div>
-                  <button className="modal-close" style={{width: 'auto', padding: '4px 12px', fontSize: '0.75rem'}} onClick={handleCancelResearch}>Cancel</button>
-                </div>
-              );
-            })()}
-            {['livingStandards', 'productivity', 'fun'].map(treeName => {
-              const treeColor = treeName === 'livingStandards' ? T.ls : treeName === 'productivity' ? T.pr : T.pt;
-              const treeTechs = (gameState.techTree || []).filter(t => t.tree === treeName);
-              const availableTechs = treeTechs.filter(t => {
-                if (gameState.researchedTechs?.includes(t.id)) return false;
-                if (!t.available) return false;
-                if (t.parent && !gameState.researchedTechs?.includes(t.parent)) return false;
-                return true;
-              });
-              const isResearching = !!gameState.researchingTech;
-              
-              return (
-                <div key={treeName} style={{marginBottom: '8px'}}>
-                  {availableTechs.length === 0 ? null : (
-                    availableTechs.map(tech => {
-                      const cfg = gameState.techConfig?.[tech.id] || {};
-                      const cost = cfg.cost || 500;
-                      const canAfford = gameState.treasury - cost >= (gameState.config?.gameOverLimit ?? -5000);
-                      const isThisResearching = gameState.researchingTech === tech.id;
-                      const typeLabel = tech.type === 'fixed_expense' ? 'Fixed Cost' : tech.type === 'building' ? 'Building' : tech.type === 'culture' ? 'Culture' : tech.type === 'upgrade' ? 'Upgrade' : 'Policy';
-                      let effectText = '';
-                      if (tech.type === 'fixed_expense') effectText = `+${cfg.effectPercent || 0}% boost, £${cfg.weeklyCost || 0}/wk`;
-                      else if (tech.type === 'policy') effectText = tech.id === 'chores_rota' ? `+${cfg.effectPercent || 15}% cleanliness & maintenance + unlocks rotas` : tech.id === 'ocado' ? `+${cfg.effectPercent || 0}% ingredient efficiency` : tech.description;
-                      else if (tech.type === 'building') effectText = tech.id === 'blanket_fort' ? 'Unlocks Heaven building' : tech.id === 'outdoor_plumbing' ? 'Unlocks Hot Tub building' : tech.description;
-                      else if (tech.type === 'upgrade') effectText = 'Living Room upgrade (see Buildings)';
-                      else if (tech.type === 'culture') effectText = tech.id === 'wellness' ? `+${cfg.effectPercent || 20}% fatigue recovery` : 'Unlocks next level technologies';
-                      
-                      if (isThisResearching) return null;
-                      
-                      return (
-                        <div key={tech.id} style={{background: T.panelBg, borderRadius: '8px', padding: '10px 12px', marginBottom: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderLeft: `4px solid ${treeColor}`, opacity: isResearching ? 0.4 : 1, pointerEvents: isResearching ? 'none' : 'auto'}}>
-                          <div style={{flex: 1}}>
-                            <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
-                              <span style={{fontWeight: 600, color: T.textPrimary}}>{tech.name}</span>
-                              <span style={{fontSize: '0.65rem', background: treeColor + '33', color: treeColor, padding: '1px 6px', borderRadius: '4px'}}>{typeLabel}</span>
-                            </div>
-                            <div style={{color: T.textSecondary, fontSize: '0.75rem', marginTop: '2px'}}>{effectText}</div>
-                          </div>
-                          <button
-                            className="action-button"
-                            style={{marginLeft: '10px', width: '80px', textAlign: 'center', flexShrink: 0, opacity: (!canAfford || isResearching) ? 0.5 : 1}}
-                            disabled={!canAfford || isResearching}
-                            onClick={() => setTechConfirm({...tech, cost, treeColor, effectText, typeLabel})}
-                          >
-                            £{cost.toLocaleString()}
-                          </button>
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
-              );
-            })}
-            <button className="modal-close" onClick={() => setShowTechModal(false)}>Close</button>
-          </div>
-        </div>
-      )}
-
-      {showTechTreeModal && (
-        <div className="modal-overlay" onClick={() => setShowTechTreeModal(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()} style={{maxWidth: '800px', maxHeight: '80vh', overflowY: 'auto'}}>
-            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-              <h2>Tech Tree</h2>
-              <button className="modal-close-x" onClick={() => { setShowTechTreeModal(false); setShowTechModal(true); }}>×</button>
-            </div>
-            {['livingStandards', 'productivity', 'fun'].map(treeName => {
-              const treeLabel = TREE_LABELS[treeName] || treeName;
-              const treeColor = treeName === 'livingStandards' ? T.ls : treeName === 'productivity' ? T.pr : T.pt;
-              const treeTechs = (gameState.techTree || []).filter(t => t.tree === treeName);
-              const l1 = treeTechs.filter(t => t.level === 1);
-              const l2 = treeTechs.filter(t => t.level === 2);
-              const l3 = treeTechs.filter(t => t.level === 3);
-              
-              const isResearched = (id) => gameState.researchedTechs?.includes(id);
-              const isDiscovered = (tech) => {
-                if (isResearched(tech.id)) return true;
-                if (!tech.parent) return true;
-                return isResearched(tech.parent);
-              };
-              
-              const renderTechNode = (tech) => {
-                const researched = isResearched(tech.id);
-                const isBeingResearched = gameState.researchingTech === tech.id;
-                const discovered = isDiscovered(tech);
-                const unavailable = !tech.available;
-                const cfg = gameState.techConfig?.[tech.id] || {};
-                const redacted = !researched && !discovered && !isBeingResearched;
-                
-                return (
-                  <div key={tech.id} style={{
-                    background: isBeingResearched ? T.panelBg + '80' : researched ? treeColor + '22' : T.bg,
-                    border: `2px solid ${isBeingResearched ? T.accentBright : researched ? treeColor : discovered ? T.panelBorder : T.panelBorder + '44'}`,
-                    borderLeft: `4px solid ${isBeingResearched ? T.accentBright : treeColor}${redacted ? '44' : ''}`,
-                    borderRadius: '8px',
-                    padding: '8px 12px',
-                    minWidth: '140px',
-                    textAlign: 'left',
-                    position: 'relative',
-                    overflow: 'hidden'
-                  }}>
-                    <div style={{filter: redacted ? 'blur(5px)' : 'none', userSelect: redacted ? 'none' : 'auto'}}>
-                      <div style={{fontWeight: 600, fontSize: '0.8rem', color: isBeingResearched ? T.accentBright : researched ? treeColor : T.textPrimary}}>{tech.name}</div>
-                      <div style={{fontSize: '0.65rem', color: T.textSecondary, textTransform: 'capitalize'}}>{tech.type.replace('_', ' ')}</div>
-                    </div>
-                    {isBeingResearched && (
-                      <div style={{display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px'}}>
-                        <span style={{fontSize: '0.65rem', display: 'inline-block', animation: 'spin 2s linear infinite'}}>&#9881;</span>
-                        <span style={{fontSize: '0.6rem', color: T.accentBright}}>Researching...</span>
-                      </div>
-                    )}
-                    {researched && <div style={{fontSize: '0.6rem', color: treeColor, marginTop: '2px'}}>Researched</div>}
-                    {redacted && <div style={{fontSize: '0.6rem', color: T.textMuted, marginTop: '2px'}}>???</div>}
-                    {!researched && !isBeingResearched && !redacted && unavailable && <div style={{fontSize: '0.6rem', color: T.negative, marginTop: '2px'}}>Coming Soon</div>}
-                    {!researched && !isBeingResearched && !redacted && !unavailable && discovered && <div style={{fontSize: '0.6rem', color: T.textSecondary, marginTop: '2px'}}>£{cfg.cost || 500}</div>}
-                  </div>
-                );
-              };
-              
-              const root = l1[0];
-              const children = l2.map(l2tech => ({
-                tech: l2tech,
-                children: l3.filter(l3tech => l3tech.parent === l2tech.id)
-              }));
-              
-              return (
-                <div key={treeName} style={{marginBottom: '24px'}}>
-                  <div style={{display: 'flex', gap: '8px', alignItems: 'stretch', paddingBottom: '8px'}}>
-                    <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1}}>
-                      {root && renderTechNode(root)}
-                    </div>
-                    <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', color: T.panelBorder, fontSize: '1rem'}}>
-                      {children.length === 2 ? (
-                        <svg width="24" height="80" viewBox="0 0 24 80" style={{flexShrink: 0}}>
-                          <path d="M 0 40 L 12 40 L 12 15 L 24 15" fill="none" stroke={T.panelBorder} strokeWidth="2"/>
-                          <path d="M 12 40 L 12 65 L 24 65" fill="none" stroke={T.panelBorder} strokeWidth="2"/>
-                        </svg>
-                      ) : <span>→</span>}
-                    </div>
-                    <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '8px', flex: 1}}>
-                      {children.map(branch => (
-                        <div key={branch.tech.id}>{renderTechNode(branch.tech)}</div>
-                      ))}
-                    </div>
-                    <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '8px', flex: 1}}>
-                      {children.map(branch => (
-                        <div key={branch.tech.id} style={{display: 'flex', alignItems: 'center', gap: '4px'}}>
-                          <svg width="16" height={branch.children.length > 1 ? 70 : 30} viewBox={`0 0 16 ${branch.children.length > 1 ? 70 : 30}`} style={{flexShrink: 0}}>
-                            {branch.children.length > 1 ? (
-                              <>
-                                <path d="M 0 35 L 8 35 L 8 12 L 16 12" fill="none" stroke={T.panelBorder} strokeWidth="2"/>
-                                <path d="M 8 35 L 8 58 L 16 58" fill="none" stroke={T.panelBorder} strokeWidth="2"/>
-                              </>
-                            ) : (
-                              <path d="M 0 15 L 16 15" fill="none" stroke={T.panelBorder} strokeWidth="2"/>
-                            )}
-                          </svg>
-                          <div style={{display: 'flex', flexDirection: 'column', gap: '4px', flex: 1}}>
-                            {branch.children.map(l3tech => renderTechNode(l3tech))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {techConfirm && (
-        <div className="modal-overlay" onClick={() => setTechConfirm(null)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()} style={{maxWidth: '380px'}}>
-            <h2>Confirm Research</h2>
-            <p style={{color: T.textPrimary, fontSize: '0.9rem', margin: '12px 0'}}>
-              Research <span style={{color: techConfirm.treeColor, fontWeight: 600}}>{techConfirm.name}</span>?
-            </p>
-            <div style={{background: T.bg, borderRadius: '8px', padding: '12px', marginBottom: '16px'}}>
-              <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '6px'}}>
-                <span style={{color: T.textSecondary}}>Type</span>
-                <span style={{color: techConfirm.treeColor}}>{techConfirm.typeLabel}</span>
-              </div>
-              <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '6px'}}>
-                <span style={{color: T.textSecondary}}>Effect</span>
-                <span style={{color: T.textPrimary, textAlign: 'right', maxWidth: '200px', fontSize: '0.85rem'}}>{techConfirm.effectText}</span>
-              </div>
-              <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '6px'}}>
-                <span style={{color: T.textSecondary}}>Cost</span>
-                <span style={{color: T.negative}}>-£{techConfirm.cost?.toLocaleString()}</span>
-              </div>
-              <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '6px'}}>
-                <span style={{color: T.textSecondary}}>Treasury after</span>
-                <span style={{color: T.textPrimary}}>£{(gameState.treasury - (techConfirm.cost || 0)).toLocaleString()}</span>
-              </div>
-              <div style={{display: 'flex', justifyContent: 'space-between'}}>
-                <span style={{color: T.textSecondary}}>Completes</span>
-                <span style={{color: T.accentBright}}>Next week</span>
-              </div>
-            </div>
-            <div style={{display: 'flex', gap: '8px'}}>
-              <button className="action-button" style={{flex: 1}} onClick={() => handleResearch(techConfirm.id)}>
-                Start Research
-              </button>
-              <button className="modal-close" style={{flex: 1}} onClick={() => setTechConfirm(null)}>
-                Cancel
-              </button>
-            </div>
           </div>
         </div>
       )}
@@ -2787,130 +2259,6 @@ function App({ mode = 'player' }) {
             <button className="action-button" onClick={() => setTechComplete(null)}>
               Done
             </button>
-          </div>
-        </div>
-      )}
-
-      {showRecruitModal && (
-        <div className="modal-overlay" onClick={() => setShowRecruitModal(false)}>
-          <div className="modal recruit-modal" onClick={(e) => e.stopPropagation()}>
-            <h2>Llama Recruitment</h2>
-            {gameState.hasRecruitedThisWeek ? (
-              <>
-                {recruitedInfo?.llama ? (
-                  <>
-                    <p className="recruit-intro" style={{color: T.positive}}>Recruited this week</p>
-                    <div className="candidate-list">
-                      <div className="candidate-card" style={{border: `1px solid ${T.positive}`}}>
-                        <div className="candidate-header">
-                          <h3>{recruitedInfo.llama.name}</h3>
-                          <span className="candidate-age">{recruitedInfo.llama.age} years old</span>
-                        </div>
-                        <p className="candidate-bio">{recruitedInfo.llama.bio}</p>
-                        <div className="candidate-stats">
-                          <div className="stat-row"><span>Sharing</span><span>{recruitedInfo.llama.stats.sharingTolerance}</span></div>
-                          <div className="stat-row"><span>Cooking</span><span>{recruitedInfo.llama.stats.cookingSkill}</span></div>
-                          <div className="stat-row"><span>Tidiness</span><span>{recruitedInfo.llama.stats.tidiness}</span></div>
-                          <div className="stat-row"><span>Handiness</span><span>{recruitedInfo.llama.stats.handiness}</span></div>
-                          <div className="stat-row"><span>Consideration</span><span>{recruitedInfo.llama.stats.consideration}</span></div>
-                          <div className="stat-row"><span>Sociability</span><span>{recruitedInfo.llama.stats.sociability}</span></div>
-                          <div className="stat-row"><span>Party Stamina</span><span>{recruitedInfo.llama.stats.partyStamina}</span></div>
-                          <div className="stat-row"><span>Work Ethic</span><span>{recruitedInfo.llama.stats.workEthic}</span></div>
-                        </div>
-                        <div style={{textAlign: 'center', color: T.positive, fontSize: '0.85rem', marginTop: '8px'}}>
-                          Arriving {recruitedInfo.arrivalDayName}
-                        </div>
-                      </div>
-                      {recruitedInfo.rejected?.map(r => (
-                        <div key={r.id} className="candidate-card" style={{border: `1px solid ${T.panelBorder}`, opacity: 0.5, textDecoration: 'line-through', position: 'relative'}}>
-                          <div className="candidate-header">
-                            <h3>{r.name}</h3>
-                            <span className="candidate-age">{r.age} years old</span>
-                          </div>
-                          <p className="candidate-bio">{r.bio}</p>
-                          <div className="candidate-stats">
-                            <div className="stat-row"><span>Sharing</span><span>{r.stats.sharingTolerance}</span></div>
-                            <div className="stat-row"><span>Cooking</span><span>{r.stats.cookingSkill}</span></div>
-                            <div className="stat-row"><span>Tidiness</span><span>{r.stats.tidiness}</span></div>
-                            <div className="stat-row"><span>Handiness</span><span>{r.stats.handiness}</span></div>
-                            <div className="stat-row"><span>Consideration</span><span>{r.stats.consideration}</span></div>
-                            <div className="stat-row"><span>Sociability</span><span>{r.stats.sociability}</span></div>
-                            <div className="stat-row"><span>Party Stamina</span><span>{r.stats.partyStamina}</span></div>
-                            <div className="stat-row"><span>Work Ethic</span><span>{r.stats.workEthic}</span></div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <p className="recruit-intro" style={{color: T.positive}}>Recruited this week</p>
-                    {gameState.pendingArrivals?.length > 0 && (
-                      <div style={{background: T.panelBg, borderRadius: '8px', padding: '12px', marginBottom: '12px', borderLeft: `4px solid ${T.positive}`}}>
-                        {gameState.pendingArrivals.map(r => (
-                          <div key={r.id || r.name} style={{color: T.textPrimary, fontSize: '0.9rem'}}>
-                            {r.name} arriving {['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][r.arrivalDay-1]}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </>
-                )}
-              </>
-            ) : gameState.residents + (gameState.pendingArrivals?.length || 0) >= gameState.capacity ? (
-              <p className="recruit-intro" style={{color: T.negative}}>No room available. Build more bedrooms to recruit.</p>
-            ) : (
-              <>
-                <p className="recruit-intro">Choose 1 of these 3 aspiring llamas, or pass this week.</p>
-                {recruitCandidates.length === 0 ? (
-                  <p className="no-candidates">No available llamas to recruit!</p>
-                ) : (
-                  <div className="candidate-list">
-                    {recruitCandidates.map(llama => (
-                      <div key={llama.id} className="candidate-card">
-                        <div className="candidate-header">
-                          <h3>{llama.name}</h3>
-                          <span className="candidate-age">{llama.age} years old</span>
-                        </div>
-                        <p className="candidate-bio">{llama.bio}</p>
-                        <div className="candidate-stats">
-                          <div className="stat-row"><span>Sharing</span><span>{llama.stats.sharingTolerance}</span></div>
-                          <div className="stat-row"><span>Cooking</span><span>{llama.stats.cookingSkill}</span></div>
-                          <div className="stat-row"><span>Tidiness</span><span>{llama.stats.tidiness}</span></div>
-                          <div className="stat-row"><span>Handiness</span><span>{llama.stats.handiness}</span></div>
-                          <div className="stat-row"><span>Consideration</span><span>{llama.stats.consideration}</span></div>
-                          <div className="stat-row"><span>Sociability</span><span>{llama.stats.sociability}</span></div>
-                          <div className="stat-row"><span>Party Stamina</span><span>{llama.stats.partyStamina}</span></div>
-                          <div className="stat-row"><span>Work Ethic</span><span>{llama.stats.workEthic}</span></div>
-                        </div>
-                        <button className="invite-button" onClick={() => setPendingInvite(llama)}>
-                          Invite
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </>
-            )}
-            <button className="modal-close" onClick={() => setShowRecruitModal(false)}>
-              Close
-            </button>
-          </div>
-        </div>
-      )}
-
-      {pendingInvite && (
-        <div className="modal-overlay" onClick={() => setPendingInvite(null)}>
-          <div className="modal confirm-modal" onClick={(e) => e.stopPropagation()}>
-            <h2>Invite {pendingInvite.name}?</h2>
-            <div className="confirm-buttons">
-              <button className="confirm-btn confirm" onClick={() => { handleInvite(pendingInvite.id); setPendingInvite(null); }}>
-                Confirm
-              </button>
-              <button className="confirm-btn cancel" onClick={() => setPendingInvite(null)}>
-                Cancel
-              </button>
-            </div>
           </div>
         </div>
       )}
