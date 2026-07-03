@@ -22,7 +22,25 @@ server/
   state.js         ← Shared mutable game state
   utils.js         ← Scoring functions (log2CoverageScore, dampener, baseline, statTo01)
 client/
-  src/App.jsx      ← Monolithic 186K React frontend with dev tools panel
+  src/App.jsx      ← Shell only: state polling, view routing, action handlers, modal mounting (~650 lines)
+  src/hooks/
+    useGameClock.js          ← Client-side clock animation (pause sync, reset)
+  src/selectors/
+    buildDashboardProps.js   ← Pure gameState → dashboard-props mapping
+  src/components/            ← Player UI
+    TopBar.jsx VitalsBar.jsx ActionHub.jsx SkyZone.jsx        ← Dashboard chrome (top strip / vitals / action dock / sky)
+    RecruitModal.jsx BuildModal.jsx PoliciesModal.jsx ResearchModal.jsx  ← Player action modals
+    CompletionModal.jsx      ← Shared build/policy/research "complete" toast
+    GameOverScreen.jsx FortLlamaLanding.jsx
+    ActionButton.jsx MiniGauge.jsx ModalShell.jsx PixelIcon.jsx PolicyChip.jsx
+    ResidentChip.jsx Sparkline.jsx StatBar.jsx TreasuryRow.jsx ← Shared leaves
+    theme.js dashboard.css
+  src/components/devtools/   ← Dev tools subtree (dev build only, mounted via DevToolsPanel)
+    DevToolsPanel.jsx        ← Root: header actions + section composition
+    BasicSettingsSection.jsx ProgressionSection.jsx HealthMetricsSection.jsx
+    PrimitivesSection.jsx MechanicsSection.jsx ScoringSection.jsx
+    TechTreeEditor.jsx       ← Tech config cards + SVG connector measurement
+    LlamaPoolEditor.jsx BuildingsEditor.jsx InfoPopup.jsx
 tools/
   simulate.js      ← Headless simulator for balance testing (see below)
 docs/
@@ -138,8 +156,17 @@ The game uses a **debt-driven startup model**. The player starts with 4 resident
 
 - **Accumulator rates tuned**: Budget-as-base model with activity fatigue. Tech investment stabilises accumulators. At N=4, only fatigue accumulates (~7.5/week). At N=12, all three accumulators build without tech.
 - **Starting vibes**: ~29 ("Scrappy") at N=4 — within design target of 15–35.
-- **Client monolithic**: App.jsx is 186K and needs decomposition (future task, not blocking balance work).
+- ~~**Client monolithic**: App.jsx is 186K and needs decomposition~~ — resolved by Phase 7.5 (client component extraction). App.jsx is a ~650-line shell; see Client Architecture Constraints below for keeping it that way.
 - **saved-defaults.json**: Persistence mechanism that overrides config.js with stale values. Delete the file when config changes aren't reflected in-game.
+
+## Client Architecture Constraints
+
+These exist because App.jsx re-monolithised once already (Phase 7.5 was the cleanup). Hold the line:
+
+1. **`App.jsx` scope is fixed.** It contains state polling, view routing, action handlers, and top-level modal mounting only. No subsystem rendering. If a new feature would require more than ~30 lines of JSX in `App.jsx`, extract a component first.
+2. **Dev tools are a subtree, not a sibling of player UI.** Dev tools components live under `client/src/components/devtools/`. `App.jsx` mounts the root `DevToolsPanel.jsx` (plus the editor modals it opens) and nothing more. The Dashboard/Dev Tools switcher renders only in the dev build (`dev.html` → `main-dev.jsx` → `mode="dev"`); the public build must never expose dev tools.
+3. **Claude.ai artifacts are visual specs, not code deliverables.** When implementing from a `.jsx` artifact handed over from Claude.ai, treat the artifact as a mockup: its layout, behaviour, and styling are the spec; its single-file structure is not. Decompose it into appropriate existing or new components before writing code. Do not paste an artifact wholesale into any single file. Before implementing, list which existing components will be touched and which new ones will be created, and confirm the plan.
+4. **Architecture docs must match reality.** If a phase is marked complete but subsystems have been deferred, mark it partially complete and open a follow-up phase. Do not overclaim.
 
 ## Running the Game
 
