@@ -54,7 +54,7 @@ export const BUDGET_DISPLAY = {
   drive:        { name: 'Internet',       color: T.pr },
   cleanliness:  { name: 'Cleaning',       color: T.ls },
   maintenance:  { name: 'Repairs',        color: T.ls },
-  fatigue:      { name: 'Wellness',       color: T.pt },
+  fatigue:      { name: 'Recovery',       color: T.pt },
 };
 
 // Server stat keys → display labels
